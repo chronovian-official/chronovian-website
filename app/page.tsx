@@ -710,7 +710,7 @@ export default function Home() {
         <div className="hero-lines" />
         <div className="hero-ornament" />
         <div className="hero-content">
-          <p className="hero-eyebrow">Est. 2025 — By Appointment Only</p>
+          <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
           <h1 className="hero-title">
             Where Time<br />
             Becomes <em>Art</em>
@@ -739,7 +739,7 @@ export default function Home() {
             </div>
           </div>
           <p className="hero-launch-date">
-            Opening <span>June 25, 2025</span> — Hyderabad, Telangana, India
+            Opening <span>June 25, 2026</span> — Hyderabad, Telangana, India
           </p>
           <div className="hero-cta-group">
             <a href="#appointment" className="btn-primary">Request Early Access</a>
@@ -893,7 +893,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p className="footer-copy">© 2025 Chronovian. All rights reserved.</p>
+            <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
             <div className="footer-social">
               <a href="#">Instagram</a>
               <a href="#">WhatsApp</a>
