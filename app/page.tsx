@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const LAUNCH_DATE = new Date("2025-06-25T00:00:00");
+const LAUNCH_DATE = new Date("2026-06-25T00:00:00");
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState({
@@ -739,7 +739,7 @@ export default function Home() {
             </div>
           </div>
           <p className="hero-launch-date">
-            Opening <span>June 25, 2025</span> — Dubai, UAE
+            Opening <span>June 25, 2025</span> — Hyderabad, Telangana, India
           </p>
           <div className="hero-cta-group">
             <a href="#appointment" className="btn-primary">Request Early Access</a>
