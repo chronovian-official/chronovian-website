@@ -5,21 +5,11 @@ import { useEffect, useState } from "react";
 const LAUNCH_DATE = new Date("2026-06-25T00:00:00");
 
 function useCountdown() {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   useEffect(() => {
     const update = () => {
-      const now = new Date();
-      const diff = LAUNCH_DATE.getTime() - now.getTime();
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        return;
-      }
+      const diff = LAUNCH_DATE.getTime() - new Date().getTime();
+      if (diff <= 0) return;
       setTimeLeft({
         days: Math.floor(diff / (1000 * 60 * 60 * 24)),
         hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -31,877 +21,474 @@ function useCountdown() {
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
-
   return timeLeft;
 }
 
+const heroSlides = [
+  { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", sub: "Premium Watches & Fine Jewellery" },
+  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", sub: "By Appointment Only — Dubai, UAE" },
+  { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
+];
+
+const featuredWatches = [
+  { img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=80", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=600&q=80", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=600&q=80", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Sold" },
+  { img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=600&q=80", brand: "A. Lange & Söhne", model: "Datograph", ref: "Ref. 405.035", status: "Available" },
+];
+
 export default function Home() {
   const { days, hours, minutes, seconds } = useCountdown();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const [page, setPage] = useState<"home" | "contact">("home");
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+  }, [menuOpen]);
+
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-          --gold: #C9A84C;
-          --gold-light: #E8D5A3;
-          --gold-dark: #8B6914;
-          --silver: #C0C0C0;
-          --silver-light: #E8E8E8;
-          --black: #080808;
-          --black-soft: #111111;
-          --black-mid: #1A1A1A;
-          --white: #F5F0E8;
+          --gold: #B8935A; --gold-light: #D4AA78; --black: #0A0A0A;
+          --gray-dark: #2C2C2C; --gray-mid: #6B6B6B; --gray-light: #ADADAD;
+          --gray-pale: #F5F3F0; --white: #FAFAF8; --border: rgba(0,0,0,0.09);
         }
-
         html { scroll-behavior: smooth; }
+        body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-        body {
-          background: var(--black);
-          color: var(--white);
-          font-family: 'Montserrat', sans-serif;
-          font-weight: 300;
-          overflow-x: hidden;
-        }
+        .topbar { background: var(--black); color: rgba(255,255,255,0.55); text-align: center; padding: 0.55rem 1rem; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; }
+        .topbar a { color: #D4AA78; text-decoration: none; }
 
-        /* NAV */
-        nav {
-          position: fixed;
-          top: 0; left: 0; right: 0;
-          z-index: 100;
-          padding: 1.5rem 3rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          transition: background 0.4s, backdrop-filter 0.4s;
-        }
-        nav.scrolled {
-          background: rgba(8,8,8,0.92);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(201,168,76,0.15);
-        }
-        .nav-logo {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.6rem;
-          font-weight: 300;
-          letter-spacing: 0.3em;
-          color: var(--gold);
-          text-transform: uppercase;
-          text-decoration: none;
-        }
-        .nav-links {
-          display: flex;
-          gap: 2.5rem;
-          list-style: none;
-        }
-        .nav-links a {
-          color: var(--silver-light);
-          text-decoration: none;
-          font-size: 0.7rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          transition: color 0.3s;
-        }
-        .nav-links a:hover { color: var(--gold); }
-        .nav-cta {
-          background: transparent;
-          border: 1px solid var(--gold);
-          color: var(--gold);
-          padding: 0.6rem 1.5rem;
-          font-family: 'Montserrat', sans-serif;
-          font-size: 0.65rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.3s;
-          text-decoration: none;
-        }
-        .nav-cta:hover {
-          background: var(--gold);
-          color: var(--black);
-        }
+        nav { position: sticky; top: 0; z-index: 200; background: rgba(250,250,248,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
+        nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.25rem; min-width: 140px; }
+        .nav-right { justify-content: flex-end; }
+        .hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 6px; }
+        .hamburger span { display: block; width: 20px; height: 1px; background: var(--black); transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
+        .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-decoration: none; text-transform: uppercase; cursor: pointer; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-icon { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; }
+        .nav-icon:hover { color: var(--gold); }
+        .nav-book { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; transition: color 0.2s; white-space: nowrap; }
+        .nav-book:hover { color: var(--gold); }
 
-        /* HERO */
-        .hero {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-          padding: 6rem 2rem 4rem;
-        }
-        .hero-bg {
-          position: absolute;
-          inset: 0;
-          background:
-            radial-gradient(ellipse 80% 60% at 50% 40%, rgba(201,168,76,0.07) 0%, transparent 70%),
-            radial-gradient(ellipse 60% 40% at 20% 80%, rgba(192,192,192,0.04) 0%, transparent 60%),
-            linear-gradient(180deg, #080808 0%, #0f0d09 100%);
-        }
-        .hero-lines {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
-          background-size: 60px 60px;
-          mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 80%);
-        }
-        .hero-ornament {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 600px;
-          border: 1px solid rgba(201,168,76,0.06);
-          border-radius: 50%;
-          pointer-events: none;
-        }
-        .hero-ornament::before {
-          content: '';
-          position: absolute;
-          inset: 40px;
-          border: 1px solid rgba(201,168,76,0.05);
-          border-radius: 50%;
-        }
-        .hero-content {
-          position: relative;
-          z-index: 2;
-          max-width: 800px;
-        }
-        .hero-eyebrow {
-          font-size: 0.65rem;
-          letter-spacing: 0.4em;
-          text-transform: uppercase;
-          color: var(--gold);
-          margin-bottom: 2rem;
-          animation: fadeUp 1s ease both;
-        }
-        .hero-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(3.5rem, 8vw, 7rem);
-          font-weight: 300;
-          line-height: 1;
-          letter-spacing: 0.05em;
-          color: var(--white);
-          margin-bottom: 1.5rem;
-          animation: fadeUp 1s ease 0.2s both;
-        }
-        .hero-title em {
-          font-style: italic;
-          color: var(--gold);
-        }
-        .hero-subtitle {
-          font-size: 0.75rem;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          color: var(--silver);
-          margin-bottom: 3rem;
-          animation: fadeUp 1s ease 0.4s both;
-        }
-        .hero-divider {
-          width: 60px;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, var(--gold), transparent);
-          margin: 0 auto 3rem;
-          animation: fadeUp 1s ease 0.5s both;
-        }
+        .overlay-menu { position: fixed; inset: 0; background: var(--white); z-index: 190; display: flex; flex-direction: column; padding: 5rem 2.5rem 3rem; transform: translateX(-100%); transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); overflow-y: auto; }
+        .overlay-menu.open { transform: translateX(0); }
+        .menu-logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.15em; color: var(--black); margin-bottom: 2.5rem; text-transform: uppercase; }
+        .menu-links { list-style: none; margin-bottom: 2rem; }
+        .menu-links li { border-bottom: 1px solid var(--border); }
+        .menu-links li a, .menu-links li button { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; transition: color 0.2s; }
+        .menu-links li a:hover, .menu-links li button:hover { color: var(--gold); }
+        .menu-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+        .menu-contacts { list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        .menu-contacts a { display: flex; align-items: center; gap: 1rem; color: var(--gray-dark); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
+        .menu-contacts a:hover { color: var(--gold); }
+        .menu-socials { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+        .menu-socials a { display: flex; align-items: center; gap: 1rem; color: var(--gray-mid); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .menu-socials a:hover { color: var(--gold); }
 
-        /* COUNTDOWN */
-        .countdown {
-          display: flex;
-          gap: 2rem;
-          justify-content: center;
-          margin-bottom: 3.5rem;
-          animation: fadeUp 1s ease 0.6s both;
-        }
-        .countdown-unit {
-          text-align: center;
-          min-width: 70px;
-        }
-        .countdown-number {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(2.5rem, 5vw, 4rem);
-          font-weight: 300;
-          color: var(--gold);
-          line-height: 1;
-          display: block;
-        }
-        .countdown-label {
-          font-size: 0.55rem;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          color: var(--silver);
-          margin-top: 0.5rem;
-          display: block;
-        }
-        .countdown-sep {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 3rem;
-          color: rgba(201,168,76,0.3);
-          line-height: 1;
-          align-self: flex-start;
-          padding-top: 0.2rem;
-        }
-        .hero-launch-date {
-          font-size: 0.65rem;
-          letter-spacing: 0.3em;
-          color: var(--silver);
-          text-transform: uppercase;
-          margin-bottom: 3rem;
-          animation: fadeUp 1s ease 0.7s both;
-        }
-        .hero-launch-date span {
-          color: var(--gold);
-        }
-        .hero-cta-group {
-          display: flex;
-          gap: 1.5rem;
-          justify-content: center;
-          flex-wrap: wrap;
-          animation: fadeUp 1s ease 0.8s both;
-        }
-        .btn-primary {
-          background: var(--gold);
-          color: var(--black);
-          border: none;
-          padding: 1rem 2.5rem;
-          font-family: 'Montserrat', sans-serif;
-          font-size: 0.65rem;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.3s;
-          text-decoration: none;
-          display: inline-block;
-        }
-        .btn-primary:hover {
-          background: var(--gold-light);
-          transform: translateY(-2px);
-        }
-        .btn-secondary {
-          background: transparent;
-          color: var(--white);
-          border: 1px solid rgba(192,192,192,0.4);
-          padding: 1rem 2.5rem;
-          font-family: 'Montserrat', sans-serif;
-          font-size: 0.65rem;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.3s;
-          text-decoration: none;
-          display: inline-block;
-        }
-        .btn-secondary:hover {
-          border-color: var(--silver);
-          color: var(--silver-light);
-          transform: translateY(-2px);
-        }
+        .hero { position: relative; height: calc(100svh - 86px); min-height: 500px; overflow: hidden; background: #111; }
+        .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
+        .hero-slide.active { opacity: 1; }
+        .hero-slide img { width: 100%; height: 100%; object-fit: cover; opacity: 0.72; }
+        .hero-gradient { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.55) 100%); }
+        .hero-content { position: absolute; bottom: 3.5rem; left: 3rem; right: 3rem; color: white; }
+        .hero-eyebrow { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 1rem; }
+        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.4rem; }
+        .hero-title em { font-style: italic; color: #D4AA78; }
+        .hero-sub { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 2rem; margin-top: 0.75rem; }
+        .hero-cta { display: inline-flex; align-items: center; gap: 0.75rem; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+        .hero-cta:hover { color: #D4AA78; border-color: #D4AA78; }
+        .hero-dots { position: absolute; bottom: 2rem; right: 3rem; display: flex; gap: 0.5rem; }
+        .hero-dot { width: 20px; height: 1px; background: rgba(255,255,255,0.35); cursor: pointer; transition: background 0.3s, width 0.3s; border: none; padding: 0; }
+        .hero-dot.active { background: white; width: 36px; }
 
-        /* MARQUEE */
-        .marquee-wrap {
-          border-top: 1px solid rgba(201,168,76,0.15);
-          border-bottom: 1px solid rgba(201,168,76,0.15);
-          padding: 1rem 0;
-          overflow: hidden;
-          background: rgba(201,168,76,0.03);
-        }
-        .marquee-track {
-          display: flex;
-          gap: 4rem;
-          animation: marquee 30s linear infinite;
-          width: max-content;
-        }
-        .marquee-item {
-          font-size: 0.6rem;
-          letter-spacing: 0.35em;
-          text-transform: uppercase;
-          color: var(--gold);
-          white-space: nowrap;
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-        }
-        .marquee-item::after {
-          content: '◆';
-          font-size: 0.4rem;
-          color: rgba(201,168,76,0.4);
-        }
+        .countdown-strip { background: var(--gray-pale); border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+        .countdown-label-text { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gray-mid); }
+        .countdown-units { display: flex; gap: 2rem; align-items: center; }
+        .countdown-unit { text-align: center; }
+        .countdown-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; color: var(--black); display: block; line-height: 1; }
+        .countdown-lbl { font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-top: 0.3rem; display: block; }
+        .countdown-sep { color: var(--gray-light); font-size: 1.2rem; }
 
-        /* ABOUT */
-        .about {
-          padding: 8rem 3rem;
-          max-width: 900px;
-          margin: 0 auto;
-          text-align: center;
-        }
-        .section-eyebrow {
-          font-size: 0.6rem;
-          letter-spacing: 0.4em;
-          text-transform: uppercase;
-          color: var(--gold);
-          margin-bottom: 1.5rem;
-        }
-        .section-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(2rem, 4vw, 3.5rem);
-          font-weight: 300;
-          line-height: 1.2;
-          margin-bottom: 2rem;
-          color: var(--white);
-        }
-        .section-title em {
-          font-style: italic;
-          color: var(--gold);
-        }
-        .section-body {
-          font-size: 0.85rem;
-          line-height: 2;
-          color: var(--silver);
-          max-width: 600px;
-          margin: 0 auto 3rem;
-        }
-        .gold-line {
-          width: 40px;
-          height: 1px;
-          background: var(--gold);
-          margin: 2rem auto;
-        }
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-eyebrow { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; display: block; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 300; color: var(--black); line-height: 1.25; }
+        .section-title em { font-style: italic; }
+        .gold-rule { width: 32px; height: 1px; background: var(--gold); margin: 1.25rem auto 0; }
 
-        /* CATEGORIES */
-        .categories {
-          padding: 4rem 3rem 8rem;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        .categories-header {
-          text-align: center;
-          margin-bottom: 4rem;
-        }
-        .categories-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 2px;
-        }
-        .category-card {
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-          aspect-ratio: 4/5;
-          background: var(--black-mid);
-        }
-        .category-card:first-child {
-          aspect-ratio: 3/4;
-        }
-        .category-placeholder {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 8rem;
-          color: rgba(201,168,76,0.08);
-          transition: transform 0.6s ease;
-        }
-        .category-card:hover .category-placeholder {
-          transform: scale(1.05);
-        }
-        .category-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(180deg, transparent 40%, rgba(8,8,8,0.9) 100%);
-        }
-        .category-content {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 2.5rem;
-        }
-        .category-tag {
-          font-size: 0.55rem;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          color: var(--gold);
-          margin-bottom: 0.75rem;
-          display: block;
-        }
-        .category-name {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 2.5rem;
-          font-weight: 300;
-          color: var(--white);
-          display: block;
-          margin-bottom: 1rem;
-        }
-        .category-link {
-          font-size: 0.6rem;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          color: var(--silver);
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          transition: color 0.3s;
-        }
-        .category-link::after {
-          content: '→';
-          transition: transform 0.3s;
-        }
-        .category-card:hover .category-link {
-          color: var(--gold);
-        }
-        .category-card:hover .category-link::after {
-          transform: translateX(4px);
-        }
-        .category-border {
-          position: absolute;
-          inset: 16px;
-          border: 1px solid rgba(201,168,76,0);
-          transition: border-color 0.4s;
-          pointer-events: none;
-        }
-        .category-card:hover .category-border {
-          border-color: rgba(201,168,76,0.2);
-        }
+        .featured { padding: 5rem 2.5rem; max-width: 1300px; margin: 0 auto; }
+        .featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+        .watch-card { cursor: pointer; }
+        .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; }
+        .watch-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
+        .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
+        .watch-status.sold { background: var(--black); color: white; }
+        .watch-brand { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
+        .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; }
+        .watch-ref { font-size: 0.65rem; color: var(--gray-mid); }
+        .featured-footer { text-align: center; margin-top: 3rem; }
+        .btn-outline { display: inline-block; border: 1px solid var(--black); color: var(--black); text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.3s; background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; }
+        .btn-outline:hover { background: var(--black); color: white; }
+        .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
+        .btn-gold:hover { background: var(--gold-light); }
 
-        /* PILLARS */
-        .pillars {
-          padding: 8rem 3rem;
-          background: var(--black-soft);
-          border-top: 1px solid rgba(201,168,76,0.1);
-          border-bottom: 1px solid rgba(201,168,76,0.1);
-        }
-        .pillars-inner {
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-        .pillars-header {
-          text-align: center;
-          margin-bottom: 5rem;
-        }
-        .pillars-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 3rem;
-        }
-        .pillar {
-          text-align: center;
-          padding: 2.5rem 1.5rem;
-          border: 1px solid rgba(201,168,76,0.1);
-          transition: border-color 0.3s, background 0.3s;
-        }
-        .pillar:hover {
-          border-color: rgba(201,168,76,0.3);
-          background: rgba(201,168,76,0.03);
-        }
-        .pillar-icon {
-          font-size: 2rem;
-          margin-bottom: 1.5rem;
-          display: block;
-        }
-        .pillar-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.4rem;
-          font-weight: 400;
-          color: var(--gold);
-          margin-bottom: 1rem;
-        }
-        .pillar-body {
-          font-size: 0.75rem;
-          line-height: 1.9;
-          color: var(--silver);
-        }
+        .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #ddd; }
+        .cat-card { position: relative; overflow: hidden; aspect-ratio: 16/10; cursor: pointer; }
+        .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
+        .cat-card:hover img { transform: scale(1.04); }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65) 100%); }
+        .cat-content { position: absolute; bottom: 2rem; left: 2rem; color: white; }
+        .cat-tag { font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: #D4AA78; display: block; margin-bottom: 0.4rem; }
+        .cat-name { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; display: block; margin-bottom: 0.75rem; }
+        .cat-link { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; transition: color 0.2s, border-color 0.2s; }
+        .cat-card:hover .cat-link { color: #D4AA78; border-color: #D4AA78; }
 
-        /* APPOINTMENT */
-        .appointment {
-          padding: 10rem 3rem;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-        .appointment-bg {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%);
-        }
-        .appointment-content {
-          position: relative;
-          z-index: 1;
-          max-width: 700px;
-          margin: 0 auto;
-        }
-        .appointment-form {
-          display: flex;
-          gap: 0;
-          max-width: 480px;
-          margin: 2.5rem auto 0;
-        }
-        .appointment-input {
-          flex: 1;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(201,168,76,0.2);
-          border-right: none;
-          color: var(--white);
-          padding: 1rem 1.25rem;
-          font-family: 'Montserrat', sans-serif;
-          font-size: 0.7rem;
-          letter-spacing: 0.1em;
-          outline: none;
-          transition: border-color 0.3s;
-        }
-        .appointment-input::placeholder {
-          color: rgba(192,192,192,0.4);
-        }
-        .appointment-input:focus {
-          border-color: rgba(201,168,76,0.5);
-        }
-        .appointment-submit {
-          background: var(--gold);
-          color: var(--black);
-          border: none;
-          padding: 1rem 1.5rem;
-          font-family: 'Montserrat', sans-serif;
-          font-size: 0.65rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: background 0.3s;
-          white-space: nowrap;
-        }
-        .appointment-submit:hover {
-          background: var(--gold-light);
-        }
+        .about-strip { padding: 5rem 2.5rem; max-width: 700px; margin: 0 auto; text-align: center; }
+        .about-body { font-size: 0.88rem; line-height: 2; color: var(--gray-mid); margin: 1.5rem 0 2.5rem; }
 
-        /* FOOTER */
-        footer {
-          padding: 4rem 3rem 2rem;
-          border-top: 1px solid rgba(201,168,76,0.1);
-          background: var(--black);
-        }
-        .footer-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        .footer-top {
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr 1fr;
-          gap: 3rem;
-          margin-bottom: 4rem;
-        }
-        .footer-brand-name {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.8rem;
-          font-weight: 300;
-          letter-spacing: 0.3em;
-          color: var(--gold);
-          text-transform: uppercase;
-          margin-bottom: 1rem;
-          display: block;
-        }
-        .footer-tagline {
-          font-size: 0.7rem;
-          line-height: 1.8;
-          color: var(--silver);
-          max-width: 250px;
-        }
-        .footer-col-title {
-          font-size: 0.6rem;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          color: var(--gold);
-          margin-bottom: 1.5rem;
-        }
-        .footer-links {
-          list-style: none;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-        .footer-links a {
-          color: var(--silver);
-          text-decoration: none;
-          font-size: 0.75rem;
-          transition: color 0.3s;
-        }
-        .footer-links a:hover { color: var(--gold); }
-        .footer-bottom {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-top: 2rem;
-          border-top: 1px solid rgba(255,255,255,0.06);
-        }
-        .footer-copy {
-          font-size: 0.65rem;
-          color: rgba(192,192,192,0.4);
-          letter-spacing: 0.1em;
-        }
-        .footer-social {
-          display: flex;
-          gap: 1.5rem;
-        }
-        .footer-social a {
-          font-size: 0.6rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: rgba(192,192,192,0.5);
-          text-decoration: none;
-          transition: color 0.3s;
-        }
+        .pillars { background: var(--black); padding: 5rem 2.5rem; }
+        .pillars-inner { max-width: 1100px; margin: 0 auto; }
+        .pillars-inner .section-title { color: white; }
+        .pillars-inner .section-eyebrow { color: #D4AA78; }
+        .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.08); margin-top: 3rem; }
+        .pillar { padding: 2.5rem 2rem; background: var(--black); transition: background 0.3s; }
+        .pillar:hover { background: #111; }
+        .pillar-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); opacity: 0.4; display: block; margin-bottom: 1.25rem; }
+        .pillar-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; color: white; margin-bottom: 0.75rem; }
+        .pillar-body { font-size: 0.75rem; line-height: 1.9; color: rgba(255,255,255,0.45); }
+
+        .contact-page { min-height: 80vh; padding: 5rem 2.5rem; max-width: 900px; margin: 0 auto; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 3.5rem; }
+        .contact-info h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; margin-bottom: 1.5rem; color: var(--black); }
+        .contact-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: flex-start; }
+        .contact-item-icon { font-size: 1rem; margin-top: 2px; color: var(--gold); flex-shrink: 0; }
+        .contact-item-text { font-size: 0.8rem; line-height: 1.7; color: var(--gray-mid); }
+        .contact-item-text a { color: var(--black); text-decoration: none; transition: color 0.2s; }
+        .contact-item-text a:hover { color: var(--gold); }
+        .contact-item-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); display: block; margin-bottom: 0.25rem; }
+        .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
+        .form-input, .form-select, .form-textarea { background: var(--gray-pale); border: 1px solid var(--border); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.8rem; color: var(--black); outline: none; transition: border-color 0.2s; width: 100%; font-weight: 300; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+        .form-textarea { resize: vertical; min-height: 120px; }
+
+        footer { background: var(--gray-pale); border-top: 1px solid var(--border); padding: 3.5rem 2.5rem 2rem; }
+        .footer-inner { max-width: 1200px; margin: 0 auto; }
+        .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.1rem; letter-spacing: 0.2em; color: var(--black); text-transform: uppercase; display: block; margin-bottom: 0.75rem; }
+        .footer-tagline { font-size: 0.72rem; line-height: 1.8; color: var(--gray-mid); max-width: 220px; }
+        .footer-col-title { font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--black); margin-bottom: 1.25rem; display: block; }
+        .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+        .footer-links a, .footer-links button { color: var(--gray-mid); text-decoration: none; font-size: 0.75rem; transition: color 0.2s; background: none; border: none; cursor: pointer; padding: 0; text-align: left; font-family: 'Jost', sans-serif; font-weight: 300; }
+        .footer-links a:hover, .footer-links button:hover { color: var(--gold); }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
+        .footer-copy { font-size: 0.62rem; color: var(--gray-light); letter-spacing: 0.05em; }
+        .footer-social { display: flex; gap: 1.5rem; }
+        .footer-social a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); text-decoration: none; transition: color 0.2s; }
         .footer-social a:hover { color: var(--gold); }
 
-        /* ANIMATIONS */
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
+        .whatsapp-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 52px; height: 52px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.4rem; box-shadow: 0 4px 16px rgba(37,211,102,0.35); z-index: 100; transition: transform 0.2s, box-shadow 0.2s; }
+        .whatsapp-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(37,211,102,0.45); }
 
         @media (max-width: 768px) {
-          nav { padding: 1.25rem 1.5rem; }
-          .nav-links { display: none; }
-          .hero { padding: 5rem 1.5rem 3rem; }
-          .countdown { gap: 1rem; }
-          .categories-grid { grid-template-columns: 1fr; }
+          .featured-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+          .categories { grid-template-columns: 1fr; }
           .pillars-grid { grid-template-columns: 1fr; }
           .footer-top { grid-template-columns: 1fr 1fr; }
-          .appointment-form { flex-direction: column; }
-          .appointment-input { border-right: 1px solid rgba(201,168,76,0.2); border-bottom: none; }
-          .about, .categories, .appointment { padding-left: 1.5rem; padding-right: 1.5rem; }
+          .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+          .hero-content { left: 1.5rem; right: 1.5rem; bottom: 2.5rem; }
+          .countdown-strip { gap: 1.5rem; }
+          nav { padding: 0 1.25rem; }
         }
       `}</style>
 
-      {/* NAV */}
-      <nav className={scrolled ? "scrolled" : ""}>
-        <a href="#" className="nav-logo">Chronovian</a>
-        <ul className="nav-links">
-          <li><a href="#about">About</a></li>
-          <li><a href="#collections">Collections</a></li>
-          <li><a href="#appointment">Appointment</a></li>
-          <li><a href="#contact">Contact</a></li>
-        </ul>
-        <a href="#appointment" className="nav-cta">Book a Visit</a>
-      </nav>
-
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="hero-lines" />
-        <div className="hero-ornament" />
-        <div className="hero-content">
-          <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
-          <h1 className="hero-title">
-            Where Time<br />
-            Becomes <em>Art</em>
-          </h1>
-          <p className="hero-subtitle">Premium Watches & Fine Jewellery</p>
-          <div className="hero-divider" />
-          <div className="countdown">
-            <div className="countdown-unit">
-              <span className="countdown-number">{String(days).padStart(2, "0")}</span>
-              <span className="countdown-label">Days</span>
-            </div>
-            <span className="countdown-sep">:</span>
-            <div className="countdown-unit">
-              <span className="countdown-number">{String(hours).padStart(2, "0")}</span>
-              <span className="countdown-label">Hours</span>
-            </div>
-            <span className="countdown-sep">:</span>
-            <div className="countdown-unit">
-              <span className="countdown-number">{String(minutes).padStart(2, "0")}</span>
-              <span className="countdown-label">Minutes</span>
-            </div>
-            <span className="countdown-sep">:</span>
-            <div className="countdown-unit">
-              <span className="countdown-number">{String(seconds).padStart(2, "0")}</span>
-              <span className="countdown-label">Seconds</span>
-            </div>
-          </div>
-          <p className="hero-launch-date">
-            Opening <span>June 25, 2026</span> — Hyderabad, Telangana, India
-          </p>
-          <div className="hero-cta-group">
-            <a href="#appointment" className="btn-primary">Request Early Access</a>
-            <a href="#collections" className="btn-secondary">Explore Collections</a>
-          </div>
-        </div>
-      </section>
-
-      {/* MARQUEE */}
-      <div className="marquee-wrap">
-        <div className="marquee-track">
-          {[...Array(2)].map((_, i) =>
-            ["Haute Horlogerie", "Fine Jewellery", "By Appointment Only", "Premium Timepieces", "Exclusive Curation", "Dubai — UAE", "Bespoke Experience", "Investment Pieces"].map((t, j) => (
-              <span key={`${i}-${j}`} className="marquee-item">{t}</span>
-            ))
-          )}
-        </div>
+      <div className="topbar">
+        By Appointment Only &nbsp;·&nbsp; <a href="mailto:info@chronovian.com">info@chronovian.com</a> &nbsp;·&nbsp; Opening June 25, 2026 — Dubai, UAE
       </div>
 
-      {/* ABOUT */}
-      <section className="about" id="about">
-        <p className="section-eyebrow">Our Philosophy</p>
-        <h2 className="section-title">
-          An Experience <em>Beyond</em><br />the Ordinary
-        </h2>
-        <div className="gold-line" />
-        <p className="section-body">
-          Chronovian is not merely a store — it is a sanctuary for those who understand
-          that true luxury is measured not in price, but in provenance, craftsmanship,
-          and the singular joy of owning something extraordinary. Every piece in our
-          collection is hand-selected for its heritage, artistry, and investment value.
-        </p>
-        <a href="#appointment" className="btn-primary">Schedule a Private Viewing</a>
-      </section>
-
-      {/* CATEGORIES */}
-      <section className="categories" id="collections">
-        <div className="categories-header">
-          <p className="section-eyebrow">Our Collections</p>
-          <h2 className="section-title">Curated for the <em>Discerning</em></h2>
+      <nav className={scrolled ? "scrolled" : ""}>
+        <div className="nav-left">
+          <button className={`hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
+            <span /><span /><span />
+          </button>
         </div>
-        <div className="categories-grid">
-          <div className="category-card">
-            <div className="category-placeholder">⌚</div>
-            <div className="category-overlay" />
-            <div className="category-border" />
-            <div className="category-content">
-              <span className="category-tag">Haute Horlogerie</span>
-              <span className="category-name">Timepieces</span>
-              <a href="#" className="category-link">Explore Collection</a>
+        <span className="nav-logo" onClick={() => { setPage("home"); setMenuOpen(false); }}>Chronovian</span>
+        <div className="nav-right">
+          <a href="https://wa.me/971000000000" target="_blank" className="nav-icon">💬</a>
+          <a href="mailto:info@chronovian.com" className="nav-icon">✉️</a>
+          <a href="mailto:info@chronovian.com?subject=Book a Visit" className="nav-book">Book a Visit</a>
+        </div>
+      </nav>
+
+      <div className={`overlay-menu${menuOpen ? " open" : ""}`}>
+        <span className="menu-logo">Chronovian</span>
+        <ul className="menu-links">
+          {[
+            { label: "New Arrivals", href: "#featured" },
+            { label: "Watches", href: "#collections" },
+            { label: "Jewellery", href: "#collections" },
+            { label: "Book Appointment", href: "mailto:info@chronovian.com?subject=Book Appointment" },
+          ].map(item => (
+            <li key={item.label}><a href={item.href} onClick={() => setMenuOpen(false)}>{item.label} <span>›</span></a></li>
+          ))}
+          <li><button onClick={() => { setPage("contact"); setMenuOpen(false); }}>Contact Us <span>›</span></button></li>
+        </ul>
+        <div className="menu-divider" />
+        <ul className="menu-contacts">
+          <li><a href="mailto:info@chronovian.com"><span>✉️</span> info@chronovian.com</a></li>
+          <li><a href="https://wa.me/971000000000" target="_blank"><span>💬</span> WhatsApp</a></li>
+        </ul>
+        <div className="menu-divider" />
+        <ul className="menu-socials">
+          <li><a href="https://instagram.com/chronovian" target="_blank"><span>📷</span> Instagram</a></li>
+          <li><a href="#"><span>📘</span> Facebook</a></li>
+        </ul>
+      </div>
+
+      {page === "contact" ? (
+        <main>
+          <div className="contact-page">
+            <div className="section-header" style={{textAlign:"left"}}>
+              <span className="section-eyebrow">Get in Touch</span>
+              <h1 className="section-title">Contact <em>Chronovian</em></h1>
+              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+            </div>
+            <div className="contact-grid">
+              <div className="contact-info">
+                <h3>We'd love to hear from you</h3>
+                <div className="contact-item">
+                  <span className="contact-item-icon">✉️</span>
+                  <div className="contact-item-text">
+                    <span className="contact-item-label">Email</span>
+                    <a href="mailto:info@chronovian.com">info@chronovian.com</a>
+                  </div>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-item-icon">💬</span>
+                  <div className="contact-item-text">
+                    <span className="contact-item-label">WhatsApp</span>
+                    <a href="https://wa.me/971000000000" target="_blank">+971 00 000 0000</a>
+                  </div>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-item-icon">📍</span>
+                  <div className="contact-item-text">
+                    <span className="contact-item-label">Location</span>
+                    Dubai, UAE — Address revealed upon appointment confirmation
+                  </div>
+                </div>
+                <div className="contact-item">
+                  <span className="contact-item-icon">🕐</span>
+                  <div className="contact-item-text">
+                    <span className="contact-item-label">Hours</span>
+                    By appointment only<br />Sunday – Thursday: 10am – 7pm
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
+                <form className="contact-form" onSubmit={e => { e.preventDefault(); window.location.href = "mailto:info@chronovian.com?subject=Website Enquiry"; }}>
+                  <div className="form-group">
+                    <label className="form-label">Full Name</label>
+                    <input className="form-input" type="text" placeholder="Your name" required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input className="form-input" type="email" placeholder="your@email.com" required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Enquiry Type</label>
+                    <select className="form-select">
+                      <option>Book an Appointment</option>
+                      <option>Watch Enquiry</option>
+                      <option>Jewellery Enquiry</option>
+                      <option>General Enquiry</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Message</label>
+                    <textarea className="form-textarea" placeholder="Tell us how we can help..." />
+                  </div>
+                  <button type="submit" className="btn-gold">Send Enquiry</button>
+                </form>
+              </div>
             </div>
           </div>
-          <div className="category-card">
-            <div className="category-placeholder">💎</div>
-            <div className="category-overlay" />
-            <div className="category-border" />
-            <div className="category-content">
-              <span className="category-tag">Fine Jewellery</span>
-              <span className="category-name">Jewellery</span>
-              <a href="#" className="category-link">Explore Collection</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PILLARS */}
-      <section className="pillars">
-        <div className="pillars-inner">
-          <div className="pillars-header">
-            <p className="section-eyebrow">The Chronovian Difference</p>
-            <h2 className="section-title">Why Our Clients <em>Choose</em> Us</h2>
-          </div>
-          <div className="pillars-grid">
-            {[
-              { icon: "🔒", title: "Absolute Privacy", body: "Every visit is conducted with the utmost discretion. Your experience, your collection, your story — kept entirely confidential." },
-              { icon: "✦", title: "Curated Excellence", body: "Each piece is individually authenticated, assessed for investment merit, and selected to meet our uncompromising standards of provenance." },
-              { icon: "🤝", title: "Personal Service", body: "Your dedicated advisor guides you through every acquisition — from discovery to delivery — ensuring a seamless, bespoke journey." },
-            ].map((p) => (
-              <div key={p.title} className="pillar">
-                <span className="pillar-icon">{p.icon}</span>
-                <h3 className="pillar-title">{p.title}</h3>
-                <p className="pillar-body">{p.body}</p>
+        </main>
+      ) : (
+        <main>
+          <section className="hero">
+            {heroSlides.map((s, i) => (
+              <div key={i} className={`hero-slide${slide === i ? " active" : ""}`}>
+                <img src={s.img} alt={s.headline} />
               </div>
             ))}
-          </div>
-        </div>
-      </section>
+            <div className="hero-gradient" />
+            <div className="hero-content">
+              <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
+              <h1 className="hero-title">{heroSlides[slide].headline}<br /><em>{heroSlides[slide].subheadline}</em></h1>
+              <p className="hero-sub">{heroSlides[slide].sub}</p>
+              <a href="mailto:info@chronovian.com?subject=Early Access Request" className="hero-cta">Request Early Access →</a>
+            </div>
+            <div className="hero-dots">
+              {heroSlides.map((_, i) => (
+                <button key={i} className={`hero-dot${slide === i ? " active" : ""}`} onClick={() => setSlide(i)} />
+              ))}
+            </div>
+          </section>
 
-      {/* APPOINTMENT */}
-      <section className="appointment" id="appointment">
-        <div className="appointment-bg" />
-        <div className="appointment-content">
-          <p className="section-eyebrow">Private Viewings</p>
-          <h2 className="section-title">
-            Begin Your <em>Journey</em>
-          </h2>
-          <div className="gold-line" />
-          <p className="section-body">
-            Register your interest and be among the first to experience Chronovian.
-            Our team will reach out to schedule your private viewing ahead of our
-            June 25 opening.
-          </p>
-          <div className="appointment-form">
-            <input
-              type="email"
-              className="appointment-input"
-              placeholder="Your email address"
-            />
-            <button className="appointment-submit">Request Access</button>
+          <div className="countdown-strip">
+            <span className="countdown-label-text">Opening In</span>
+            <div className="countdown-units">
+              <div className="countdown-unit"><span className="countdown-num">{String(days).padStart(2,"0")}</span><span className="countdown-lbl">Days</span></div>
+              <span className="countdown-sep">:</span>
+              <div className="countdown-unit"><span className="countdown-num">{String(hours).padStart(2,"0")}</span><span className="countdown-lbl">Hours</span></div>
+              <span className="countdown-sep">:</span>
+              <div className="countdown-unit"><span className="countdown-num">{String(minutes).padStart(2,"0")}</span><span className="countdown-lbl">Min</span></div>
+              <span className="countdown-sep">:</span>
+              <div className="countdown-unit"><span className="countdown-num">{String(seconds).padStart(2,"0")}</span><span className="countdown-lbl">Sec</span></div>
+            </div>
+            <span className="countdown-label-text">June 25, 2026 — Dubai</span>
           </div>
-        </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer id="contact">
+          <section className="featured" id="featured">
+            <div className="section-header">
+              <span className="section-eyebrow">New Arrivals</span>
+              <h2 className="section-title">Featured <em>Timepieces</em></h2>
+              <div className="gold-rule" />
+            </div>
+            <div className="featured-grid">
+              {featuredWatches.map((w, i) => (
+                <div className="watch-card" key={i}>
+                  <div className="watch-img-wrap">
+                    <img src={w.img} alt={`${w.brand} ${w.model}`} />
+                    <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
+                  </div>
+                  <span className="watch-brand">{w.brand}</span>
+                  <span className="watch-model">{w.model}</span>
+                  <span className="watch-ref">{w.ref}</span>
+                </div>
+              ))}
+            </div>
+            <div className="featured-footer">
+              <a href="mailto:info@chronovian.com?subject=Collection Enquiry" className="btn-outline">Enquire About Collection</a>
+            </div>
+          </section>
+
+          <section className="categories" id="collections">
+            {[
+              { img: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=900&q=80", tag: "Haute Horlogerie", name: "Watches", link: "mailto:info@chronovian.com?subject=Watch Enquiry" },
+              { img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80", tag: "Fine Jewellery", name: "Jewellery", link: "mailto:info@chronovian.com?subject=Jewellery Enquiry" },
+            ].map(cat => (
+              <div className="cat-card" key={cat.name}>
+                <img src={cat.img} alt={cat.name} />
+                <div className="cat-overlay" />
+                <div className="cat-content">
+                  <span className="cat-tag">{cat.tag}</span>
+                  <span className="cat-name">{cat.name}</span>
+                  <a href={cat.link} className="cat-link">Enquire Now</a>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <section className="about-strip">
+            <span className="section-eyebrow">Our Philosophy</span>
+            <h2 className="section-title">A Sanctuary for the <em>Extraordinary</em></h2>
+            <div className="gold-rule" />
+            <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
+            <button className="btn-outline" onClick={() => setPage("contact")}>Schedule a Private Viewing</button>
+          </section>
+
+          <section className="pillars">
+            <div className="pillars-inner">
+              <div className="section-header">
+                <span className="section-eyebrow">The Chronovian Difference</span>
+                <h2 className="section-title">Why Our Clients <em>Choose</em> Us</h2>
+              </div>
+              <div className="pillars-grid">
+                {[
+                  { num: "01", title: "Absolute Privacy", body: "Every visit is conducted with the utmost discretion. Your collection, your story — kept entirely confidential." },
+                  { num: "02", title: "Curated Excellence", body: "Each piece is individually authenticated and selected to meet our uncompromising standards of provenance and artistry." },
+                  { num: "03", title: "Personal Service", body: "Your dedicated advisor guides you through every acquisition — from discovery to delivery — ensuring a seamless journey." },
+                ].map(p => (
+                  <div className="pillar" key={p.num}>
+                    <span className="pillar-num">{p.num}</span>
+                    <h3 className="pillar-title">{p.title}</h3>
+                    <p className="pillar-body">{p.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </main>
+      )}
+
+      <footer>
         <div className="footer-inner">
           <div className="footer-top">
             <div>
-              <span className="footer-brand-name">Chronovian</span>
-              <p className="footer-tagline">
-                A sanctuary for extraordinary timepieces and fine jewellery.
-                By appointment only.
-              </p>
+              <span className="footer-brand">Chronovian</span>
+              <p className="footer-tagline">A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Dubai, UAE.</p>
             </div>
             <div>
-              <p className="footer-col-title">Collections</p>
+              <span className="footer-col-title">Collections</span>
               <ul className="footer-links">
-                <li><a href="#">Timepieces</a></li>
-                <li><a href="#">Jewellery</a></li>
-                <li><a href="#">New Arrivals</a></li>
-                <li><a href="#">Investment Pieces</a></li>
+                <li><a href="mailto:info@chronovian.com?subject=Watch Enquiry">Timepieces</a></li>
+                <li><a href="mailto:info@chronovian.com?subject=Jewellery Enquiry">Jewellery</a></li>
+                <li><a href="mailto:info@chronovian.com?subject=New Arrivals">New Arrivals</a></li>
               </ul>
             </div>
             <div>
-              <p className="footer-col-title">Visit Us</p>
+              <span className="footer-col-title">Visit Us</span>
               <ul className="footer-links">
-                <li><a href="#">Book Appointment</a></li>
-                <li><a href="#">Our Location</a></li>
-                <li><a href="#">Opening Hours</a></li>
-                <li><a href="#">Contact Us</a></li>
+                <li><a href="mailto:info@chronovian.com?subject=Book Appointment">Book Appointment</a></li>
+                <li><button onClick={() => setPage("contact")}>Contact Us</button></li>
+                <li><a href="https://wa.me/971000000000" target="_blank">WhatsApp</a></li>
               </ul>
             </div>
             <div>
-              <p className="footer-col-title">Company</p>
+              <span className="footer-col-title">Company</span>
               <ul className="footer-links">
-                <li><a href="#">About Us</a></li>
+                <li><a href="#">About Chronovian</a></li>
                 <li><a href="#">Authentication</a></li>
                 <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
+            <p className="footer-copy">© 2025 Chronovian. All rights reserved.</p>
             <div className="footer-social">
-              <a href="#">Instagram</a>
-              <a href="#">WhatsApp</a>
-              <a href="#">LinkedIn</a>
+              <a href="https://instagram.com/chronovian" target="_blank">Instagram</a>
+              <a href="https://wa.me/971000000000" target="_blank">WhatsApp</a>
+              <a href="#">Facebook</a>
             </div>
           </div>
         </div>
       </footer>
+
+      <a href="https://wa.me/971000000000" target="_blank" className="whatsapp-fab">💬</a>
     </>
   );
 }
