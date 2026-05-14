@@ -26,7 +26,7 @@ function useCountdown() {
 
 const heroSlides = [
   { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", sub: "Premium Watches & Fine Jewellery" },
-  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", sub: "By Appointment Only — Dubai, UAE" },
+  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", sub: "By Appointment Only — Hyderabad, Telangana, India" },
   { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
 ];
 
@@ -224,7 +224,7 @@ export default function Home() {
       `}</style>
 
       <div className="topbar">
-        By Appointment Only &nbsp;·&nbsp; <a href="mailto:info@chronovian.com">info@chronovian.com</a> &nbsp;·&nbsp; Opening June 25, 2026 — Dubai, UAE
+        By Appointment Only &nbsp;·&nbsp; <a href="mailto:info@chronovian.com">info@chronovian.com</a> &nbsp;·&nbsp; Opening June 25, 2026 — Hyderabad, Telangana, India
       </div>
 
       <nav className={scrolled ? "scrolled" : ""}>
@@ -235,7 +235,7 @@ export default function Home() {
         </div>
         <span className="nav-logo" onClick={() => { setPage("home"); setMenuOpen(false); }}>Chronovian</span>
         <div className="nav-right">
-          <a href="https://wa.me/971000000000" target="_blank" className="nav-icon">💬</a>
+          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
           <a href="mailto:info@chronovian.com" className="nav-icon">✉️</a>
           <a href="mailto:info@chronovian.com?subject=Book a Visit" className="nav-book">Book a Visit</a>
         </div>
@@ -257,7 +257,7 @@ export default function Home() {
         <div className="menu-divider" />
         <ul className="menu-contacts">
           <li><a href="mailto:info@chronovian.com"><span>✉️</span> info@chronovian.com</a></li>
-          <li><a href="https://wa.me/971000000000" target="_blank"><span>💬</span> WhatsApp</a></li>
+          <li><a href="https://wa.me/910000000000" target="_blank"><span>💬</span> WhatsApp</a></li>
         </ul>
         <div className="menu-divider" />
         <ul className="menu-socials">
@@ -288,21 +288,21 @@ export default function Home() {
                   <span className="contact-item-icon">💬</span>
                   <div className="contact-item-text">
                     <span className="contact-item-label">WhatsApp</span>
-                    <a href="https://wa.me/971000000000" target="_blank">+971 00 000 0000</a>
+                    <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a>
                   </div>
                 </div>
                 <div className="contact-item">
                   <span className="contact-item-icon">📍</span>
                   <div className="contact-item-text">
                     <span className="contact-item-label">Location</span>
-                    Dubai, UAE — Address revealed upon appointment confirmation
+                    Hyderabad, Telangana, India — Address revealed upon appointment confirmation
                   </div>
                 </div>
                 <div className="contact-item">
                   <span className="contact-item-icon">🕐</span>
                   <div className="contact-item-text">
                     <span className="contact-item-label">Hours</span>
-                    By appointment only<br />Sunday – Thursday: 10am – 7pm
+                    By appointment only<br />Monday – Saturday: 10am – 7pm
                   </div>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export default function Home() {
               <span className="countdown-sep">:</span>
               <div className="countdown-unit"><span className="countdown-num">{String(seconds).padStart(2,"0")}</span><span className="countdown-lbl">Sec</span></div>
             </div>
-            <span className="countdown-label-text">June 25, 2026 — Dubai</span>
+            <span className="countdown-label-text">June 25, 2026 — Hyderabad</span>
           </div>
 
           <section className="featured" id="featured">
@@ -445,12 +445,44 @@ export default function Home() {
         </main>
       )}
 
+      {/* PAYMENT METHODS */}
+      <div style={{background:"var(--white)", borderTop:"1px solid var(--border)", borderBottom:"1px solid var(--border)", padding:"1.5rem 2.5rem"}}>
+        <div style={{maxWidth:"1200px", margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", gap:"1.5rem", flexWrap:"wrap"}}>
+          <span style={{fontSize:"0.55rem", letterSpacing:"0.22em", textTransform:"uppercase", color:"var(--gray-light)", marginRight:"1rem"}}>Secure Payments</span>
+          {[
+            { label: "UPI", bg: "#5F259F", color: "white", desc: "Pay via UPI" },
+            { label: "GPay", bg: "#4285F4", color: "white", desc: "Google Pay" },
+            { label: "PhonePe", bg: "#5F259F", color: "white", desc: "PhonePe" },
+            { label: "Paytm", bg: "#00BAF2", color: "white", desc: "Paytm" },
+            { label: "VISA", bg: "#1A1F71", color: "white", desc: "Visa Card" },
+            { label: "MC", bg: "#EB001B", color: "white", desc: "Mastercard" },
+            { label: "RuPay", bg: "#007A3D", color: "white", desc: "RuPay Card" },
+            { label: "NEFT", bg: "#F5F3F0", color: "#333", desc: "Bank Transfer" },
+            { label: "EMI", bg: "#F5F3F0", color: "#333", desc: "Easy EMI" },
+          ].map(pm => (
+            <div key={pm.label} title={pm.desc} style={{
+              background: pm.bg,
+              color: pm.color,
+              padding: "0.35rem 0.75rem",
+              borderRadius: "4px",
+              fontSize: "0.6rem",
+              fontWeight: 500,
+              letterSpacing: "0.05em",
+              border: pm.bg === "#F5F3F0" ? "1px solid #ddd" : "none",
+              minWidth: "44px",
+              textAlign: "center",
+            }}>{pm.label}</div>
+          ))}
+          <span style={{fontSize:"0.6rem", color:"var(--gray-light)", marginLeft:"0.5rem"}}>🔒 SSL Secured</span>
+        </div>
+      </div>
+
       <footer>
         <div className="footer-inner">
           <div className="footer-top">
             <div>
               <span className="footer-brand">Chronovian</span>
-              <p className="footer-tagline">A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Dubai, UAE.</p>
+              <p className="footer-tagline">A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Hyderabad, Telangana, India.</p>
             </div>
             <div>
               <span className="footer-col-title">Collections</span>
@@ -465,7 +497,7 @@ export default function Home() {
               <ul className="footer-links">
                 <li><a href="mailto:info@chronovian.com?subject=Book Appointment">Book Appointment</a></li>
                 <li><button onClick={() => setPage("contact")}>Contact Us</button></li>
-                <li><a href="https://wa.me/971000000000" target="_blank">WhatsApp</a></li>
+                <li><a href="https://wa.me/910000000000" target="_blank">WhatsApp</a></li>
               </ul>
             </div>
             <div>
@@ -481,14 +513,14 @@ export default function Home() {
             <p className="footer-copy">© 2025 Chronovian. All rights reserved.</p>
             <div className="footer-social">
               <a href="https://instagram.com/chronovian" target="_blank">Instagram</a>
-              <a href="https://wa.me/971000000000" target="_blank">WhatsApp</a>
+              <a href="https://wa.me/910000000000" target="_blank">WhatsApp</a>
               <a href="#">Facebook</a>
             </div>
           </div>
         </div>
       </footer>
 
-      <a href="https://wa.me/971000000000" target="_blank" className="whatsapp-fab">💬</a>
+      <a href="https://wa.me/910000000000" target="_blank" className="whatsapp-fab">💬</a>
     </>
   );
 }
