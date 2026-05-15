@@ -72,39 +72,16 @@ export default function Home() {
         html { scroll-behavior: smooth; }
         body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-        nav { position: sticky; top: 0; z-index: 200; background: rgba(250,250,248,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
+        nav { position: sticky; top: 0; z-index: 200; background: rgba(250,250,248,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2.5rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.25rem; min-width: 140px; }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 2rem; flex: 1; }
         .nav-right { justify-content: flex-end; }
-        .hamburger { background: none; border: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 6px; }
-        .hamburger span { display: block; width: 20px; height: 1px; background: var(--black); transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
-        .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-        .hamburger.open span:nth-child(2) { opacity: 0; }
-        .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-decoration: none; text-transform: uppercase; cursor: pointer; position: absolute; left: 50%; transform: translateX(-50%); }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-decoration: none; text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
         .nav-icon { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; }
         .nav-icon:hover { color: var(--gold); }
-        .nav-book { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; transition: color 0.2s; white-space: nowrap; }
-        .nav-book:hover { color: var(--gold); }
-        .nav-links-left { display: flex; align-items: center; gap: 1.75rem; }
         .nav-link { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover { color: var(--gold); }
-        @media (max-width: 900px) { .nav-links-left { display: none; } .nav-right .nav-link { display: none; } }
-
-        .overlay-menu { position: fixed; inset: 0; background: var(--white); z-index: 190; display: flex; flex-direction: column; padding: 5rem 2.5rem 3rem; transform: translateX(-100%); transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); overflow-y: auto; }
-        .overlay-menu.open { transform: translateX(0); }
-        .menu-logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.15em; color: var(--black); margin-bottom: 2.5rem; text-transform: uppercase; }
-        .menu-links { list-style: none; margin-bottom: 2rem; }
-        .menu-links li { border-bottom: 1px solid var(--border); }
-        .menu-links li a, .menu-links li button { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; width: 100%; transition: color 0.2s; }
-        .menu-links li a:hover, .menu-links li button:hover { color: var(--gold); }
-        .menu-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
-        .menu-contacts { list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
-        .menu-contacts a { display: flex; align-items: center; gap: 1rem; color: var(--gray-dark); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
-        .menu-contacts a:hover { color: var(--gold); }
-        .menu-socials { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
-        .menu-socials a { display: flex; align-items: center; gap: 1rem; color: var(--gray-mid); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-        .menu-socials a:hover { color: var(--gold); }
+        @media (max-width: 900px) { .nav-left .nav-link, .nav-right .nav-link { display: none; } }
 
         .hero { position: relative; height: calc(100svh - 86px); min-height: 500px; overflow: hidden; background: #111; }
         .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
@@ -226,47 +203,18 @@ export default function Home() {
 
       <nav className={scrolled ? "scrolled" : ""}>
         <div className="nav-left">
-          <button className={`hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
-            <span /><span /><span />
-          </button>
-          <div className="nav-links-left">
-            <a href="#featured" className="nav-link">Watches</a>
-            <a href="#collections" className="nav-link">Jewellery</a>
-            <a href="#collections" className="nav-link">Bags</a>
-          </div>
+          <a href="#featured" className="nav-link">Watches</a>
+          <a href="#collections" className="nav-link">Jewellery</a>
+          <a href="#collections" className="nav-link">Bags</a>
+          <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="nav-link">Sell</a>
         </div>
-        <span className="nav-logo" onClick={() => { setPage("home"); setMenuOpen(false); }}>Chronovian</span>
+        <span className="nav-logo" onClick={() => setPage("home")}>Chronovian</span>
         <div className="nav-right">
           <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
           <button className="nav-link" onClick={() => setPage("contact")}>Contact Us</button>
           <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
         </div>
       </nav>
-
-      <div className={`overlay-menu${menuOpen ? " open" : ""}`}>
-        <span className="menu-logo">Chronovian</span>
-        <ul className="menu-links">
-          {[
-            { label: "New Arrivals", href: "#featured" },
-            { label: "Watches", href: "#collections" },
-            { label: "Jewellery", href: "#collections" },
-            { label: "Book Appointment", href: "mailto:info@chronovian.com?subject=Book Appointment" },
-          ].map(item => (
-            <li key={item.label}><a href={item.href} onClick={() => setMenuOpen(false)}>{item.label} <span>›</span></a></li>
-          ))}
-          <li><button onClick={() => { setPage("contact"); setMenuOpen(false); }}>Contact Us <span>›</span></button></li>
-        </ul>
-        <div className="menu-divider" />
-        <ul className="menu-contacts">
-          <li><a href="mailto:info@chronovian.com"><span>✉️</span> info@chronovian.com</a></li>
-          <li><a href="https://wa.me/910000000000" target="_blank"><span>💬</span> WhatsApp</a></li>
-        </ul>
-        <div className="menu-divider" />
-        <ul className="menu-socials">
-          <li><a href="https://instagram.com/chronovian" target="_blank"><span>📷</span> Instagram</a></li>
-          <li><a href="#"><span>📘</span> Facebook</a></li>
-        </ul>
-      </div>
 
       {page === "contact" ? (
         <main>
