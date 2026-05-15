@@ -45,10 +45,26 @@ export default function Home() {
   const [page, setPage] = useState<"home" | "contact">("home");
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+
+  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const goHome = () => {
+    setPage("home");
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goContact = () => {
+    setPage("contact");
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
@@ -212,29 +228,29 @@ export default function Home() {
 
       <nav className={scrolled ? "scrolled" : ""}>
         <div className="nav-left">
-          <a href="#featured" className="nav-link">Watches</a>
-          <a href="#collections" className="nav-link">Jewellery</a>
-          <a href="#collections" className="nav-link">Bags</a>
-          <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="nav-link">Sell</a>
-        </div>
-        <span className="nav-logo" onClick={() => setPage("home")}>Chronovian</span>
-        <div className="nav-right">
-          <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
-          <button className="nav-link" onClick={() => setPage("contact")}>Contact Us</button>
-          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
           <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
+          <a href="#featured" className="nav-link" onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>Watches</a>
+          <a href="#collections" className="nav-link" onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>Jewellery</a>
+          <a href="#collections" className="nav-link" onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>Bags</a>
+          <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="nav-link">Sell</a>
+        </div>
+        <span className="nav-logo" onClick={goHome}>Chronovian</span>
+        <div className="nav-right">
+          <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
+          <button className="nav-link" onClick={goContact}>Contact Us</button>
+          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
         </div>
       </nav>
 
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
-        <a href="#featured" onClick={() => setMenuOpen(false)}>Watches</a>
-        <a href="#collections" onClick={() => setMenuOpen(false)}>Jewellery</a>
-        <a href="#collections" onClick={() => setMenuOpen(false)}>Bags</a>
+        <button onClick={() => { setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); }}>Watches</button>
+        <button onClick={() => { setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); }}>Jewellery</button>
+        <button onClick={() => { setMenuOpen(false); window.scrollTo({top:0,behavior:"smooth"}); }}>Bags</button>
         <a href="mailto:info@chronovian.com?subject=Sell My Watch" onClick={() => setMenuOpen(false)}>Sell</a>
         <a href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
-        <button onClick={() => { setPage("contact"); setMenuOpen(false); }}>Contact Us</button>
+        <button onClick={goContact}>Contact Us</button>
         <a href="https://wa.me/910000000000" target="_blank" onClick={() => setMenuOpen(false)}>WhatsApp</a>
       </div>
 
@@ -389,7 +405,7 @@ export default function Home() {
             <h2 className="section-title">A Sanctuary for the <em>Extraordinary</em></h2>
             <div className="gold-rule" />
             <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
-            <button className="btn-outline" onClick={() => setPage("contact")}>Schedule a Private Viewing</button>
+            <button className="btn-outline" onClick={goContact}>Schedule a Private Viewing</button>
           </section>
 
           <section className="pillars">
@@ -467,7 +483,7 @@ export default function Home() {
               <span className="footer-col-title">Visit Us</span>
               <ul className="footer-links">
                 <li><a href="mailto:info@chronovian.com?subject=Book Appointment">Book Appointment</a></li>
-                <li><button onClick={() => setPage("contact")}>Contact Us</button></li>
+                <li><button onClick={goContact}>Contact Us</button></li>
                 <li><a href="https://wa.me/910000000000" target="_blank">WhatsApp</a></li>
               </ul>
             </div>
