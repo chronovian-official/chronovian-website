@@ -72,9 +72,6 @@ export default function Home() {
         html { scroll-behavior: smooth; }
         body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-        .topbar { background: var(--black); color: rgba(255,255,255,0.55); text-align: center; padding: 0.55rem 1rem; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; }
-        .topbar a { color: #D4AA78; text-decoration: none; }
-
         nav { position: sticky; top: 0; z-index: 200; background: rgba(250,250,248,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
         .nav-left, .nav-right { display: flex; align-items: center; gap: 1.25rem; min-width: 140px; }
@@ -89,6 +86,10 @@ export default function Home() {
         .nav-icon:hover { color: var(--gold); }
         .nav-book { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; transition: color 0.2s; white-space: nowrap; }
         .nav-book:hover { color: var(--gold); }
+        .nav-links-left { display: flex; align-items: center; gap: 1.75rem; }
+        .nav-link { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; white-space: nowrap; padding: 0; }
+        .nav-link:hover { color: var(--gold); }
+        @media (max-width: 900px) { .nav-links-left { display: none; } .nav-right .nav-link { display: none; } }
 
         .overlay-menu { position: fixed; inset: 0; background: var(--white); z-index: 190; display: flex; flex-direction: column; padding: 5rem 2.5rem 3rem; transform: translateX(-100%); transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); overflow-y: auto; }
         .overlay-menu.open { transform: translateX(0); }
@@ -223,21 +224,22 @@ export default function Home() {
         }
       `}</style>
 
-      <div className="topbar">
-        By Appointment Only &nbsp;·&nbsp; <a href="mailto:info@chronovian.com">info@chronovian.com</a> &nbsp;·&nbsp; Opening June 25, 2026 — Hyderabad, Telangana, India
-      </div>
-
       <nav className={scrolled ? "scrolled" : ""}>
         <div className="nav-left">
           <button className={`hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
+          <div className="nav-links-left">
+            <a href="#featured" className="nav-link">Watches</a>
+            <a href="#collections" className="nav-link">Jewellery</a>
+            <a href="#collections" className="nav-link">Bags</a>
+          </div>
         </div>
         <span className="nav-logo" onClick={() => { setPage("home"); setMenuOpen(false); }}>Chronovian</span>
         <div className="nav-right">
+          <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
+          <button className="nav-link" onClick={() => setPage("contact")}>Contact Us</button>
           <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
-          <a href="mailto:info@chronovian.com" className="nav-icon">✉️</a>
-          <a href="mailto:info@chronovian.com?subject=Book a Visit" className="nav-book">Book a Visit</a>
         </div>
       </nav>
 
