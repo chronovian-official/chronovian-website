@@ -30,11 +30,21 @@ const heroSlides = [
   { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
 ];
 
-const featuredWatches = [
-  { img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=80", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=600&q=80", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=600&q=80", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Sold" },
-  { img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=600&q=80", brand: "A. Lange & Söhne", model: "Datograph", ref: "Ref. 405.035", status: "Available" },
+const allWatches = [
+  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=600&q=85", brand: "Rolex", model: "Submariner", ref: "Ref. 126610LN", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=600&q=85", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=600&q=85", brand: "Rolex", model: "GMT-Master II", ref: "Ref. 126710BLRO", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=600&q=85", brand: "Rolex", model: "Datejust 41", ref: "Ref. 126334", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=600&q=85", brand: "Rolex", model: "Day-Date 40", ref: "Ref. 228238", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=600&q=85", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO.1220ST.01", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1616485828847-7e63a1e28b1b?w=600&q=85", brand: "Audemars Piguet", model: "Royal Oak Offshore", ref: "Ref. 26400IO.OO.A004CA.01", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=600&q=85", brand: "Audemars Piguet", model: "Code 11.59", ref: "Ref. 15210BC.OO.A002KB.01", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=85", brand: "Audemars Piguet", model: "Royal Oak Chronograph", ref: "Ref. 26331ST.OO.1220ST.02", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1622434641406-a158123450f9?w=600&q=85", brand: "Audemars Piguet", model: "Royal Oak Perpetual Calendar", ref: "Ref. 26574ST.OO.1220ST.02", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=600&q=85", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=600&q=85", brand: "Patek Philippe", model: "Aquanaut", ref: "Ref. 5167A-001", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1495857000853-fe46c8aefc31?w=600&q=85", brand: "Patek Philippe", model: "Calatrava", ref: "Ref. 5196G-001", status: "Available" },
+  { img: "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?w=600&q=85", brand: "Patek Philippe", model: "Annual Calendar", ref: "Ref. 5396G-011", status: "Available" },
 ];
 
 export default function Home() {
@@ -42,6 +52,15 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [watchPage, setWatchPage] = useState(0);
+  const watchesPerPage = 4;
+  const totalWatchPages = Math.ceil(allWatches.length / watchesPerPage);
+  const visibleWatches = allWatches.slice(watchPage * watchesPerPage, (watchPage + 1) * watchesPerPage);
+
+  useEffect(() => {
+    const id = setInterval(() => setWatchPage(p => (p + 1) % totalWatchPages), 4000);
+    return () => clearInterval(id);
+  }, [totalWatchPages]);
   const [page, setPage] = useState<"home" | "contact">("home");
 
   useEffect(() => {
@@ -361,13 +380,13 @@ export default function Home() {
 
           <section className="featured" id="featured">
             <div className="section-header">
-              <span className="section-eyebrow">New Arrivals</span>
+              <span className="section-eyebrow">Our Collection</span>
               <h2 className="section-title">Featured <em>Timepieces</em></h2>
               <div className="gold-rule" />
             </div>
             <div className="featured-grid">
-              {featuredWatches.map((w, i) => (
-                <div className="watch-card" key={i}>
+              {visibleWatches.map((w, i) => (
+                <div className="watch-card" key={`${watchPage}-${i}`}>
                   <div className="watch-img-wrap">
                     <img src={w.img} alt={`${w.brand} ${w.model}`} />
                     <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
@@ -376,6 +395,19 @@ export default function Home() {
                   <span className="watch-model">{w.model}</span>
                   <span className="watch-ref">{w.ref}</span>
                 </div>
+              ))}
+            </div>
+            <div style={{display:"flex", justifyContent:"center", gap:"0.5rem", margin:"2rem 0 1rem"}}>
+              {Array.from({length: totalWatchPages}).map((_, i) => (
+                <button key={i} onClick={() => setWatchPage(i)} style={{
+                  width: watchPage === i ? "28px" : "10px",
+                  height: "3px",
+                  background: watchPage === i ? "var(--gold)" : "rgba(0,0,0,0.2)",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                  padding: 0,
+                }} />
               ))}
             </div>
             <div className="featured-footer">
