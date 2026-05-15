@@ -83,10 +83,10 @@ export default function Home() {
         :root {
           --gold: #B8935A; --gold-light: #D4AA78; --black: #0A0A0A;
           --gray-dark: #2C2C2C; --gray-mid: #6B6B6B; --gray-light: #ADADAD;
-          --gray-pale: #F5F3F0; --white: #FAFAF8; --border: rgba(0,0,0,0.09);
+          --gray-pale: #9b8d75; --white: #a5977e; --border: rgba(0,0,0,0.09);
         }
         html { scroll-behavior: smooth; }
-        body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
+        body { background: #a5977e; color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
         nav { position: sticky; top: 0; z-index: 200; background: rgba(250,250,248,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2.5rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
@@ -103,7 +103,7 @@ export default function Home() {
         .mobile-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
         .mobile-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: var(--white); z-index: 150; flex-direction: column; padding: 2rem 2rem; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: #a5977e; z-index: 150; flex-direction: column; padding: 2rem 2rem; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
         .mobile-menu a, .mobile-menu button { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
         .mobile-menu a:hover, .mobile-menu button:hover { color: var(--gold); }
