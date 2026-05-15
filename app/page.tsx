@@ -81,7 +81,16 @@ export default function Home() {
         .nav-icon:hover { color: var(--gold); }
         .nav-link { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover { color: var(--gold); }
-        @media (max-width: 900px) { .nav-left .nav-link, .nav-right .nav-link { display: none; } }
+        @media (max-width: 900px) { .nav-left .nav-link, .nav-right .nav-link { display: none; } .mobile-hamburger { display: flex !important; } }
+        .mobile-hamburger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; padding: 6px; }
+        .mobile-hamburger span { display: block; width: 20px; height: 1px; background: var(--black); transition: all 0.3s; }
+        .mobile-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
+        .mobile-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: var(--white); z-index: 150; flex-direction: column; padding: 2rem 2rem; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a, .mobile-menu button { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
+        .mobile-menu a:hover, .mobile-menu button:hover { color: var(--gold); }
 
         .hero { position: relative; height: calc(100svh - 86px); min-height: 500px; overflow: hidden; background: #111; }
         .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
@@ -213,8 +222,21 @@ export default function Home() {
           <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
           <button className="nav-link" onClick={() => setPage("contact")}>Contact Us</button>
           <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
+          <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
+            <span /><span /><span />
+          </button>
         </div>
       </nav>
+
+      <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+        <a href="#featured" onClick={() => setMenuOpen(false)}>Watches</a>
+        <a href="#collections" onClick={() => setMenuOpen(false)}>Jewellery</a>
+        <a href="#collections" onClick={() => setMenuOpen(false)}>Bags</a>
+        <a href="mailto:info@chronovian.com?subject=Sell My Watch" onClick={() => setMenuOpen(false)}>Sell</a>
+        <a href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
+        <button onClick={() => { setPage("contact"); setMenuOpen(false); }}>Contact Us</button>
+        <a href="https://wa.me/910000000000" target="_blank" onClick={() => setMenuOpen(false)}>WhatsApp</a>
+      </div>
 
       {page === "contact" ? (
         <main>
@@ -299,7 +321,6 @@ export default function Home() {
               <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
               <h1 className="hero-title">{heroSlides[slide].headline}<br /><em>{heroSlides[slide].subheadline}</em></h1>
               <p className="hero-sub">{heroSlides[slide].sub}</p>
-              <a href="mailto:info@chronovian.com?subject=Early Access Request" className="hero-cta">Request Early Access →</a>
             </div>
             <div className="hero-dots">
               {heroSlides.map((_, i) => (
