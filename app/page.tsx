@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const allWatches = [
-  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85", brand: "Rolex", model: "Submariner", ref: "Ref. 126610LN", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=85", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&q=85", brand: "Rolex", model: "GMT-Master II", ref: "Ref. 126710BLRO", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=800&q=85", brand: "Rolex", model: "Datejust 41", ref: "Ref. 126334", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=800&q=85", brand: "Rolex", model: "Day-Date 40", ref: "Ref. 228238", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO.1220ST.01", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1616485828847-7e63a1e28b1b?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Offshore", ref: "Ref. 26400IO.OO.A004CA.01", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=800&q=85", brand: "Audemars Piguet", model: "Code 11.59", ref: "Ref. 15210BC.OO.A002KB.01", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Chronograph", ref: "Ref. 26331ST.OO.1220ST.02", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1622434641406-a158123450f9?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Perpetual Calendar", ref: "Ref. 26574ST.OO.1220ST.02", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&q=85", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=800&q=85", brand: "Patek Philippe", model: "Aquanaut", ref: "Ref. 5167A-001", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1495857000853-fe46c8aefc31?w=800&q=85", brand: "Patek Philippe", model: "Calatrava", ref: "Ref. 5196G-001", status: "Available" },
-  { img: "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?w=800&q=85", brand: "Patek Philippe", model: "Annual Calendar", ref: "Ref. 5396G-011", status: "Available" },
+  { id: "rolex-sub", img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85", brand: "Rolex", model: "Submariner", ref: "Ref. 126610LN", status: "Available", price: 1250000, condition: "Excellent", year: "2022", box: true, papers: true, desc: "The Submariner is the reference amongst divers' watches. Water-resistant to 300 metres, it features a unidirectional rotatable bezel and a black Cerachrom insert." },
+  { id: "rolex-daytona", img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=85", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Available", price: 2800000, condition: "Mint", year: "2021", box: true, papers: true, desc: "The Daytona was designed to meet the needs of professional racing drivers. Its name evokes the legendary Daytona International Speedway." },
+  { id: "rolex-gmt", img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&q=85", brand: "Rolex", model: "GMT-Master II", ref: "Ref. 126710BLRO", status: "Available", price: 1650000, condition: "Excellent", year: "2023", box: true, papers: true, desc: "The GMT-Master II is the quintessential traveller's watch. Its bidirectional rotatable bezel features a 24-hour graduated Cerachrom insert in two colours." },
+  { id: "rolex-datejust", img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=800&q=85", brand: "Rolex", model: "Datejust 41", ref: "Ref. 126334", status: "Available", price: 950000, condition: "Very Good", year: "2020", box: true, papers: false, desc: "The Datejust is the classic watch of reference. Its timeless design and wide variety of dials, bezels and bracelets make it one of the most versatile." },
+  { id: "rolex-daydate", img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=800&q=85", brand: "Rolex", model: "Day-Date 40", ref: "Ref. 228238", status: "Available", price: 3200000, condition: "Mint", year: "2022", box: true, papers: true, desc: "The Day-Date has been crafted in 18 ct gold or platinum since its launch in 1956. It was the first watch to display the day of the week spelled out in full." },
+  { id: "ap-royaloak", img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO.1220ST.01", status: "Available", price: 4500000, condition: "Excellent", year: "2021", box: true, papers: true, desc: "The Royal Oak, designed by Gérald Genta in 1972, revolutionised fine watchmaking. Its iconic octagonal bezel secured by eight hexagonal screws is instantly recognisable." },
+  { id: "ap-offshore", img: "https://images.unsplash.com/photo-1616485828847-7e63a1e28b1b?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Offshore", ref: "Ref. 26400IO.OO.A004CA.01", status: "Available", price: 5800000, condition: "Very Good", year: "2020", box: true, papers: true, desc: "The Royal Oak Offshore pushes the boundaries of the Royal Oak concept. A bold and powerful instrument, it embodies the spirit of adventure." },
+  { id: "ap-code", img: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=800&q=85", brand: "Audemars Piguet", model: "Code 11.59", ref: "Ref. 15210BC.OO.A002KB.01", status: "Available", price: 6200000, condition: "Mint", year: "2023", box: true, papers: true, desc: "The Code 11.59 by Audemars Piguet is a bold expression of the Manufacture's creativity and technical mastery, featuring a unique case architecture." },
+  { id: "ap-chrono", img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Chronograph", ref: "Ref. 26331ST.OO.1220ST.02", status: "Available", price: 5200000, condition: "Excellent", year: "2021", box: false, papers: true, desc: "Combining the iconic Royal Oak design with a sophisticated chronograph mechanism, this piece represents the pinnacle of sports-luxury watchmaking." },
+  { id: "ap-perpetual", img: "https://images.unsplash.com/photo-1622434641406-a158123450f9?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Perpetual Calendar", ref: "Ref. 26574ST.OO.1220ST.02", status: "Available", price: 8500000, condition: "Mint", year: "2022", box: true, papers: true, desc: "The Royal Oak Perpetual Calendar is a testament to haute horlogerie. Its perpetual calendar mechanism accounts for the varying lengths of months without manual correction." },
+  { id: "pp-nautilus", img: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&q=85", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available", price: 9800000, condition: "Excellent", year: "2020", box: true, papers: true, desc: "The Nautilus is one of the most coveted sports watches in the world. Designed by Gérald Genta in 1976, its porthole-inspired case is an enduring icon." },
+  { id: "pp-aquanaut", img: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=800&q=85", brand: "Patek Philippe", model: "Aquanaut", ref: "Ref. 5167A-001", status: "Available", price: 4800000, condition: "Very Good", year: "2021", box: true, papers: true, desc: "Introduced in 1997, the Aquanaut is Patek Philippe's contemporary sports watch. Its rounded octagonal bezel and embossed dial give it a distinctive character." },
+  { id: "pp-calatrava", img: "https://images.unsplash.com/photo-1495857000853-fe46c8aefc31?w=800&q=85", brand: "Patek Philippe", model: "Calatrava", ref: "Ref. 5196G-001", status: "Available", price: 3500000, condition: "Excellent", year: "2021", box: true, papers: true, desc: "Since 1932, the Calatrava has been the embodiment of the classic dress watch. Its clean, timeless aesthetic makes it an enduring symbol of elegance." },
+  { id: "pp-annual", img: "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?w=800&q=85", brand: "Patek Philippe", model: "Annual Calendar", ref: "Ref. 5396G-011", status: "Available", price: 5600000, condition: "Mint", year: "2022", box: true, papers: true, desc: "Patek Philippe's annual calendar requires just one manual correction per year, at the end of February. It displays the day, date and month through elegant apertures." },
 ];
 
 const heroSlides = [
@@ -25,7 +25,11 @@ const heroSlides = [
   { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
 ];
 
-type PageType = "home" | "watches" | "contact";
+type Watch = typeof allWatches[0];
+type CartItem = { watch: Watch; qty: number };
+type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product";
+
+const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,45 +37,108 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [page, setPage] = useState<PageType>("home");
   const [filterBrand, setFilterBrand] = useState("All");
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [selectedWatch, setSelectedWatch] = useState<Watch | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
-
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
   useEffect(() => {
     const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
     return () => clearInterval(id);
   }, []);
-
+  useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen) ? "hidden" : ""; }, [menuOpen, cartOpen]);
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : "";
-  }, [menuOpen]);
+    const handler = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setActiveDropdown(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-  const goTo = (p: PageType) => {
-    setPage(p);
-    setMenuOpen(false);
+  const goTo = (p: PageType, watch?: Watch) => {
+    if (p === "product" && watch) setSelectedWatch(watch);
+    setPage(p); setMenuOpen(false); setActiveDropdown(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const toggleWishlist = (id: string) =>
+    setWishlist(prev => prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id]);
+
+  const addToCart = (watch: Watch) => {
+    setCart(prev => {
+      const ex = prev.find(i => i.watch.id === watch.id);
+      if (ex) return prev.map(i => i.watch.id === watch.id ? { ...i, qty: i.qty + 1 } : i);
+      return [...prev, { watch, qty: 1 }];
+    });
+    setAddedId(watch.id);
+    setTimeout(() => setAddedId(null), 1800);
+    setCartOpen(true);
+  };
+
+  const removeFromCart = (id: string) => setCart(prev => prev.filter(i => i.watch.id !== id));
+  const cartTotal = cart.reduce((s, i) => s + i.watch.price * i.qty, 0);
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const brands = ["All", "Rolex", "Audemars Piguet", "Patek Philippe"];
   const filteredWatches = filterBrand === "All" ? allWatches : allWatches.filter(w => w.brand === filterBrand);
 
-  // Home page: show 4 rotating watches
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
   const totalWatchPages = Math.ceil(allWatches.length / watchesPerPage);
   const visibleWatches = allWatches.slice(watchIdx * watchesPerPage, (watchIdx + 1) * watchesPerPage);
-
   useEffect(() => {
     const id = setInterval(() => setWatchIdx(p => (p + 1) % totalWatchPages), 4000);
     return () => clearInterval(id);
   }, [totalWatchPages]);
+
+  const shopItems = [
+    { label: "All Watches", page: "watches" as PageType },
+    { label: "Jewellery", page: "jewellery" as PageType },
+    { label: "Bags", page: "bags" as PageType },
+    { label: "New Arrivals", page: "watches" as PageType },
+  ];
+  const sellItems = [
+    { label: "Sell Your Watch", page: "sell" as PageType },
+    { label: "How It Works", page: "sell" as PageType },
+    { label: "Get a Valuation", href: "mailto:info@chronovian.com?subject=Watch Valuation" },
+  ];
+  const tradeItems = [
+    { label: "Trade Your Watch", page: "trade" as PageType },
+    { label: "How It Works", page: "trade" as PageType },
+    { label: "Trade Calculator", href: "mailto:info@chronovian.com?subject=Trade Enquiry" },
+  ];
+
+  const WatchCard = ({ w, showEnquire = false }: { w: Watch; showEnquire?: boolean }) => (
+    <div className="watch-card">
+      <div className="watch-img-wrap" onClick={() => goTo("product", w)}>
+        <img src={w.img} alt={`${w.brand} ${w.model}`} />
+        <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
+        <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
+          {wishlist.includes(w.id) ? "♥" : "♡"}
+        </button>
+        {addedId === w.id && <div className="added-toast">Added to cart ✓</div>}
+      </div>
+      <span className="watch-brand">{w.brand}</span>
+      <span className="watch-model" onClick={() => goTo("product", w)} style={{cursor:"pointer"}}>{w.model}</span>
+      <span className="watch-ref">{w.ref}</span>
+      <span className="watch-price">{fmt(w.price)}</span>
+      <div className="card-actions">
+        <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>
+        {showEnquire && <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -89,23 +156,75 @@ export default function Home() {
         /* NAV */
         nav { position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2.5rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 2rem; flex: 1; }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.75rem; flex: 1; }
         .nav-right { justify-content: flex-end; }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-        .nav-icon { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; }
-        .nav-icon:hover { color: var(--gold); }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
+        .nav-icon-btn { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; position: relative; }
+        .nav-icon-btn:hover { color: var(--gold); }
+        .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
         .nav-link { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
+
+        /* DROPDOWN */
+        .nav-dropdown-wrap { position: relative; display: flex; align-items: center; }
+        .nav-dropdown-trigger { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; display: flex; align-items: center; gap: 0.35rem; padding: 0; white-space: nowrap; height: 62px; }
+        .nav-dropdown-trigger:hover, .nav-dropdown-trigger.open { color: var(--gold); }
+        .nav-dropdown-trigger svg { transition: transform 0.25s; }
+        .nav-dropdown-trigger.open svg { transform: rotate(180deg); }
+        .nav-dropdown { position: absolute; top: 62px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
+        .nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+        .nav-dropdown-item { display: block; width: 100%; padding: 0.85rem 1.5rem; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; text-align: left; transition: color 0.2s, background 0.2s; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .nav-dropdown-item:last-child { border-bottom: none; }
+        .nav-dropdown-item:hover { color: var(--gold); background: var(--gray-pale); }
+
+        /* MOBILE */
         .mobile-hamburger { display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px; padding: 6px; }
         .mobile-hamburger span { display: block; width: 20px; height: 1px; background: var(--black); transition: all 0.3s; }
         .mobile-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
         .mobile-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: var(--white); z-index: 150; flex-direction: column; padding: 2rem; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
-        .mobile-menu a, .mobile-menu button { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
-        .mobile-menu a:hover, .mobile-menu button:hover { color: var(--gold); }
-        @media (max-width: 900px) { .nav-left .nav-link, .nav-right .nav-link { display: none; } .mobile-hamburger { display: flex !important; } .nav-right .nav-icon { display: none; } }
+        .mobile-section { border-bottom: 1px solid var(--border); }
+        .mobile-section-trigger { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); background: none; border: none; cursor: pointer; width: 100%; }
+        .mobile-section-trigger svg { transition: transform 0.25s; }
+        .mobile-section-trigger.open svg { transform: rotate(180deg); }
+        .mobile-sub { display: none; flex-direction: column; padding-bottom: 0.75rem; }
+        .mobile-sub.open { display: flex; }
+        .mobile-sub-item { padding: 0.55rem 1rem; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-mid); background: none; border: none; cursor: pointer; text-align: left; font-family: 'Jost', sans-serif; text-decoration: none; transition: color 0.2s; }
+        .mobile-sub-item:hover { color: var(--gold); }
+        .mobile-plain { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
+        .mobile-plain:hover { color: var(--gold); }
+        @media (max-width: 900px) {
+          .nav-left .nav-dropdown-wrap, .nav-left .nav-link, .nav-right .nav-link { display: none; }
+          .nav-right .nav-icon-btn { display: none; }
+          .mobile-hamburger { display: flex !important; }
+          .nav-right .nav-icon-btn.always-show { display: flex; }
+        }
+
+        /* CART DRAWER */
+        .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .cart-overlay.open { opacity: 1; pointer-events: all; }
+        .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw; background: white; z-index: 401; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+        .cart-drawer.open { transform: translateX(0); }
+        .cart-drawer-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .cart-drawer-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.08em; }
+        .cart-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--gray-mid); line-height: 1; padding: 0; }
+        .cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+        .cart-item { display: flex; gap: 1rem; align-items: flex-start; }
+        .cart-item-img { width: 72px; height: 88px; object-fit: cover; background: var(--gray-pale); flex-shrink: 0; }
+        .cart-item-info { flex: 1; }
+        .cart-item-brand { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.2rem; }
+        .cart-item-model { font-family: 'Playfair Display', serif; font-size: 0.9rem; display: block; margin-bottom: 0.3rem; }
+        .cart-item-price { font-size: 0.78rem; color: var(--black); font-weight: 400; }
+        .cart-item-remove { font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-light); background: none; border: none; cursor: pointer; padding: 0; margin-top: 0.4rem; display: block; transition: color 0.2s; }
+        .cart-item-remove:hover { color: #c0392b; }
+        .cart-empty { text-align: center; padding: 3rem 0; color: var(--gray-mid); font-size: 0.82rem; }
+        .cart-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
+        .cart-subtotal { display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
+        .cart-subtotal-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
+        .cart-subtotal-value { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+        .cart-cta { display: flex; flex-direction: column; gap: 0.6rem; }
 
         /* HERO */
         .hero { position: relative; height: calc(100svh - 62px); min-height: 500px; overflow: hidden; background: #111; }
@@ -129,18 +248,27 @@ export default function Home() {
         .section-title em { font-style: italic; }
         .gold-rule { width: 32px; height: 1px; background: var(--gold); margin: 1.25rem auto 0; }
 
-        /* WATCHES GRID */
+        /* WATCH CARDS */
         .featured { padding: 5rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-        .watch-card { cursor: pointer; }
-        .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; }
+        .watch-card { cursor: default; }
+        .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; cursor: pointer; }
         .watch-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
         .watch-status.sold { background: var(--black); color: white; }
         .watch-brand { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
         .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; }
-        .watch-ref { font-size: 0.65rem; color: var(--gray-mid); }
+        .watch-ref { font-size: 0.65rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
+        .watch-price { font-size: 0.88rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.02em; }
+        .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; }
+        .wishlist-btn:hover { transform: scale(1.15); }
+        .added-toast { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); color: white; text-align: center; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem; }
+        .card-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
+        .btn-cart:hover { background: var(--gold); border-color: var(--gold); }
+        .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; }
+        .enquire-btn:hover { border-color: var(--gold); color: var(--gold); }
         .featured-footer { text-align: center; margin-top: 3rem; }
 
         /* WATCHES PAGE */
@@ -150,8 +278,110 @@ export default function Home() {
         .filter-btn { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--black); color: white; border-color: var(--black); }
         .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
-        .enquire-btn { display: block; width: 100%; margin-top: 0.75rem; padding: 0.6rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; }
-        .enquire-btn:hover { background: var(--gold); color: white; border-color: var(--gold); }
+
+        /* PRODUCT PAGE */
+        .product-page { padding: 3rem 2.5rem; max-width: 1200px; margin: 0 auto; }
+        .product-breadcrumb { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-light); margin-bottom: 2.5rem; display: flex; gap: 0.5rem; align-items: center; }
+        .product-breadcrumb button { background: none; border: none; cursor: pointer; color: var(--gray-light); font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; padding: 0; }
+        .product-breadcrumb button:hover { color: var(--gold); }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; }
+        .product-img-main { aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; }
+        .product-img-main img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
+        .product-brand { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); }
+        .product-model { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
+        .product-ref { font-size: 0.72rem; color: var(--gray-mid); }
+        .product-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; }
+        .product-desc { font-size: 0.82rem; line-height: 2; color: var(--gray-mid); }
+        .product-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1.5rem; }
+        .product-spec { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+        .product-spec-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-light); }
+        .product-spec-value { font-size: 0.8rem; color: var(--black); }
+        .product-actions { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
+        .btn-buynow { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: var(--gold); color: white; border: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: background 0.2s; }
+        .btn-buynow:hover { background: var(--gold-light); }
+        .btn-addcart { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
+        .btn-addcart:hover { background: white; color: var(--black); }
+        .btn-enquire-full { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: none; color: var(--black); border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
+        .btn-enquire-full:hover { border-color: var(--gold); color: var(--gold); }
+        .product-wishlist { display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); transition: color 0.2s; padding: 0; }
+        .product-wishlist:hover { color: var(--gold); }
+
+        /* CART PAGE */
+        .cart-page { padding: 4rem 2.5rem; max-width: 1200px; margin: 0 auto; min-height: 60vh; }
+        .cart-page-grid { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; margin-top: 3rem; }
+        .cart-page-items { display: flex; flex-direction: column; gap: 0; }
+        .cart-page-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; align-items: start; padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+        .cart-page-img { aspect-ratio: 3/4; object-fit: cover; background: var(--gray-pale); width: 100%; }
+        .cart-page-info { display: flex; flex-direction: column; gap: 0.4rem; }
+        .cart-page-remove { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-light); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0; transition: color 0.2s; text-align: left; }
+        .cart-page-remove:hover { color: #c0392b; }
+        .cart-page-price { font-family: 'Playfair Display', serif; font-size: 1rem; white-space: nowrap; }
+        .order-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
+        .summary-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 1.5rem; }
+        .summary-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-mid); margin-bottom: 0.75rem; }
+        .summary-total { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; font-weight: 400; }
+        .summary-total-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; }
+        .summary-total-value { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+        .cart-empty-page { text-align: center; padding: 5rem 0; }
+        .cart-empty-page p { color: var(--gray-mid); font-size: 0.82rem; margin: 1rem 0 2rem; }
+
+        /* CHECKOUT PAGE */
+        .checkout-page { padding: 4rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+        .checkout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 4rem; margin-top: 3rem; }
+        .checkout-section { margin-bottom: 2.5rem; }
+        .checkout-section-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+        .form-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
+        .form-input, .form-select, .form-textarea { background: var(--gray-pale); border: 1px solid var(--border); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.8rem; color: var(--black); outline: none; transition: border-color 0.2s; width: 100%; font-weight: 300; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+        .delivery-options { display: flex; flex-direction: column; gap: 0.75rem; }
+        .delivery-option { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); cursor: pointer; transition: border-color 0.2s; }
+        .delivery-option.selected { border-color: var(--gold); background: #fdf9f4; }
+        .delivery-option input { accent-color: var(--gold); }
+        .delivery-option-info { flex: 1; }
+        .delivery-option-name { font-size: 0.78rem; font-weight: 400; }
+        .delivery-option-sub { font-size: 0.65rem; color: var(--gray-mid); margin-top: 0.15rem; }
+        .delivery-option-price { font-size: 0.78rem; font-weight: 400; }
+        .payment-methods { display: flex; flex-direction: column; gap: 0.75rem; }
+        .payment-method { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); cursor: pointer; transition: border-color 0.2s; }
+        .payment-method.selected { border-color: var(--gold); background: #fdf9f4; }
+        .payment-method input { accent-color: var(--gold); }
+        .payment-method-label { font-size: 0.78rem; }
+        .payment-method-badges { display: flex; gap: 0.4rem; margin-left: auto; }
+        .pm-badge { padding: 0.15rem 0.5rem; border-radius: 3px; font-size: 0.5rem; font-weight: 500; }
+        .checkout-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
+        .checkout-item-row { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+        .checkout-item-img { width: 60px; height: 72px; object-fit: cover; background: white; flex-shrink: 0; }
+        .checkout-item-info { flex: 1; }
+        .checkout-item-brand { font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; }
+        .checkout-item-model { font-family: 'Playfair Display', serif; font-size: 0.82rem; display: block; }
+        .checkout-item-price { font-size: 0.75rem; font-weight: 400; white-space: nowrap; }
+        .place-order-btn { width: 100%; padding: 1.1rem; font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; background: var(--gold); color: white; border: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: background 0.2s; margin-top: 1.5rem; }
+        .place-order-btn:hover { background: var(--gold-light); }
+        .secure-note { font-size: 0.58rem; color: var(--gray-light); text-align: center; margin-top: 0.75rem; letter-spacing: 0.1em; }
+
+        /* ORDER SUCCESS */
+        .order-success { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2.5rem; gap: 1.25rem; }
+        .order-success-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+        /* PLACEHOLDER PAGES */
+        .placeholder-page { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2.5rem; gap: 1.5rem; }
+        .placeholder-page p { font-size: 0.82rem; color: var(--gray-mid); line-height: 1.9; max-width: 440px; }
+
+        /* SELL / TRADE */
+        .sell-page { padding: 5rem 2.5rem; max-width: 900px; margin: 0 auto; }
+        .sell-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin: 3rem 0; }
+        .sell-step { text-align: center; padding: 2rem 1.5rem; border: 1px solid var(--border); }
+        .sell-step-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1rem; }
+        .sell-step h3 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; margin-bottom: 0.6rem; }
+        .sell-step p { font-size: 0.75rem; color: var(--gray-mid); line-height: 1.8; }
+
+        /* WISHLIST */
+        .wishlist-page { padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; min-height: 60vh; }
+        .wishlist-empty { text-align: center; padding: 5rem 0; }
+        .wishlist-empty p { font-size: 0.82rem; color: var(--gray-mid); margin-top: 1rem; }
 
         /* CATEGORIES */
         .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #ddd; }
@@ -162,7 +392,7 @@ export default function Home() {
         .cat-content { position: absolute; bottom: 2rem; left: 2rem; color: white; }
         .cat-tag { font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: #D4AA78; display: block; margin-bottom: 0.4rem; }
         .cat-name { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; display: block; margin-bottom: 0.75rem; }
-        .cat-link { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; transition: color 0.2s; }
+        .cat-link { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; }
         .cat-card:hover .cat-link { color: #D4AA78; }
 
         /* ABOUT */
@@ -191,11 +421,6 @@ export default function Home() {
         .contact-item-text a:hover { color: var(--gold); }
         .contact-item-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); display: block; margin-bottom: 0.25rem; }
         .contact-form { display: flex; flex-direction: column; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-        .form-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
-        .form-input, .form-select, .form-textarea { background: var(--gray-pale); border: 1px solid var(--border); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.8rem; color: var(--black); outline: none; transition: border-color 0.2s; width: 100%; font-weight: 300; }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
-        .form-textarea { resize: vertical; min-height: 120px; }
 
         /* BUTTONS */
         .btn-outline { display: inline-block; border: 1px solid var(--black); color: var(--black); text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.3s; background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; }
@@ -203,7 +428,7 @@ export default function Home() {
         .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
         .btn-gold:hover { background: var(--gold-light); }
 
-        /* PAYMENT */
+        /* PAYMENT STRIP */
         .payment-strip { background: var(--gray-pale); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
         .payment-label { font-size: 0.55rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray-light); }
         .payment-badge { padding: 0.3rem 0.7rem; border-radius: 3px; font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; }
@@ -223,7 +448,6 @@ export default function Home() {
         .footer-social { display: flex; gap: 1.5rem; }
         .footer-social a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); text-decoration: none; transition: color 0.2s; }
         .footer-social a:hover { color: var(--gold); }
-
         .whatsapp-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 52px; height: 52px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.4rem; box-shadow: 0 4px 16px rgba(37,211,102,0.35); z-index: 100; transition: transform 0.2s; }
         .whatsapp-fab:hover { transform: scale(1.08); }
 
@@ -235,40 +459,177 @@ export default function Home() {
           .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
           .hero-content { left: 1.5rem; right: 1.5rem; bottom: 2.5rem; }
           nav { padding: 0 1.25rem; }
+          .sell-steps { grid-template-columns: 1fr; }
+          .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+          .cart-page-grid { grid-template-columns: 1fr; }
+          .checkout-grid { grid-template-columns: 1fr; }
+          .form-row { grid-template-columns: 1fr; }
+          .cart-drawer { width: 100vw; }
         }
       `}</style>
 
+      {/* CART DRAWER */}
+      <div className={`cart-overlay${cartOpen ? " open" : ""}`} onClick={() => setCartOpen(false)} />
+      <div className={`cart-drawer${cartOpen ? " open" : ""}`}>
+        <div className="cart-drawer-header">
+          <span className="cart-drawer-title">Your Cart ({cartCount})</span>
+          <button className="cart-close" onClick={() => setCartOpen(false)}>×</button>
+        </div>
+        <div className="cart-items">
+          {cart.length === 0
+            ? <div className="cart-empty">Your cart is empty</div>
+            : cart.map(item => (
+              <div className="cart-item" key={item.watch.id}>
+                <img className="cart-item-img" src={item.watch.img} alt={item.watch.model} />
+                <div className="cart-item-info">
+                  <span className="cart-item-brand">{item.watch.brand}</span>
+                  <span className="cart-item-model">{item.watch.model}</span>
+                  <span className="cart-item-price">{fmt(item.watch.price)}</span>
+                  <button className="cart-item-remove" onClick={() => removeFromCart(item.watch.id)}>Remove</button>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+        {cart.length > 0 && (
+          <div className="cart-footer">
+            <div className="cart-subtotal">
+              <span className="cart-subtotal-label">Subtotal</span>
+              <span className="cart-subtotal-value">{fmt(cartTotal)}</span>
+            </div>
+            <div className="cart-cta">
+              <button className="btn-gold" style={{width:"100%",textAlign:"center"}} onClick={() => { setCartOpen(false); goTo("checkout"); }}>Proceed to Checkout</button>
+              <button className="btn-outline" style={{width:"100%",textAlign:"center"}} onClick={() => { setCartOpen(false); goTo("cart"); }}>View Cart</button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* NAV */}
-      <nav className={scrolled ? "scrolled" : ""}>
+      <nav className={scrolled ? "scrolled" : ""} ref={navRef}>
         <div className="nav-left">
           <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
-          <button className={`nav-link${page === "watches" ? " active" : ""}`} onClick={() => goTo("watches")}>Watches</button>
-          <button className="nav-link" onClick={() => goTo("home")}>Jewellery</button>
-          <button className="nav-link" onClick={() => goTo("home")}>Bags</button>
-          <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="nav-link">Sell</a>
+          {[
+            { key: "shop", label: "Shop Now", items: shopItems },
+            { key: "sell", label: "Sell", items: sellItems },
+            { key: "trade", label: "Trade", items: tradeItems },
+          ].map(dd => (
+            <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
+              <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
+                {dd.label}
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <div className={`nav-dropdown${activeDropdown === dd.key ? " open" : ""}`}>
+                {dd.items.map(item => (
+                  "href" in item
+                    ? <a key={item.label} className="nav-dropdown-item" href={item.href}>{item.label}</a>
+                    : <button key={item.label} className="nav-dropdown-item" onClick={() => goTo(item.page!)}>{item.label}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
         </div>
-        <span className="nav-logo" onClick={() => goTo("home")}>Chronovian</span>
+
+        <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
+
         <div className="nav-right">
           <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
-          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact Us</button>
-          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon">💬</a>
+          <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
+          </button>
+          <button className="nav-icon-btn always-show" onClick={() => setCartOpen(true)} title="Cart">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
+          </button>
+          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon-btn always-show">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </a>
         </div>
       </nav>
 
       {/* MOBILE MENU */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
-        <button onClick={() => goTo("watches")}>Watches</button>
-        <button onClick={() => goTo("home")}>Jewellery</button>
-        <button onClick={() => goTo("home")}>Bags</button>
-        <a href="mailto:info@chronovian.com?subject=Sell My Watch" onClick={() => setMenuOpen(false)}>Sell</a>
-        <a href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
-        <button onClick={() => goTo("contact")}>Contact Us</button>
-        <a href="https://wa.me/910000000000" target="_blank" onClick={() => setMenuOpen(false)}>WhatsApp</a>
+        {[
+          { key: "shop", label: "Shop Now", items: shopItems },
+          { key: "sell", label: "Sell", items: sellItems },
+          { key: "trade", label: "Trade", items: tradeItems },
+        ].map(dd => (
+          <div className="mobile-section" key={dd.key}>
+            <button className={`mobile-section-trigger${mobileExpanded === dd.key ? " open" : ""}`} onClick={() => setMobileExpanded(mobileExpanded === dd.key ? null : dd.key)}>
+              {dd.label}
+              <svg width="12" height="7" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <div className={`mobile-sub${mobileExpanded === dd.key ? " open" : ""}`}>
+              {dd.items.map(item => (
+                "href" in item
+                  ? <a key={item.label} className="mobile-sub-item" href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
+                  : <button key={item.label} className="mobile-sub-item" onClick={() => goTo(item.page!)}>{item.label}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <button className="mobile-plain" onClick={() => goTo("contact")}>Contact</button>
+        <a className="mobile-plain" href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
+        <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
+        <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
+        <a className="mobile-plain" href="https://wa.me/910000000000" target="_blank" onClick={() => setMenuOpen(false)}>WhatsApp</a>
       </div>
 
-      {/* ── WATCHES PAGE ── */}
+      {/* PRODUCT PAGE */}
+      {page === "product" && selectedWatch && (
+        <main>
+          <div className="product-page">
+            <div className="product-breadcrumb">
+              <button onClick={() => goTo("home")}>Home</button>
+              <span>›</span>
+              <button onClick={() => goTo("watches")}>Watches</button>
+              <span>›</span>
+              <span style={{color:"var(--black)"}}>{selectedWatch.model}</span>
+            </div>
+            <div className="product-grid">
+              <div className="product-img-main">
+                <img src={selectedWatch.img} alt={selectedWatch.model} />
+              </div>
+              <div className="product-info">
+                <span className="product-brand">{selectedWatch.brand}</span>
+                <h1 className="product-model">{selectedWatch.model}</h1>
+                <span className="product-ref">{selectedWatch.ref}</span>
+                <div className="product-price">{fmt(selectedWatch.price)}</div>
+                <p className="product-desc">{selectedWatch.desc}</p>
+                <div className="product-specs">
+                  {[
+                    { label: "Condition", value: selectedWatch.condition },
+                    { label: "Year", value: selectedWatch.year },
+                    { label: "Box", value: selectedWatch.box ? "Included" : "Not included" },
+                    { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
+                    { label: "Status", value: selectedWatch.status },
+                    { label: "Reference", value: selectedWatch.ref },
+                  ].map(s => (
+                    <div className="product-spec" key={s.label}>
+                      <span className="product-spec-label">{s.label}</span>
+                      <span className="product-spec-value">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="product-actions">
+                  <button className="btn-buynow" onClick={() => { addToCart(selectedWatch); setCartOpen(false); goTo("checkout"); }}>Buy Now</button>
+                  <button className="btn-addcart" onClick={() => addToCart(selectedWatch)}>Add to Cart</button>
+                  <a className="btn-enquire-full" href={`mailto:info@chronovian.com?subject=Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`}>Enquire About This Watch</a>
+                  <button className="product-wishlist" onClick={() => toggleWishlist(selectedWatch.id)}>
+                    {wishlist.includes(selectedWatch.id) ? "♥ Saved to Wishlist" : "♡ Save to Wishlist"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* WATCHES PAGE */}
       {page === "watches" && (
         <main>
           <div className="watches-page">
@@ -283,78 +644,307 @@ export default function Home() {
               </div>
             </div>
             <div className="watches-grid">
-              {filteredWatches.map((w, i) => (
-                <div className="watch-card" key={i}>
-                  <div className="watch-img-wrap">
-                    <img src={w.img} alt={`${w.brand} ${w.model}`} />
-                    <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
+              {filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)}
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* CART PAGE */}
+      {page === "cart" && (
+        <main>
+          <div className="cart-page">
+            <span className="section-eyebrow">Your Selection</span>
+            <h1 className="section-title">Shopping Cart</h1>
+            <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+            {cart.length === 0
+              ? <div className="cart-empty-page">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  <p>Your cart is empty.</p>
+                  <button className="btn-outline" onClick={() => goTo("watches")}>Browse Watches</button>
+                </div>
+              : <div className="cart-page-grid">
+                  <div className="cart-page-items">
+                    {cart.map(item => (
+                      <div className="cart-page-item" key={item.watch.id}>
+                        <img className="cart-page-img" src={item.watch.img} alt={item.watch.model} />
+                        <div className="cart-page-info">
+                          <span className="watch-brand">{item.watch.brand}</span>
+                          <span className="watch-model">{item.watch.model}</span>
+                          <span className="watch-ref">{item.watch.ref}</span>
+                          <button className="cart-page-remove" onClick={() => removeFromCart(item.watch.id)}>Remove</button>
+                        </div>
+                        <span className="cart-page-price">{fmt(item.watch.price)}</span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="watch-brand">{w.brand}</span>
-                  <span className="watch-model">{w.model}</span>
-                  <span className="watch-ref">{w.ref}</span>
-                  <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>
+                  <div className="order-summary">
+                    <div className="summary-title">Order Summary</div>
+                    {cart.map(item => (
+                      <div className="summary-row" key={item.watch.id}>
+                        <span>{item.watch.model}</span>
+                        <span>{fmt(item.watch.price)}</span>
+                      </div>
+                    ))}
+                    <div className="summary-row"><span>Shipping</span><span>Calculated at checkout</span></div>
+                    <div className="summary-total">
+                      <span className="summary-total-label">Total</span>
+                      <span className="summary-total-value">{fmt(cartTotal)}</span>
+                    </div>
+                    <button className="btn-gold" style={{width:"100%",marginTop:"1.5rem",textAlign:"center"}} onClick={() => goTo("checkout")}>Proceed to Checkout</button>
+                    <button className="btn-outline" style={{width:"100%",marginTop:"0.75rem",textAlign:"center"}} onClick={() => goTo("watches")}>Continue Shopping</button>
+                  </div>
+                </div>
+            }
+          </div>
+        </main>
+      )}
+
+      {/* CHECKOUT PAGE */}
+      {page === "checkout" && (
+        <main>
+          {orderPlaced
+            ? <div className="order-success">
+                <div className="order-success-icon">✓</div>
+                <span className="section-eyebrow">Order Confirmed</span>
+                <h1 className="section-title">Thank You for Your <em>Order</em></h1>
+                <div className="gold-rule" />
+                <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",lineHeight:2,maxWidth:"440px",textAlign:"center"}}>Your order has been received. A Chronovian advisor will contact you within 24 hours to confirm details and arrange secure delivery or in-store collection.</p>
+                <button className="btn-outline" onClick={() => { setOrderPlaced(false); setCart([]); goTo("home"); }}>Return Home</button>
+              </div>
+            : <div className="checkout-page">
+                <span className="section-eyebrow">Secure Checkout</span>
+                <h1 className="section-title">Complete Your <em>Order</em></h1>
+                <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+                <div className="checkout-grid">
+                  <div>
+                    {/* CONTACT */}
+                    <div className="checkout-section">
+                      <div className="checkout-section-title">Contact Information</div>
+                      <div className="form-row">
+                        <div className="form-group"><label className="form-label">First Name</label><input className="form-input" type="text" placeholder="First name" /></div>
+                        <div className="form-group"><label className="form-label">Last Name</label><input className="form-input" type="text" placeholder="Last name" /></div>
+                      </div>
+                      <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" /></div>
+                      <div className="form-group"><label className="form-label">Phone</label><input className="form-input" type="tel" placeholder="+91 00000 00000" /></div>
+                    </div>
+                    {/* DELIVERY */}
+                    <div className="checkout-section">
+                      <div className="checkout-section-title">Delivery Method</div>
+                      {[
+                        { id: "home", name: "Home Delivery", sub: "Insured courier — 3 to 5 business days", price: "₹500" },
+                        { id: "store", name: "In-Store Collection", sub: "Hyderabad boutique — by appointment only", price: "Free" },
+                        { id: "white", name: "White Glove Delivery", sub: "Personal advisor delivery — Hyderabad metro", price: "₹2,000" },
+                      ].map(opt => (
+                        <div className="delivery-option selected" key={opt.id} style={{marginBottom:"0.5rem"}}>
+                          <input type="radio" name="delivery" defaultChecked={opt.id === "home"} />
+                          <div className="delivery-option-info">
+                            <div className="delivery-option-name">{opt.name}</div>
+                            <div className="delivery-option-sub">{opt.sub}</div>
+                          </div>
+                          <span className="delivery-option-price">{opt.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* ADDRESS */}
+                    <div className="checkout-section">
+                      <div className="checkout-section-title">Shipping Address</div>
+                      <div className="form-group"><label className="form-label">Address Line 1</label><input className="form-input" type="text" placeholder="House / flat / street" /></div>
+                      <div className="form-group"><label className="form-label">Address Line 2</label><input className="form-input" type="text" placeholder="Area / locality (optional)" /></div>
+                      <div className="form-row">
+                        <div className="form-group"><label className="form-label">City</label><input className="form-input" type="text" placeholder="City" /></div>
+                        <div className="form-group"><label className="form-label">PIN Code</label><input className="form-input" type="text" placeholder="PIN code" /></div>
+                      </div>
+                      <div className="form-group"><label className="form-label">State</label><select className="form-select"><option>Telangana</option><option>Andhra Pradesh</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option><option>Delhi</option><option>Other</option></select></div>
+                    </div>
+                    {/* PAYMENT */}
+                    <div className="checkout-section">
+                      <div className="checkout-section-title">Payment Method</div>
+                      <div className="payment-methods">
+                        {[
+                          { id: "upi", label: "UPI", badges: [{label:"UPI",bg:"#5F259F"},{label:"GPay",bg:"#4285F4"},{label:"PhonePe",bg:"#5F259F"}] },
+                          { id: "card", label: "Credit / Debit Card", badges: [{label:"VISA",bg:"#1A1F71"},{label:"MC",bg:"#EB001B"},{label:"RuPay",bg:"#007A3D"}] },
+                          { id: "netbanking", label: "Net Banking / NEFT", badges: [{label:"NEFT",bg:"#eee",color:"#333"}] },
+                          { id: "emi", label: "EMI", badges: [{label:"EMI",bg:"#eee",color:"#333"}] },
+                        ].map(pm => (
+                          <div className="payment-method" key={pm.id} style={{marginBottom:"0.5rem"}}>
+                            <input type="radio" name="payment" defaultChecked={pm.id === "upi"} />
+                            <span className="payment-method-label">{pm.label}</span>
+                            <div className="payment-method-badges">
+                              {pm.badges.map(b => <span key={b.label} className="pm-badge" style={{background:b.bg,color:(b as any).color||"white"}}>{b.label}</span>)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p style={{fontSize:"0.65rem",color:"var(--gray-light)",marginTop:"1.25rem",lineHeight:1.7}}>Payment gateway integration coming soon. Placing this order will be confirmed by a Chronovian advisor who will arrange payment securely.</p>
+                    </div>
+                  </div>
+
+                  {/* ORDER SUMMARY */}
+                  <div className="checkout-summary">
+                    <div className="summary-title">Order Summary</div>
+                    {cart.map(item => (
+                      <div className="checkout-item-row" key={item.watch.id}>
+                        <img className="checkout-item-img" src={item.watch.img} alt={item.watch.model} />
+                        <div className="checkout-item-info">
+                          <span className="checkout-item-brand">{item.watch.brand}</span>
+                          <span className="checkout-item-model">{item.watch.model}</span>
+                          <span style={{fontSize:"0.6rem",color:"var(--gray-light)"}}>{item.watch.ref}</span>
+                        </div>
+                        <span className="checkout-item-price">{fmt(item.watch.price)}</span>
+                      </div>
+                    ))}
+                    <div style={{marginTop:"1rem"}}>
+                      <div className="summary-row"><span>Subtotal</span><span>{fmt(cartTotal)}</span></div>
+                      <div className="summary-row"><span>Shipping</span><span>₹500</span></div>
+                      <div className="summary-row"><span>Insurance</span><span>Included</span></div>
+                    </div>
+                    <div className="summary-total" style={{marginTop:"0.75rem"}}>
+                      <span className="summary-total-label">Total</span>
+                      <span className="summary-total-value">{fmt(cartTotal + 500)}</span>
+                    </div>
+                    <button className="place-order-btn" onClick={() => setOrderPlaced(true)}>Place Order</button>
+                    <p className="secure-note">🔒 SSL Secured · All transactions encrypted</p>
+                  </div>
+                </div>
+              </div>
+          }
+        </main>
+      )}
+
+      {/* JEWELLERY PAGE */}
+      {page === "jewellery" && (
+        <main><div className="placeholder-page">
+          <span className="section-eyebrow">Fine Jewellery</span>
+          <h1 className="section-title">Jewellery <em>Collection</em></h1>
+          <div className="gold-rule" />
+          <p>Our curated jewellery collection is coming soon. Each piece is hand-selected for its provenance and artistry.</p>
+          <a href="mailto:info@chronovian.com?subject=Jewellery Enquiry" className="btn-gold">Enquire Now</a>
+        </div></main>
+      )}
+
+      {/* BAGS PAGE */}
+      {page === "bags" && (
+        <main><div className="placeholder-page">
+          <span className="section-eyebrow">Luxury Accessories</span>
+          <h1 className="section-title">Bags & <em>Accessories</em></h1>
+          <div className="gold-rule" />
+          <p>A curated selection of luxury bags and accessories. Coming soon.</p>
+          <a href="mailto:info@chronovian.com?subject=Bags Enquiry" className="btn-gold">Enquire Now</a>
+        </div></main>
+      )}
+
+      {/* SELL PAGE */}
+      {page === "sell" && (
+        <main><div className="sell-page">
+          <span className="section-eyebrow">Sell Your Watch</span>
+          <h1 className="section-title">Turn Your Timepiece <em>Into Capital</em></h1>
+          <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+          <div className="sell-steps">
+            {[
+              { num: "01", title: "Submit Details", body: "Share photos and information about your watch. Our specialists will evaluate it confidentially." },
+              { num: "02", title: "Get a Valuation", body: "We provide a competitive offer based on current market conditions within 24 hours." },
+              { num: "03", title: "Get Paid", body: "Accept our offer and receive payment promptly. We handle all the logistics." },
+            ].map(s => (
+              <div className="sell-step" key={s.num}><span className="sell-step-num">{s.num}</span><h3>{s.title}</h3><p>{s.body}</p></div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:"2rem"}}>
+            <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="btn-gold" style={{marginRight:"1rem"}}>Start Selling</a>
+            <a href="https://wa.me/910000000000" target="_blank" className="btn-outline">WhatsApp Us</a>
+          </div>
+        </div></main>
+      )}
+
+      {/* TRADE PAGE */}
+      {page === "trade" && (
+        <main><div className="sell-page">
+          <span className="section-eyebrow">Trade Your Watch</span>
+          <h1 className="section-title">Trade Up to Something <em>Extraordinary</em></h1>
+          <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+          <div className="sell-steps">
+            {[
+              { num: "01", title: "Share Your Watch", body: "Tell us about the watch you'd like to trade. We assess its current market value fairly." },
+              { num: "02", title: "Choose Your Next", body: "Browse our collection and select the timepiece you wish to acquire. We handle the difference." },
+              { num: "03", title: "Complete the Trade", body: "A seamless, secure exchange — your trusted advisor guides you through every step." },
+            ].map(s => (
+              <div className="sell-step" key={s.num}><span className="sell-step-num">{s.num}</span><h3>{s.title}</h3><p>{s.body}</p></div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:"2rem"}}>
+            <a href="mailto:info@chronovian.com?subject=Trade Enquiry" className="btn-gold" style={{marginRight:"1rem"}}>Start a Trade</a>
+            <a href="https://wa.me/910000000000" target="_blank" className="btn-outline">WhatsApp Us</a>
+          </div>
+        </div></main>
+      )}
+
+      {/* WISHLIST PAGE */}
+      {page === "wishlist" && (
+        <main><div className="wishlist-page">
+          <span className="section-eyebrow">Your Selections</span>
+          <h1 className="section-title">Wishlist</h1>
+          <div className="gold-rule" style={{margin:"1.25rem 0 2rem"}} />
+          {wishlist.length === 0
+            ? <div className="wishlist-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <p>Your wishlist is empty. Browse our collection and save the pieces that speak to you.</p>
+                <button className="btn-outline" style={{marginTop:"1.5rem"}} onClick={() => goTo("watches")}>Browse Watches</button>
+              </div>
+            : <div className="watches-grid">
+                {allWatches.filter(w => wishlist.includes(w.id)).map(w => <WatchCard key={w.id} w={w} showEnquire />)}
+              </div>
+          }
+        </div></main>
+      )}
+
+      {/* CONTACT PAGE */}
+      {page === "contact" && (
+        <main><div className="contact-page">
+          <div style={{textAlign:"left"}}>
+            <span className="section-eyebrow">Get in Touch</span>
+            <h1 className="section-title">Contact <em>Chronovian</em></h1>
+            <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+          </div>
+          <div className="contact-grid">
+            <div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>We'd love to hear from you</h3>
+              {[
+                { icon: "✉️", label: "Email", content: <a href="mailto:info@chronovian.com">info@chronovian.com</a> },
+                { icon: "💬", label: "WhatsApp", content: <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a> },
+                { icon: "📍", label: "Location", content: "Hyderabad, Telangana — Address on appointment confirmation" },
+                { icon: "🕐", label: "Hours", content: "By appointment only · Monday–Saturday: 10am–7pm" },
+              ].map(item => (
+                <div className="contact-item" key={item.label}>
+                  <span className="contact-item-icon">{item.icon}</span>
+                  <div className="contact-item-text">
+                    <span className="contact-item-label">{item.label}</span>
+                    {item.content}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </main>
-      )}
-
-      {/* ── CONTACT PAGE ── */}
-      {page === "contact" && (
-        <main>
-          <div className="contact-page">
-            <div style={{textAlign:"left"}}>
-              <span className="section-eyebrow">Get in Touch</span>
-              <h1 className="section-title">Contact <em>Chronovian</em></h1>
-              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
-            </div>
-            <div className="contact-grid">
-              <div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>We'd love to hear from you</h3>
-                {[
-                  { icon: "✉️", label: "Email", content: <a href="mailto:info@chronovian.com">info@chronovian.com</a> },
-                  { icon: "💬", label: "WhatsApp", content: <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a> },
-                  { icon: "📍", label: "Location", content: "Hyderabad, Telangana — Address on appointment confirmation" },
-                  { icon: "🕐", label: "Hours", content: "By appointment only · Monday–Saturday: 10am–7pm" },
-                ].map(item => (
-                  <div className="contact-item" key={item.label}>
-                    <span className="contact-item-icon">{item.icon}</span>
-                    <div className="contact-item-text">
-                      <span className="contact-item-label">{item.label}</span>
-                      {item.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
-                <form className="contact-form" onSubmit={e => { e.preventDefault(); window.location.href = "mailto:info@chronovian.com?subject=Website Enquiry"; }}>
-                  <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" type="text" placeholder="Your name" required /></div>
-                  <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" required /></div>
-                  <div className="form-group">
-                    <label className="form-label">Enquiry Type</label>
-                    <select className="form-select">
-                      <option>Book an Appointment</option>
-                      <option>Watch Enquiry</option>
-                      <option>Jewellery Enquiry</option>
-                      <option>Sell My Watch</option>
-                      <option>General Enquiry</option>
-                    </select>
-                  </div>
-                  <div className="form-group"><label className="form-label">Message</label><textarea className="form-textarea" placeholder="Tell us how we can help..." /></div>
-                  <button type="submit" className="btn-gold">Send Enquiry</button>
-                </form>
-              </div>
+            <div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
+              <form className="contact-form" onSubmit={e => { e.preventDefault(); window.location.href = "mailto:info@chronovian.com?subject=Website Enquiry"; }}>
+                <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" type="text" placeholder="Your name" required /></div>
+                <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" required /></div>
+                <div className="form-group">
+                  <label className="form-label">Enquiry Type</label>
+                  <select className="form-select">
+                    <option>Book an Appointment</option><option>Watch Enquiry</option><option>Jewellery Enquiry</option><option>Sell My Watch</option><option>Trade Enquiry</option><option>General Enquiry</option>
+                  </select>
+                </div>
+                <div className="form-group"><label className="form-label">Message</label><textarea className="form-textarea" placeholder="Tell us how we can help..." /></div>
+                <button type="submit" className="btn-gold">Send Enquiry</button>
+              </form>
             </div>
           </div>
-        </main>
+        </div></main>
       )}
 
-      {/* ── HOME PAGE ── */}
+      {/* HOME PAGE */}
       {page === "home" && (
         <main>
-          {/* HERO */}
           <section className="hero">
             {heroSlides.map((s, i) => (
               <div key={i} className={`hero-slide${slide === i ? " active" : ""}`}>
@@ -374,7 +964,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* FEATURED WATCHES - rotating */}
           <section className="featured" id="featured">
             <div className="section-header">
               <span className="section-eyebrow">Our Collection</span>
@@ -382,17 +971,7 @@ export default function Home() {
               <div className="gold-rule" />
             </div>
             <div className="featured-grid">
-              {visibleWatches.map((w, i) => (
-                <div className="watch-card" key={`${watchIdx}-${i}`} onClick={() => goTo("watches")}>
-                  <div className="watch-img-wrap">
-                    <img src={w.img} alt={`${w.brand} ${w.model}`} />
-                    <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
-                  </div>
-                  <span className="watch-brand">{w.brand}</span>
-                  <span className="watch-model">{w.model}</span>
-                  <span className="watch-ref">{w.ref}</span>
-                </div>
-              ))}
+              {visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} />)}
             </div>
             <div style={{display:"flex",justifyContent:"center",gap:"0.5rem",margin:"2rem 0 1rem"}}>
               {Array.from({length: totalWatchPages}).map((_, i) => (
@@ -404,11 +983,10 @@ export default function Home() {
             </div>
           </section>
 
-          {/* CATEGORIES */}
           <section className="categories" id="collections">
             {[
               { img: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=900&q=80", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
-              { img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("home") },
+              { img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
             ].map(cat => (
               <div className="cat-card" key={cat.name} onClick={cat.action}>
                 <img src={cat.img} alt={cat.name} />
@@ -422,7 +1000,6 @@ export default function Home() {
             ))}
           </section>
 
-          {/* ABOUT */}
           <section className="about-strip">
             <span className="section-eyebrow">Our Philosophy</span>
             <h2 className="section-title">A Sanctuary for the <em>Extraordinary</em></h2>
@@ -431,7 +1008,6 @@ export default function Home() {
             <button className="btn-outline" onClick={() => goTo("contact")}>Schedule a Private Viewing</button>
           </section>
 
-          {/* PILLARS */}
           <section className="pillars">
             <div className="pillars-inner">
               <div className="section-header">
@@ -487,8 +1063,8 @@ export default function Home() {
               <span className="footer-col-title">Collections</span>
               <ul className="footer-links">
                 <li><button onClick={() => goTo("watches")}>Watches</button></li>
-                <li><a href="mailto:info@chronovian.com?subject=Jewellery Enquiry">Jewellery</a></li>
-                <li><a href="mailto:info@chronovian.com?subject=Bags Enquiry">Bags</a></li>
+                <li><button onClick={() => goTo("jewellery")}>Jewellery</button></li>
+                <li><button onClick={() => goTo("bags")}>Bags</button></li>
               </ul>
             </div>
             <div>
@@ -502,14 +1078,15 @@ export default function Home() {
             <div>
               <span className="footer-col-title">Company</span>
               <ul className="footer-links">
-                <li><a href="#">About Chronovian</a></li>
-                <li><a href="mailto:info@chronovian.com?subject=Sell My Watch">Sell Your Watch</a></li>
+                <li><button onClick={() => goTo("contact")}>About Chronovian</button></li>
+                <li><button onClick={() => goTo("sell")}>Sell Your Watch</button></li>
+                <li><button onClick={() => goTo("trade")}>Trade Your Watch</button></li>
                 <li><a href="#">Privacy Policy</a></li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <p className="footer-copy">© 2025 Chronovian. All rights reserved.</p>
+            <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
             <div className="footer-social">
               <a href="https://instagram.com/chronovian" target="_blank">Instagram</a>
               <a href="https://wa.me/910000000000" target="_blank">WhatsApp</a>
