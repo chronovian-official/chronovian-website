@@ -213,12 +213,12 @@ export default function Home() {
         .cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
         .cart-item { display: flex; gap: 1rem; align-items: flex-start; }
         .cart-item-img { width: 72px; height: 88px; object-fit: cover; background: var(--gray-pale); flex-shrink: 0; }
-        .cart-item-info { flex: 1; }
+        .cart-item-info { flex: 1; min-width: 0; }
         .cart-item-brand { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.2rem; }
-        .cart-item-model { font-family: 'Playfair Display', serif; font-size: 0.9rem; display: block; margin-bottom: 0.3rem; }
-        .cart-item-price { font-size: 0.78rem; color: var(--black); font-weight: 400; }
-        .cart-item-remove { font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-light); background: none; border: none; cursor: pointer; padding: 0; margin-top: 0.4rem; display: block; transition: color 0.2s; }
-        .cart-item-remove:hover { color: #c0392b; }
+        .cart-item-model { font-family: 'Playfair Display', serif; font-size: 0.9rem; display: block; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cart-item-price { font-size: 0.82rem; color: var(--black); font-weight: 400; display: block; margin-bottom: 0.5rem; }
+        .cart-item-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; padding: 0.3rem 0.65rem; transition: all 0.2s; font-family: 'Jost', sans-serif; }
+        .cart-item-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
         .cart-empty { text-align: center; padding: 3rem 0; color: var(--gray-mid); font-size: 0.82rem; }
         .cart-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
         .cart-subtotal { display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
@@ -311,12 +311,15 @@ export default function Home() {
         .cart-page { padding: 4rem 2.5rem; max-width: 1200px; margin: 0 auto; min-height: 60vh; }
         .cart-page-grid { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; margin-top: 3rem; }
         .cart-page-items { display: flex; flex-direction: column; gap: 0; }
-        .cart-page-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; align-items: start; padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+        .cart-page-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; align-items: center; padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
         .cart-page-img { aspect-ratio: 3/4; object-fit: cover; background: var(--gray-pale); width: 100%; }
         .cart-page-info { display: flex; flex-direction: column; gap: 0.4rem; }
-        .cart-page-remove { font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-light); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0; transition: color 0.2s; text-align: left; }
-        .cart-page-remove:hover { color: #c0392b; }
+        .cart-page-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0.35rem 0.75rem; transition: all 0.2s; width: fit-content; }
+        .cart-page-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
+        .cart-page-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
         .cart-page-price { font-family: 'Playfair Display', serif; font-size: 1rem; white-space: nowrap; }
+        .cart-page-remove-icon { background: none; border: none; cursor: pointer; color: var(--gray-light); padding: 0.4rem; transition: color 0.2s; display: flex; align-items: center; }
+        .cart-page-remove-icon:hover { color: #c0392b; }
         .order-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
         .summary-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 1.5rem; }
         .summary-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-mid); margin-bottom: 0.75rem; }
@@ -485,7 +488,10 @@ export default function Home() {
                   <span className="cart-item-brand">{item.watch.brand}</span>
                   <span className="cart-item-model">{item.watch.model}</span>
                   <span className="cart-item-price">{fmt(item.watch.price)}</span>
-                  <button className="cart-item-remove" onClick={() => removeFromCart(item.watch.id)}>Remove</button>
+                  <button className="cart-item-remove" onClick={() => removeFromCart(item.watch.id)}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    Remove
+                  </button>
                 </div>
               </div>
             ))
@@ -672,9 +678,18 @@ export default function Home() {
                           <span className="watch-brand">{item.watch.brand}</span>
                           <span className="watch-model">{item.watch.model}</span>
                           <span className="watch-ref">{item.watch.ref}</span>
-                          <button className="cart-page-remove" onClick={() => removeFromCart(item.watch.id)}>Remove</button>
+                          <span style={{fontSize:"0.72rem",color:"var(--gray-mid)"}}>Condition: {item.watch.condition} · {item.watch.year}</span>
+                          <button className="cart-page-remove" onClick={() => removeFromCart(item.watch.id)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            Remove from cart
+                          </button>
                         </div>
-                        <span className="cart-page-price">{fmt(item.watch.price)}</span>
+                        <div className="cart-page-right">
+                          <span className="cart-page-price">{fmt(item.watch.price)}</span>
+                          <button className="cart-page-remove-icon" onClick={() => removeFromCart(item.watch.id)} title="Remove">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
