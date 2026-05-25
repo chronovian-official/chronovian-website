@@ -116,14 +116,10 @@ export default function Home() {
     { label: "New Arrivals", page: "watches" as PageType },
   ];
   const sellItems = [
-    { label: "Sell Your Watch", page: "sell" as PageType },
     { label: "How It Works", page: "sell" as PageType },
-    { label: "Get a Valuation", href: "mailto:info@chronovian.com?subject=Watch Valuation" },
   ];
   const tradeItems = [
-    { label: "Trade Your Watch", page: "trade" as PageType },
     { label: "How It Works", page: "trade" as PageType },
-    { label: "Trade Calculator", href: "mailto:info@chronovian.com?subject=Trade Enquiry" },
   ];
 
   const WatchCard = ({ w, showEnquire = false }: { w: Watch; showEnquire?: boolean }) => (
@@ -617,8 +613,10 @@ export default function Home() {
           </button>
           {[
             { key: "shop", label: "Shop Now", items: shopItems },
-            { key: "sell", label: "Sell", items: sellItems },
-            { key: "trade", label: "Trade", items: tradeItems },
+            { key: "selltrade", label: "Sell / Trade", items: [
+              { label: "Sell — How It Works", page: "sell" as PageType },
+              { label: "Trade — How It Works", page: "trade" as PageType },
+            ]},
           ].map(dd => (
             <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
               <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
@@ -659,8 +657,10 @@ export default function Home() {
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
         {[
           { key: "shop", label: "Shop Now", items: shopItems },
-          { key: "sell", label: "Sell", items: sellItems },
-          { key: "trade", label: "Trade", items: tradeItems },
+          { key: "selltrade", label: "Sell / Trade", items: [
+            { label: "Sell — How It Works", page: "sell" as PageType },
+            { label: "Trade — How It Works", page: "trade" as PageType },
+          ]},
         ].map(dd => (
           <div className="mobile-section" key={dd.key}>
             <button className={`mobile-section-trigger${mobileExpanded === dd.key ? " open" : ""}`} onClick={() => setMobileExpanded(mobileExpanded === dd.key ? null : dd.key)}>
