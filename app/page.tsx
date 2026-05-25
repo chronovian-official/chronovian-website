@@ -43,6 +43,8 @@ export default function Home() {
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [selectedWatch, setSelectedWatch] = useState<Watch | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -57,7 +59,7 @@ export default function Home() {
     const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
     return () => clearInterval(id);
   }, []);
-  useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen) ? "hidden" : ""; }, [menuOpen, cartOpen]);
+  useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen || searchOpen) ? "hidden" : ""; }, [menuOpen, cartOpen, searchOpen]);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(e.target as Node)) setActiveDropdown(null);
@@ -92,6 +94,11 @@ export default function Home() {
 
   const brands = ["All", "Rolex", "Audemars Piguet", "Patek Philippe"];
   const filteredWatches = filterBrand === "All" ? allWatches : allWatches.filter(w => w.brand === filterBrand);
+  const searchResults = searchQuery.trim().length > 1
+    ? allWatches.filter(w =>
+        `${w.brand} ${w.model} ${w.ref} ${w.condition}`.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
 
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
@@ -200,9 +207,30 @@ export default function Home() {
           .nav-right .nav-icon-btn { display: none; }
           .mobile-hamburger { display: flex !important; }
           .nav-right .nav-icon-btn.always-show { display: flex; }
+          #mobile-search-btn { display: flex !important; }
         }
 
-        /* CART DRAWER */
+        /* SEARCH OVERLAY */
+        .search-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+        .search-overlay.open { opacity: 1; pointer-events: all; }
+        .search-overlay-header { padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1.25rem; }
+        .search-input-wrap { flex: 1; display: flex; align-items: center; gap: 1rem; }
+        .search-input-icon { color: var(--gray-mid); flex-shrink: 0; }
+        .search-input { flex: 1; font-family: 'Playfair Display', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 300; border: none; outline: none; background: none; color: var(--black); }
+        .search-input::placeholder { color: var(--gray-light); }
+        .search-close { background: none; border: none; cursor: pointer; color: var(--gray-mid); font-size: 1.5rem; line-height: 1; padding: 0.25rem; transition: color 0.2s; flex-shrink: 0; }
+        .search-close:hover { color: var(--black); }
+        .search-body { flex: 1; overflow-y: auto; padding: 2rem 2.5rem; }
+        .search-hint { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); text-align: center; margin-top: 3rem; }
+        .search-count { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 2rem; }
+        .search-results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+        .search-no-results { text-align: center; padding: 3rem 0; }
+        .search-no-results p { font-size: 0.82rem; color: var(--gray-mid); margin-top: 0.5rem; }
+        .search-quick-brands { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 2rem; }
+        .search-quick-label { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-light); margin-bottom: 0.75rem; display: block; }
+        .search-brand-pill { padding: 0.5rem 1.25rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); transition: all 0.2s; }
+        .search-brand-pill:hover { background: var(--black); color: white; border-color: var(--black); }
+        @media (max-width: 768px) { .search-results-grid { grid-template-columns: repeat(2, 1fr); } .search-overlay-header { padding: 1.25rem; } .search-body { padding: 1.5rem; } }
         .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .cart-overlay.open { opacity: 1; pointer-events: all; }
         .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw; background: white; z-index: 401; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
@@ -451,8 +479,8 @@ export default function Home() {
         .footer-social { display: flex; gap: 1.5rem; }
         .footer-social a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); text-decoration: none; transition: color 0.2s; }
         .footer-social a:hover { color: var(--gold); }
-        .whatsapp-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 52px; height: 52px; border-radius: 50%; background: #25D366; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.4rem; box-shadow: 0 4px 16px rgba(37,211,102,0.35); z-index: 100; transition: transform 0.2s; }
-        .whatsapp-fab:hover { transform: scale(1.08); }
+        .whatsapp-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; height: 48px; padding: 0 1.25rem; border-radius: 24px; background: #25D366; display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: white; box-shadow: 0 4px 16px rgba(37,211,102,0.35); z-index: 100; transition: transform 0.2s, box-shadow 0.2s; }
+        .whatsapp-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.45); }
 
         @media (max-width: 768px) {
           .featured-grid, .watches-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
@@ -470,6 +498,73 @@ export default function Home() {
           .cart-drawer { width: 100vw; }
         }
       `}</style>
+
+      {/* SEARCH OVERLAY */}
+      <div className={`search-overlay${searchOpen ? " open" : ""}`}>
+        <div className="search-overlay-header">
+          <div className="search-input-wrap">
+            <svg className="search-input-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              className="search-input"
+              placeholder="Search by brand, model or reference…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              autoFocus={searchOpen}
+            />
+          </div>
+          <button className="search-close" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>×</button>
+        </div>
+        <div className="search-body">
+          {searchQuery.trim().length === 0 && (
+            <div>
+              <span className="search-quick-label">Browse by brand</span>
+              <div className="search-quick-brands">
+                {["Rolex", "Audemars Piguet", "Patek Philippe"].map(b => (
+                  <button key={b} className="search-brand-pill" onClick={() => {
+                    setSearchOpen(false); setSearchQuery("");
+                    setFilterBrand(b); goTo("watches");
+                  }}>{b}</button>
+                ))}
+                <button className="search-brand-pill" onClick={() => {
+                  setSearchOpen(false); setSearchQuery(""); goTo("watches");
+                }}>All Watches</button>
+              </div>
+            </div>
+          )}
+          {searchQuery.trim().length > 1 && searchResults.length > 0 && (
+            <div>
+              <p className="search-count">{searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for "{searchQuery}"</p>
+              <div className="search-results-grid">
+                {searchResults.map(w => (
+                  <div className="watch-card" key={w.id}>
+                    <div className="watch-img-wrap" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }}>
+                      <img src={w.img} alt={w.model} />
+                      <span className="watch-status">{w.status}</span>
+                      <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
+                        {wishlist.includes(w.id) ? "♥" : "♡"}
+                      </button>
+                    </div>
+                    <span className="watch-brand">{w.brand}</span>
+                    <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }} style={{cursor:"pointer"}}>{w.model}</span>
+                    <span className="watch-ref">{w.ref}</span>
+                    <span className="watch-price">{fmt(w.price)}</span>
+                    <div className="card-actions">
+                      <button className="btn-cart" onClick={() => { addToCart(w); setSearchOpen(false); setSearchQuery(""); }}>Add to Cart</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {searchQuery.trim().length > 1 && searchResults.length === 0 && (
+            <div className="search-no-results">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <p>No results for "{searchQuery}"</p>
+              <p style={{marginTop:"0.5rem",fontSize:"0.72rem"}}>Try searching by brand name, model, or reference number.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* CART DRAWER */}
       <div className={`cart-overlay${cartOpen ? " open" : ""}`} onClick={() => setCartOpen(false)} />
@@ -517,6 +612,9 @@ export default function Home() {
           <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
+          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} style={{display:"none",padding:"0 0.25rem"}} id="mobile-search-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
           {[
             { key: "shop", label: "Shop Now", items: shopItems },
             { key: "sell", label: "Sell", items: sellItems },
@@ -536,12 +634,15 @@ export default function Home() {
               </div>
             </div>
           ))}
-          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
+          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} title="Search" style={{padding:"0 0.25rem"}}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
         </div>
 
         <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
 
         <div className="nav-right">
+          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
           <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
           <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
             <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -551,9 +652,6 @@ export default function Home() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
           </button>
-          <a href="https://wa.me/910000000000" target="_blank" className="nav-icon-btn always-show">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-          </a>
         </div>
       </nav>
 
@@ -582,7 +680,6 @@ export default function Home() {
         <a className="mobile-plain" href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
-        <a className="mobile-plain" href="https://wa.me/910000000000" target="_blank" onClick={() => setMenuOpen(false)}>WhatsApp</a>
       </div>
 
       {/* PRODUCT PAGE */}
@@ -749,7 +846,6 @@ export default function Home() {
                       {[
                         { id: "home", name: "Home Delivery", sub: "Insured courier — 3 to 5 business days", price: "₹500" },
                         { id: "store", name: "In-Store Collection", sub: "Hyderabad boutique — by appointment only", price: "Free" },
-                        { id: "white", name: "White Glove Delivery", sub: "Personal advisor delivery — Hyderabad metro", price: "₹2,000" },
                       ].map(opt => (
                         <div className="delivery-option selected" key={opt.id} style={{marginBottom:"0.5rem"}}>
                           <input type="radio" name="delivery" defaultChecked={opt.id === "home"} />
@@ -1111,7 +1207,10 @@ export default function Home() {
         </div>
       </footer>
 
-      <a href="https://wa.me/910000000000" target="_blank" className="whatsapp-fab">💬</a>
+      <a href="https://wa.me/910000000000" target="_blank" className="whatsapp-fab">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.531 5.855L.057 23.169a.75.75 0 0 0 .92.92l5.355-1.484A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.731 9.731 0 0 1-4.964-1.355l-.355-.212-3.686 1.021 1.03-3.596-.232-.371A9.722 9.722 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+        <span style={{fontSize:"0.58rem",letterSpacing:"0.12em",textTransform:"uppercase",fontFamily:"'Jost',sans-serif",fontWeight:400}}>WhatsApp Us</span>
+      </a>
     </>
   );
 }
