@@ -27,7 +27,7 @@ const heroSlides = [
 
 type Watch = typeof allWatches[0];
 type CartItem = { watch: Watch; qty: number };
-type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product";
+type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
 const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
@@ -46,6 +46,11 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [bookingDone, setBookingDone] = useState(false);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -450,7 +455,35 @@ export default function Home() {
         .contact-item-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); display: block; margin-bottom: 0.25rem; }
         .contact-form { display: flex; flex-direction: column; gap: 1rem; }
 
-        /* BUTTONS */
+        /* BOOKING PAGE */
+        .booking-page { padding: 4rem 2.5rem; max-width: 1000px; margin: 0 auto; }
+        .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 3.5rem; }
+        .calendar-wrap { user-select: none; }
+        .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+        .calendar-month { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; }
+        .calendar-nav { background: none; border: 1px solid var(--border); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--black); transition: all 0.2s; }
+        .calendar-nav:hover { background: var(--black); color: white; border-color: var(--black); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-day-name { text-align: center; font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); padding: 0.5rem 0; }
+        .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; color: var(--black); background: none; font-family: 'Jost', sans-serif; font-weight: 300; }
+        .calendar-day:hover:not(.disabled):not(.past) { border-color: var(--gold); color: var(--gold); }
+        .calendar-day.selected { background: var(--gold); color: white; border-color: var(--gold); }
+        .calendar-day.today { border-color: var(--border); font-weight: 500; }
+        .calendar-day.disabled, .calendar-day.past { color: var(--gray-light); cursor: default; pointer-events: none; }
+        .calendar-day.empty { pointer-events: none; }
+        .time-slots { margin-top: 2rem; }
+        .time-slots-label { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 1rem; display: block; }
+        .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+        .time-slot { padding: 0.6rem; font-size: 0.65rem; letter-spacing: 0.08em; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; color: var(--black); transition: all 0.2s; text-align: center; }
+        .time-slot:hover { border-color: var(--gold); color: var(--gold); }
+        .time-slot.selected { background: var(--gold); color: white; border-color: var(--gold); }
+        .booking-form { display: flex; flex-direction: column; gap: 1rem; }
+        .booking-selected-slot { background: var(--gray-pale); border-left: 3px solid var(--gold); padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; }
+        .booking-selected-slot-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.25rem; }
+        .booking-selected-slot-value { font-family: 'Playfair Display', serif; font-size: 0.95rem; }
+        .booking-success { text-align: center; padding: 3rem 0; }
+        .booking-success-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 1.5rem; }
+        @media (max-width: 768px) { .booking-grid { grid-template-columns: 1fr; gap: 2.5rem; } .time-slots-grid { grid-template-columns: repeat(4, 1fr); } }
         .btn-outline { display: inline-block; border: 1px solid var(--black); color: var(--black); text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.3s; background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; }
         .btn-outline:hover { background: var(--black); color: white; }
         .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
@@ -642,7 +675,7 @@ export default function Home() {
 
         <div className="nav-right">
           <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
-          <a href="mailto:info@chronovian.com?subject=Book Appointment" className="nav-link">Book Appointment</a>
+          <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
           <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
             <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
@@ -678,7 +711,7 @@ export default function Home() {
           </div>
         ))}
         <button className="mobile-plain" onClick={() => goTo("contact")}>Contact</button>
-        <a className="mobile-plain" href="mailto:info@chronovian.com?subject=Book Appointment" onClick={() => setMenuOpen(false)}>Book Appointment</a>
+        <button className="mobile-plain" onClick={() => goTo("booking")}>Book Appointment</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
       </div>
@@ -1054,6 +1087,139 @@ export default function Home() {
         </div></main>
       )}
 
+      {/* BOOKING PAGE */}
+      {page === "booking" && (() => {
+        const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        const timeSlots = ["10:00 AM","11:00 AM","12:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM"];
+        const today = new Date();
+        const firstDay = new Date(calYear, calMonth, 1).getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const prevMonth = () => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); setSelectedDate(null); setSelectedTime(null); };
+        const nextMonth = () => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); setSelectedDate(null); setSelectedTime(null); };
+        const isPast = (d: number) => new Date(calYear, calMonth, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const isWeekend = (d: number) => { const day = new Date(calYear, calMonth, d).getDay(); return day === 0; }; // closed Sundays
+        const dateStr = (d: number) => `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        const displayDate = selectedDate ? new Date(selectedDate + "T12:00:00").toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" }) : null;
+
+        return (
+          <main>
+            <div className="booking-page">
+              <span className="section-eyebrow">Private Appointment</span>
+              <h1 className="section-title">Book a <em>Viewing</em></h1>
+              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+
+              {bookingDone ? (
+                <div className="booking-success" style={{marginTop:"3rem"}}>
+                  <div className="booking-success-icon">✓</div>
+                  <span className="section-eyebrow">Appointment Confirmed</span>
+                  <h2 className="section-title" style={{marginTop:"0.5rem"}}>We'll See You <em>Soon</em></h2>
+                  <div className="gold-rule" />
+                  <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",lineHeight:2,maxWidth:"420px",margin:"1.5rem auto"}}>
+                    Your appointment has been received. A Chronovian advisor will confirm your booking via email and WhatsApp within a few hours.
+                  </p>
+                  <button className="btn-outline" onClick={() => { setBookingDone(false); setSelectedDate(null); setSelectedTime(null); goTo("home"); }}>Return Home</button>
+                </div>
+              ) : (
+                <div className="booking-grid">
+                  {/* CALENDAR */}
+                  <div className="calendar-wrap">
+                    <div className="calendar-header">
+                      <button className="calendar-nav" onClick={prevMonth}>‹</button>
+                      <span className="calendar-month">{monthNames[calMonth]} {calYear}</span>
+                      <button className="calendar-nav" onClick={nextMonth}>›</button>
+                    </div>
+                    <div className="calendar-grid">
+                      {dayNames.map(d => <div key={d} className="calendar-day-name">{d}</div>)}
+                      {Array.from({length: firstDay}).map((_, i) => <div key={`e-${i}`} className="calendar-day empty" />)}
+                      {Array.from({length: daysInMonth}).map((_, i) => {
+                        const d = i + 1;
+                        const ds = dateStr(d);
+                        const past = isPast(d);
+                        const weekend = isWeekend(d);
+                        const isSelected = selectedDate === ds;
+                        const isToday = today.getDate() === d && today.getMonth() === calMonth && today.getFullYear() === calYear;
+                        return (
+                          <button
+                            key={d}
+                            className={`calendar-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${past || weekend ? " past" : ""}`}
+                            onClick={() => { if (!past && !weekend) { setSelectedDate(ds); setSelectedTime(null); }}}
+                          >{d}</button>
+                        );
+                      })}
+                    </div>
+                    <p style={{fontSize:"0.6rem",color:"var(--gray-light)",marginTop:"1rem",letterSpacing:"0.1em"}}>
+                      Open Monday–Saturday · Sundays closed · By appointment only
+                    </p>
+
+                    {/* TIME SLOTS */}
+                    {selectedDate && (
+                      <div className="time-slots">
+                        <span className="time-slots-label">Available times for {displayDate}</span>
+                        <div className="time-slots-grid">
+                          {timeSlots.map(t => (
+                            <button key={t} className={`time-slot${selectedTime === t ? " selected" : ""}`} onClick={() => setSelectedTime(t)}>{t}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* BOOKING FORM */}
+                  <div>
+                    {selectedDate && selectedTime && (
+                      <div className="booking-selected-slot">
+                        <span className="booking-selected-slot-label">Your selected slot</span>
+                        <span className="booking-selected-slot-value">{displayDate} · {selectedTime}</span>
+                      </div>
+                    )}
+                    <form className="booking-form" onSubmit={e => { e.preventDefault(); setBookingDone(true); }}>
+                      <div className="form-group">
+                        <label className="form-label">Full Name</label>
+                        <input className="form-input" type="text" placeholder="Your full name" required />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Phone / WhatsApp</label>
+                        <input className="form-input" type="tel" placeholder="+91 00000 00000" required />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Email</label>
+                        <input className="form-input" type="email" placeholder="your@email.com" required />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">I'm interested in</label>
+                        <select className="form-select">
+                          <option>Buying a Watch</option>
+                          <option>Selling a Watch</option>
+                          <option>Trading a Watch</option>
+                          <option>Fine Jewellery</option>
+                          <option>General Enquiry</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Additional Notes</label>
+                        <textarea className="form-textarea" placeholder="Any specific pieces you're interested in, or other details…" style={{minHeight:"90px"}} />
+                      </div>
+                      <button
+                        type="submit"
+                        className="btn-gold"
+                        style={{width:"100%",opacity: selectedDate && selectedTime ? 1 : 0.45, cursor: selectedDate && selectedTime ? "pointer" : "not-allowed"}}
+                        disabled={!selectedDate || !selectedTime}
+                      >
+                        {selectedDate && selectedTime ? `Confirm Appointment` : "Select a Date & Time First"}
+                      </button>
+                      <p style={{fontSize:"0.6rem",color:"var(--gray-light)",textAlign:"center",letterSpacing:"0.1em"}}>
+                        A Chronovian advisor will confirm within a few hours via WhatsApp &amp; email
+                      </p>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          </main>
+        );
+      })()}
+
       {/* HOME PAGE */}
       {page === "home" && (
         <main>
@@ -1117,7 +1283,7 @@ export default function Home() {
             <h2 className="section-title">A Sanctuary for the <em>Extraordinary</em></h2>
             <div className="gold-rule" />
             <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
-            <button className="btn-outline" onClick={() => goTo("contact")}>Schedule a Private Viewing</button>
+            <button className="btn-outline" onClick={() => goTo("booking")}>Schedule a Private Viewing</button>
           </section>
 
           <section className="pillars">
@@ -1182,7 +1348,7 @@ export default function Home() {
             <div>
               <span className="footer-col-title">Visit Us</span>
               <ul className="footer-links">
-                <li><a href="mailto:info@chronovian.com?subject=Book Appointment">Book Appointment</a></li>
+                <li><button onClick={() => goTo("booking")}>Book Appointment</button></li>
                 <li><button onClick={() => goTo("contact")}>Contact Us</button></li>
                 <li><a href="https://wa.me/910000000000" target="_blank">WhatsApp</a></li>
               </ul>
