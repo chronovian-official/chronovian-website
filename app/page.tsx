@@ -28,6 +28,7 @@ const heroSlides = [
 type Watch = typeof allWatches[0];
 type CartItem = { watch: Watch; qty: number };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product";
+type DropdownItem = { label: string; page?: PageType; href?: string };
 
 const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
@@ -109,11 +110,11 @@ export default function Home() {
     return () => clearInterval(id);
   }, [totalWatchPages]);
 
-  const shopItems = [
-    { label: "All Watches", page: "watches" as PageType },
-    { label: "Jewellery", page: "jewellery" as PageType },
-    { label: "Bags", page: "bags" as PageType },
-    { label: "New Arrivals", page: "watches" as PageType },
+  const shopItems: DropdownItem[] = [
+    { label: "All Watches", page: "watches" },
+    { label: "Jewellery", page: "jewellery" },
+    { label: "Bags", page: "bags" },
+    { label: "New Arrivals", page: "watches" },
   ];
   const sellItems = [
     { label: "How It Works", page: "sell" as PageType },
@@ -611,13 +612,13 @@ export default function Home() {
           <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} style={{display:"none",padding:"0 0.25rem"}} id="mobile-search-btn">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          {[
+          {([
             { key: "shop", label: "Shop Now", items: shopItems },
             { key: "selltrade", label: "Sell / Trade", items: [
               { label: "Sell — How It Works", page: "sell" as PageType },
               { label: "Trade — How It Works", page: "trade" as PageType },
-            ]},
-          ].map(dd => (
+            ] as DropdownItem[] },
+          ]).map(dd => (
             <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
               <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
                 {dd.label}
@@ -655,13 +656,13 @@ export default function Home() {
 
       {/* MOBILE MENU */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
-        {[
+        {([
           { key: "shop", label: "Shop Now", items: shopItems },
           { key: "selltrade", label: "Sell / Trade", items: [
             { label: "Sell — How It Works", page: "sell" as PageType },
             { label: "Trade — How It Works", page: "trade" as PageType },
-          ]},
-        ].map(dd => (
+          ] as DropdownItem[] },
+        ]).map(dd => (
           <div className="mobile-section" key={dd.key}>
             <button className={`mobile-section-trigger${mobileExpanded === dd.key ? " open" : ""}`} onClick={() => setMobileExpanded(mobileExpanded === dd.key ? null : dd.key)}>
               {dd.label}
