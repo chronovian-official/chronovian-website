@@ -51,6 +51,9 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingDone, setBookingDone] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [bookingForm, setBookingForm] = useState({ name: "", phone: "", email: "", interest: "Buying a Watch", notes: "" });
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -1070,16 +1073,32 @@ export default function Home() {
             </div>
             <div>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
-              <form className="contact-form" onSubmit={e => { e.preventDefault(); window.location.href = "mailto:info@chronovian.com?subject=Website Enquiry"; }}>
-                <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" type="text" placeholder="Your name" required /></div>
-                <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" required /></div>
+              <form className="contact-form" onSubmit={async e => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const data = {
+                  name: (form.elements.namedItem('name') as HTMLInputElement).value,
+                  email: (form.elements.namedItem('email') as HTMLInputElement).value,
+                  type: (form.elements.namedItem('type') as HTMLSelectElement).value,
+                  message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
+                };
+                try {
+                  await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                  form.reset();
+                  alert('Thank you — we\'ll be in touch shortly.');
+                } catch {
+                  alert('Something went wrong. Please email us directly at enquiries@chronovian.com');
+                }
+              }}>
+                <div className="form-group"><label className="form-label">Full Name</label><input name="name" className="form-input" type="text" placeholder="Your name" required /></div>
+                <div className="form-group"><label className="form-label">Email</label><input name="email" className="form-input" type="email" placeholder="your@email.com" required /></div>
                 <div className="form-group">
                   <label className="form-label">Enquiry Type</label>
-                  <select className="form-select">
+                  <select name="type" className="form-select">
                     <option>Book an Appointment</option><option>Watch Enquiry</option><option>Jewellery Enquiry</option><option>Sell My Watch</option><option>Trade Enquiry</option><option>General Enquiry</option>
                   </select>
                 </div>
-                <div className="form-group"><label className="form-label">Message</label><textarea className="form-textarea" placeholder="Tell us how we can help..." /></div>
+                <div className="form-group"><label className="form-label">Message</label><textarea name="message" className="form-textarea" placeholder="Tell us how we can help..." /></div>
                 <button type="submit" className="btn-gold">Send Enquiry</button>
               </form>
             </div>
@@ -1173,22 +1192,44 @@ export default function Home() {
                         <span className="booking-selected-slot-value">{displayDate} · {selectedTime}</span>
                       </div>
                     )}
-                    <form className="booking-form" onSubmit={e => { e.preventDefault(); setBookingDone(true); }}>
+                    <form className="booking-form" onSubmit={async e => {
+                      e.preventDefault();
+                      if (!selectedDate || !selectedTime) return;
+                      setBookingLoading(true);
+                      setBookingError(null);
+                      try {
+                        const res = await fetch('/api/booking', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            ...bookingForm,
+                            date: displayDate,
+                            time: selectedTime,
+                          }),
+                        });
+                        if (!res.ok) throw new Error('Failed');
+                        setBookingDone(true);
+                      } catch {
+                        setBookingError('Something went wrong. Please try again or WhatsApp us directly.');
+                      } finally {
+                        setBookingLoading(false);
+                      }
+                    }}>
                       <div className="form-group">
                         <label className="form-label">Full Name</label>
-                        <input className="form-input" type="text" placeholder="Your full name" required />
+                        <input className="form-input" type="text" placeholder="Your full name" required value={bookingForm.name} onChange={e => setBookingForm(f => ({...f, name: e.target.value}))} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Phone / WhatsApp</label>
-                        <input className="form-input" type="tel" placeholder="+91 00000 00000" required />
+                        <input className="form-input" type="tel" placeholder="+91 00000 00000" required value={bookingForm.phone} onChange={e => setBookingForm(f => ({...f, phone: e.target.value}))} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Email</label>
-                        <input className="form-input" type="email" placeholder="your@email.com" required />
+                        <input className="form-input" type="email" placeholder="your@email.com" required value={bookingForm.email} onChange={e => setBookingForm(f => ({...f, email: e.target.value}))} />
                       </div>
                       <div className="form-group">
                         <label className="form-label">I'm interested in</label>
-                        <select className="form-select">
+                        <select className="form-select" value={bookingForm.interest} onChange={e => setBookingForm(f => ({...f, interest: e.target.value}))}>
                           <option>Buying a Watch</option>
                           <option>Selling a Watch</option>
                           <option>Trading a Watch</option>
@@ -1198,15 +1239,16 @@ export default function Home() {
                       </div>
                       <div className="form-group">
                         <label className="form-label">Additional Notes</label>
-                        <textarea className="form-textarea" placeholder="Any specific pieces you're interested in, or other details…" style={{minHeight:"90px"}} />
+                        <textarea className="form-textarea" placeholder="Any specific pieces you're interested in, or other details…" style={{minHeight:"90px"}} value={bookingForm.notes} onChange={e => setBookingForm(f => ({...f, notes: e.target.value}))} />
                       </div>
+                      {bookingError && <p style={{fontSize:"0.75rem",color:"#c0392b",lineHeight:1.6}}>{bookingError}</p>}
                       <button
                         type="submit"
                         className="btn-gold"
-                        style={{width:"100%",opacity: selectedDate && selectedTime ? 1 : 0.45, cursor: selectedDate && selectedTime ? "pointer" : "not-allowed"}}
-                        disabled={!selectedDate || !selectedTime}
+                        style={{width:"100%", opacity: (selectedDate && selectedTime && !bookingLoading) ? 1 : 0.45, cursor: (selectedDate && selectedTime && !bookingLoading) ? "pointer" : "not-allowed"}}
+                        disabled={!selectedDate || !selectedTime || bookingLoading}
                       >
-                        {selectedDate && selectedTime ? `Confirm Appointment` : "Select a Date & Time First"}
+                        {bookingLoading ? "Sending…" : selectedDate && selectedTime ? "Confirm Appointment" : "Select a Date & Time First"}
                       </button>
                       <p style={{fontSize:"0.6rem",color:"var(--gray-light)",textAlign:"center",letterSpacing:"0.1em"}}>
                         A Chronovian advisor will confirm within a few hours via WhatsApp &amp; email
