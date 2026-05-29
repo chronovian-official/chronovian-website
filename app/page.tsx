@@ -1,23 +1,47 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const allWatches = [
-  { id: "rolex-sub", img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85", brand: "Rolex", model: "Submariner", ref: "Ref. 126610LN", status: "Available", price: 1250000, condition: "Excellent", year: "2022", box: true, papers: true, desc: "The Submariner is the reference amongst divers' watches. Water-resistant to 300 metres, it features a unidirectional rotatable bezel and a black Cerachrom insert." },
-  { id: "rolex-daytona", img: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=85", brand: "Rolex", model: "Cosmograph Daytona", ref: "Ref. 116500LN", status: "Available", price: 2800000, condition: "Mint", year: "2021", box: true, papers: true, desc: "The Daytona was designed to meet the needs of professional racing drivers. Its name evokes the legendary Daytona International Speedway." },
-  { id: "rolex-gmt", img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&q=85", brand: "Rolex", model: "GMT-Master II", ref: "Ref. 126710BLRO", status: "Available", price: 1650000, condition: "Excellent", year: "2023", box: true, papers: true, desc: "The GMT-Master II is the quintessential traveller's watch. Its bidirectional rotatable bezel features a 24-hour graduated Cerachrom insert in two colours." },
-  { id: "rolex-datejust", img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=800&q=85", brand: "Rolex", model: "Datejust 41", ref: "Ref. 126334", status: "Available", price: 950000, condition: "Very Good", year: "2020", box: true, papers: false, desc: "The Datejust is the classic watch of reference. Its timeless design and wide variety of dials, bezels and bracelets make it one of the most versatile." },
-  { id: "rolex-daydate", img: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=800&q=85", brand: "Rolex", model: "Day-Date 40", ref: "Ref. 228238", status: "Available", price: 3200000, condition: "Mint", year: "2022", box: true, papers: true, desc: "The Day-Date has been crafted in 18 ct gold or platinum since its launch in 1956. It was the first watch to display the day of the week spelled out in full." },
-  { id: "ap-royaloak", img: "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak", ref: "Ref. 15500ST.OO.1220ST.01", status: "Available", price: 4500000, condition: "Excellent", year: "2021", box: true, papers: true, desc: "The Royal Oak, designed by Gérald Genta in 1972, revolutionised fine watchmaking. Its iconic octagonal bezel secured by eight hexagonal screws is instantly recognisable." },
-  { id: "ap-offshore", img: "https://images.unsplash.com/photo-1616485828847-7e63a1e28b1b?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Offshore", ref: "Ref. 26400IO.OO.A004CA.01", status: "Available", price: 5800000, condition: "Very Good", year: "2020", box: true, papers: true, desc: "The Royal Oak Offshore pushes the boundaries of the Royal Oak concept. A bold and powerful instrument, it embodies the spirit of adventure." },
-  { id: "ap-code", img: "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=800&q=85", brand: "Audemars Piguet", model: "Code 11.59", ref: "Ref. 15210BC.OO.A002KB.01", status: "Available", price: 6200000, condition: "Mint", year: "2023", box: true, papers: true, desc: "The Code 11.59 by Audemars Piguet is a bold expression of the Manufacture's creativity and technical mastery, featuring a unique case architecture." },
-  { id: "ap-chrono", img: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Chronograph", ref: "Ref. 26331ST.OO.1220ST.02", status: "Available", price: 5200000, condition: "Excellent", year: "2021", box: false, papers: true, desc: "Combining the iconic Royal Oak design with a sophisticated chronograph mechanism, this piece represents the pinnacle of sports-luxury watchmaking." },
-  { id: "ap-perpetual", img: "https://images.unsplash.com/photo-1622434641406-a158123450f9?w=800&q=85", brand: "Audemars Piguet", model: "Royal Oak Perpetual Calendar", ref: "Ref. 26574ST.OO.1220ST.02", status: "Available", price: 8500000, condition: "Mint", year: "2022", box: true, papers: true, desc: "The Royal Oak Perpetual Calendar is a testament to haute horlogerie. Its perpetual calendar mechanism accounts for the varying lengths of months without manual correction." },
-  { id: "pp-nautilus", img: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=800&q=85", brand: "Patek Philippe", model: "Nautilus", ref: "Ref. 5711/1A-010", status: "Available", price: 9800000, condition: "Excellent", year: "2020", box: true, papers: true, desc: "The Nautilus is one of the most coveted sports watches in the world. Designed by Gérald Genta in 1976, its porthole-inspired case is an enduring icon." },
-  { id: "pp-aquanaut", img: "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=800&q=85", brand: "Patek Philippe", model: "Aquanaut", ref: "Ref. 5167A-001", status: "Available", price: 4800000, condition: "Very Good", year: "2021", box: true, papers: true, desc: "Introduced in 1997, the Aquanaut is Patek Philippe's contemporary sports watch. Its rounded octagonal bezel and embossed dial give it a distinctive character." },
-  { id: "pp-calatrava", img: "https://images.unsplash.com/photo-1495857000853-fe46c8aefc31?w=800&q=85", brand: "Patek Philippe", model: "Calatrava", ref: "Ref. 5196G-001", status: "Available", price: 3500000, condition: "Excellent", year: "2021", box: true, papers: true, desc: "Since 1932, the Calatrava has been the embodiment of the classic dress watch. Its clean, timeless aesthetic makes it an enduring symbol of elegance." },
-  { id: "pp-annual", img: "https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?w=800&q=85", brand: "Patek Philippe", model: "Annual Calendar", ref: "Ref. 5396G-011", status: "Available", price: 5600000, condition: "Mint", year: "2022", box: true, papers: true, desc: "Patek Philippe's annual calendar requires just one manual correction per year, at the end of February. It displays the day, date and month through elegant apertures." },
-];
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+type Watch = {
+  id: string;
+  brand: string;
+  model: string;
+  ref: string;
+  category: string;
+  price: number;
+  condition: string;
+  year: string;
+  box: boolean;
+  papers: boolean;
+  description: string;
+  status: string;
+  images: string[];
+  featured: boolean;
+  dial_color?: string;
+  case_material?: string;
+  bracelet_material?: string;
+  case_size?: string;
+  movement?: string;
+  material?: string;
+  gemstone?: string;
+  color?: string;
+  hardware?: string;
+  size?: string;
+  serial_number?: string;
+};
+
+// Fallback placeholder image
+const placeholder = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85";
+
+const getImg = (w: Watch) => w.images?.[0] || placeholder;
 
 const heroSlides = [
   { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", sub: "Premium Watches & Fine Jewellery" },
@@ -25,7 +49,6 @@ const heroSlides = [
   { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
 ];
 
-type Watch = typeof allWatches[0];
 type CartItem = { watch: Watch; qty: number };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
@@ -56,7 +79,30 @@ export default function Home() {
   const [bookingForm, setBookingForm] = useState({ name: "", phone: "", email: "", interest: "Buying a Watch", notes: "" });
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [allWatches, setAllWatches] = useState<Watch[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const navRef = useRef<HTMLElement>(null);
+
+  // Fetch all products from Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const sb = getSupabase();
+        const { data, error } = await sb
+          .from("products")
+          .select("*")
+          .eq("status", "available")
+          .order("featured", { ascending: false })
+          .order("created_at", { ascending: false });
+        if (!error && data) setAllWatches(data);
+      } catch (e) {
+        console.error("Failed to fetch products:", e);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
   useEffect(() => {
@@ -101,18 +147,22 @@ export default function Home() {
   const cartTotal = cart.reduce((s, i) => s + i.watch.price * i.qty, 0);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
-  const brands = ["All", "Rolex", "Audemars Piguet", "Patek Philippe"];
-  const filteredWatches = filterBrand === "All" ? allWatches : allWatches.filter(w => w.brand === filterBrand);
+  const brands = ["All", ...Array.from(new Set(allWatches.map(w => w.brand))).sort()];
+  const filteredWatches = filterBrand === "All" ? allWatches.filter(w => w.category === "watches") : allWatches.filter(w => w.brand === filterBrand && w.category === "watches");
   const searchResults = searchQuery.trim().length > 1
     ? allWatches.filter(w =>
         `${w.brand} ${w.model} ${w.ref} ${w.condition}`.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
 
+  const featuredWatches = allWatches.filter(w => w.featured).length > 0
+    ? allWatches.filter(w => w.featured)
+    : allWatches.slice(0, 8);
+
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
-  const totalWatchPages = Math.ceil(allWatches.length / watchesPerPage);
-  const visibleWatches = allWatches.slice(watchIdx * watchesPerPage, (watchIdx + 1) * watchesPerPage);
+  const totalWatchPages = Math.ceil(featuredWatches.length / watchesPerPage);
+  const visibleWatches = featuredWatches.slice(watchIdx * watchesPerPage, (watchIdx + 1) * watchesPerPage);
   useEffect(() => {
     const id = setInterval(() => setWatchIdx(p => (p + 1) % totalWatchPages), 4000);
     return () => clearInterval(id);
@@ -134,7 +184,7 @@ export default function Home() {
   const WatchCard = ({ w, showEnquire = false }: { w: Watch; showEnquire?: boolean }) => (
     <div className="watch-card">
       <div className="watch-img-wrap" onClick={() => goTo("product", w)}>
-        <img src={w.img} alt={`${w.brand} ${w.model}`} />
+        <img src={getImg(w)} alt={`${w.brand} ${w.model}`} />
         <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
         <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
           {wishlist.includes(w.id) ? "♥" : "♡"}
@@ -214,6 +264,13 @@ export default function Home() {
           .nav-right .nav-icon-btn.always-show { display: flex; }
           #mobile-search-btn { display: flex !important; }
         }
+
+        /* LOADING SKELETON */
+        .skeleton { background: linear-gradient(90deg, #f0ede9 25%, #e8e4df 50%, #f0ede9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .skeleton-card { display: flex; flex-direction: column; gap: 0.75rem; }
+        .skeleton-img { aspect-ratio: 3/4; border-radius: 0; }
+        .skeleton-line { height: 12px; border-radius: 2px; }
 
         /* SEARCH OVERLAY */
         .search-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
@@ -571,7 +628,7 @@ export default function Home() {
                 {searchResults.map(w => (
                   <div className="watch-card" key={w.id}>
                     <div className="watch-img-wrap" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }}>
-                      <img src={w.img} alt={w.model} />
+                      <img src={getImg(w)} alt={w.model} />
                       <span className="watch-status">{w.status}</span>
                       <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
                         {wishlist.includes(w.id) ? "♥" : "♡"}
@@ -611,7 +668,7 @@ export default function Home() {
             ? <div className="cart-empty">Your cart is empty</div>
             : cart.map(item => (
               <div className="cart-item" key={item.watch.id}>
-                <img className="cart-item-img" src={item.watch.img} alt={item.watch.model} />
+                <img className="cart-item-img" src={getImg(item.watch)} alt={item.watch.model} />
                 <div className="cart-item-info">
                   <span className="cart-item-brand">{item.watch.brand}</span>
                   <span className="cart-item-model">{item.watch.model}</span>
@@ -732,14 +789,14 @@ export default function Home() {
             </div>
             <div className="product-grid">
               <div className="product-img-main">
-                <img src={selectedWatch.img} alt={selectedWatch.model} />
+                <img src={getImg(selectedWatch)} alt={selectedWatch.model} />
               </div>
               <div className="product-info">
                 <span className="product-brand">{selectedWatch.brand}</span>
                 <h1 className="product-model">{selectedWatch.model}</h1>
                 <span className="product-ref">{selectedWatch.ref}</span>
                 <div className="product-price">{fmt(selectedWatch.price)}</div>
-                <p className="product-desc">{selectedWatch.desc}</p>
+                <p className="product-desc">{selectedWatch.description}</p>
                 <div className="product-specs">
                   {[
                     { label: "Condition", value: selectedWatch.condition },
@@ -748,7 +805,16 @@ export default function Home() {
                     { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
                     { label: "Status", value: selectedWatch.status },
                     { label: "Reference", value: selectedWatch.ref },
-                  ].map(s => (
+                    ...(selectedWatch.case_size ? [{ label: "Case Size", value: selectedWatch.case_size }] : []),
+                    ...(selectedWatch.movement ? [{ label: "Movement", value: selectedWatch.movement }] : []),
+                    ...(selectedWatch.dial_color ? [{ label: "Dial", value: selectedWatch.dial_color }] : []),
+                    ...(selectedWatch.case_material ? [{ label: "Case", value: selectedWatch.case_material }] : []),
+                    ...(selectedWatch.bracelet_material ? [{ label: "Bracelet", value: selectedWatch.bracelet_material }] : []),
+                    ...(selectedWatch.material ? [{ label: "Material", value: selectedWatch.material }] : []),
+                    ...(selectedWatch.gemstone ? [{ label: "Gemstone", value: selectedWatch.gemstone }] : []),
+                    ...(selectedWatch.color ? [{ label: "Colour", value: selectedWatch.color }] : []),
+                    ...(selectedWatch.hardware ? [{ label: "Hardware", value: selectedWatch.hardware }] : []),
+                  ].filter(s => s.value).map(s => (
                     <div className="product-spec" key={s.label}>
                       <span className="product-spec-label">{s.label}</span>
                       <span className="product-spec-value">{s.value}</span>
@@ -784,7 +850,21 @@ export default function Home() {
               </div>
             </div>
             <div className="watches-grid">
-              {filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)}
+              {productsLoading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                    <div className="skeleton-card" key={i}>
+                      <div className="skeleton skeleton-img" />
+                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+                    </div>
+                  ))
+                : filteredWatches.length === 0
+                  ? <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem 0", color: "var(--gray-mid)", fontSize: "0.82rem" }}>
+                      No watches available in this category yet.
+                    </div>
+                  : filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)
+              }
             </div>
           </div>
         </main>
@@ -807,7 +887,7 @@ export default function Home() {
                   <div className="cart-page-items">
                     {cart.map(item => (
                       <div className="cart-page-item" key={item.watch.id}>
-                        <img className="cart-page-img" src={item.watch.img} alt={item.watch.model} />
+                        <img className="cart-page-img" src={getImg(item.watch)} alt={item.watch.model} />
                         <div className="cart-page-info">
                           <span className="watch-brand">{item.watch.brand}</span>
                           <span className="watch-model">{item.watch.model}</span>
@@ -933,7 +1013,7 @@ export default function Home() {
                     <div className="summary-title">Order Summary</div>
                     {cart.map(item => (
                       <div className="checkout-item-row" key={item.watch.id}>
-                        <img className="checkout-item-img" src={item.watch.img} alt={item.watch.model} />
+                        <img className="checkout-item-img" src={getImg(item.watch)} alt={item.watch.model} />
                         <div className="checkout-item-info">
                           <span className="checkout-item-brand">{item.watch.brand}</span>
                           <span className="checkout-item-model">{item.watch.model}</span>
@@ -1291,7 +1371,17 @@ export default function Home() {
               <div className="gold-rule" />
             </div>
             <div className="featured-grid">
-              {visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} />)}
+              {productsLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div className="skeleton-card" key={i}>
+                      <div className="skeleton skeleton-img" />
+                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+                    </div>
+                  ))
+                : visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} />)
+              }
             </div>
             <div style={{display:"flex",justifyContent:"center",gap:"0.5rem",margin:"2rem 0 1rem"}}>
               {Array.from({length: totalWatchPages}).map((_, i) => (
