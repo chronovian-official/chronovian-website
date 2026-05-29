@@ -50,7 +50,7 @@ const heroSlides = [
 ];
 
 type CartItem = { watch: Watch; qty: number };
-type PageType = "home" | "watches" | "jewellery" | "bags" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
+type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
 const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
@@ -172,6 +172,7 @@ export default function Home() {
     { label: "All Watches", page: "watches" },
     { label: "Jewellery", page: "jewellery" },
     { label: "Bags", page: "bags" },
+    { label: "Accessories", page: "accessories" },
     { label: "New Arrivals", page: "watches" },
   ];
   const sellItems = [
@@ -1042,24 +1043,95 @@ export default function Home() {
 
       {/* JEWELLERY PAGE */}
       {page === "jewellery" && (
-        <main><div className="placeholder-page">
-          <span className="section-eyebrow">Fine Jewellery</span>
-          <h1 className="section-title">Jewellery <em>Collection</em></h1>
-          <div className="gold-rule" />
-          <p>Our curated jewellery collection is coming soon. Each piece is hand-selected for its provenance and artistry.</p>
-          <a href="mailto:info@chronovian.com?subject=Jewellery Enquiry" className="btn-gold">Enquire Now</a>
-        </div></main>
+        <main>
+          <div className="watches-page">
+            <div className="watches-page-header">
+              <span className="section-eyebrow">Fine Jewellery</span>
+              <h1 className="section-title">Jewellery <em>Collection</em></h1>
+              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+            </div>
+            <div className="watches-grid">
+              {productsLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div className="skeleton-card" key={i}>
+                      <div className="skeleton skeleton-img" />
+                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                    </div>
+                  ))
+                : allWatches.filter(w => w.category === "jewellery").length === 0
+                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                      <span className="section-eyebrow">Coming Soon</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our jewellery collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                    </div>
+                  : allWatches.filter(w => w.category === "jewellery").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+              }
+            </div>
+          </div>
+        </main>
       )}
 
       {/* BAGS PAGE */}
       {page === "bags" && (
-        <main><div className="placeholder-page">
-          <span className="section-eyebrow">Luxury Accessories</span>
-          <h1 className="section-title">Bags & <em>Accessories</em></h1>
-          <div className="gold-rule" />
-          <p>A curated selection of luxury bags and accessories. Coming soon.</p>
-          <a href="mailto:info@chronovian.com?subject=Bags Enquiry" className="btn-gold">Enquire Now</a>
-        </div></main>
+        <main>
+          <div className="watches-page">
+            <div className="watches-page-header">
+              <span className="section-eyebrow">Luxury Bags</span>
+              <h1 className="section-title">Bags <em>Collection</em></h1>
+              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+            </div>
+            <div className="watches-grid">
+              {productsLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div className="skeleton-card" key={i}>
+                      <div className="skeleton skeleton-img" />
+                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                    </div>
+                  ))
+                : allWatches.filter(w => w.category === "bags").length === 0
+                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                      <span className="section-eyebrow">Coming Soon</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our bags collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                    </div>
+                  : allWatches.filter(w => w.category === "bags").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+              }
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ACCESSORIES PAGE */}
+      {page === "accessories" && (
+        <main>
+          <div className="watches-page">
+            <div className="watches-page-header">
+              <span className="section-eyebrow">Luxury Accessories</span>
+              <h1 className="section-title">Accessories <em>Collection</em></h1>
+              <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+            </div>
+            <div className="watches-grid">
+              {productsLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div className="skeleton-card" key={i}>
+                      <div className="skeleton skeleton-img" />
+                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                    </div>
+                  ))
+                : allWatches.filter(w => w.category === "accessories").length === 0
+                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                      <span className="section-eyebrow">Coming Soon</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our accessories collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                    </div>
+                  : allWatches.filter(w => w.category === "accessories").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+              }
+            </div>
+          </div>
+        </main>
       )}
 
       {/* SELL PAGE */}
@@ -1475,6 +1547,7 @@ export default function Home() {
                 <li><button onClick={() => goTo("watches")}>Watches</button></li>
                 <li><button onClick={() => goTo("jewellery")}>Jewellery</button></li>
                 <li><button onClick={() => goTo("bags")}>Bags</button></li>
+                <li><button onClick={() => goTo("accessories")}>Accessories</button></li>
               </ul>
             </div>
             <div>
