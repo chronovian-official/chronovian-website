@@ -77,6 +77,8 @@ export default function Home() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingForm, setBookingForm] = useState({ name: "", phone: "", email: "", interest: "Buying a Watch", notes: "" });
+  const [bookedSlots, setBookedSlots] = useState<{ date: string; time: string }[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
@@ -123,7 +125,24 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const goTo = (p: PageType, watch?: Watch) => {
+  // Fetch booked slots when booking page is open and month changes
+  useEffect(() => {
+    if (page !== "booking") return;
+    const fetchBookedSlots = async () => {
+      setSlotsLoading(true);
+      try {
+        const month = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`;
+        const res = await fetch(`/api/booking?month=${month}`);
+        const data = await res.json();
+        setBookedSlots(data.bookings || []);
+      } catch {
+        setBookedSlots([]);
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+    fetchBookedSlots();
+  }, [page, calMonth, calYear]);
     if (p === "product" && watch) setSelectedWatch(watch);
     setPage(p); setMenuOpen(false); setActiveDropdown(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -536,8 +555,9 @@ export default function Home() {
         .time-slots-label { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 1rem; display: block; }
         .time-slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
         .time-slot { padding: 0.6rem; font-size: 0.65rem; letter-spacing: 0.08em; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; color: var(--black); transition: all 0.2s; text-align: center; }
-        .time-slot:hover { border-color: var(--gold); color: var(--gold); }
+        .time-slot:hover:not(.unavailable) { border-color: var(--gold); color: var(--gold); }
         .time-slot.selected { background: var(--gold); color: white; border-color: var(--gold); }
+        .time-slot.unavailable { background: var(--gray-pale); color: var(--gray-light); cursor: not-allowed; border-color: var(--border); text-decoration: line-through; }
         .booking-form { display: flex; flex-direction: column; gap: 1rem; }
         .booking-selected-slot { background: var(--gray-pale); border-left: 3px solid var(--gold); padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; }
         .booking-selected-slot-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.25rem; }
@@ -1326,11 +1346,25 @@ export default function Home() {
                     {/* TIME SLOTS */}
                     {selectedDate && (
                       <div className="time-slots">
-                        <span className="time-slots-label">Available times for {displayDate}</span>
+                        <span className="time-slots-label">
+                          {slotsLoading ? "Checking availability..." : `Available times for ${displayDate}`}
+                        </span>
                         <div className="time-slots-grid">
-                          {timeSlots.map(t => (
-                            <button key={t} className={`time-slot${selectedTime === t ? " selected" : ""}`} onClick={() => setSelectedTime(t)}>{t}</button>
-                          ))}
+                          {timeSlots.map(t => {
+                            const isBooked = bookedSlots.some(s => s.date === displayDate && s.time === t);
+                            const isSelected = selectedTime === t;
+                            return (
+                              <button
+                                key={t}
+                                className={`time-slot${isSelected ? " selected" : ""}${isBooked ? " unavailable" : ""}`}
+                                onClick={() => { if (!isBooked) setSelectedTime(t); }}
+                                disabled={isBooked || slotsLoading}
+                                title={isBooked ? "This slot is already booked" : t}
+                              >
+                                {isBooked ? "Booked" : t}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1359,6 +1393,16 @@ export default function Home() {
                             time: selectedTime,
                           }),
                         });
+                        if (res.status === 409) {
+                          setBookingError('This slot was just booked by someone else. Please choose another time.');
+                          setSelectedTime(null);
+                          // Refresh booked slots
+                          const month = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`;
+                          const slotsRes = await fetch(`/api/booking?month=${month}`);
+                          const slotsData = await slotsRes.json();
+                          setBookedSlots(slotsData.bookings || []);
+                          return;
+                        }
                         if (!res.ok) throw new Error('Failed');
                         setBookingDone(true);
                       } catch {
