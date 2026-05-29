@@ -143,6 +143,8 @@ export default function Home() {
     };
     fetchBookedSlots();
   }, [page, calMonth, calYear]);
+
+  const goTo = (p: PageType, watch?: Watch) => {
     if (p === "product" && watch) setSelectedWatch(watch);
     setPage(p); setMenuOpen(false); setActiveDropdown(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
