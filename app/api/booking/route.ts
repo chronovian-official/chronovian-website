@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from('bookings')
     .select('date, time')
-    .like('date', `%${month}%`)
     .eq('status', 'confirmed');
 
   if (error) {

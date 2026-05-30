@@ -1406,6 +1406,11 @@ export default function Home() {
                           return;
                         }
                         if (!res.ok) throw new Error('Failed');
+                        // Refresh slots so the booked slot shows as unavailable
+                        const month2 = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`;
+                        const slotsRes2 = await fetch(`/api/booking?month=${month2}`);
+                        const slotsData2 = await slotsRes2.json();
+                        setBookedSlots(slotsData2.bookings || []);
                         setBookingDone(true);
                       } catch {
                         setBookingError('Something went wrong. Please try again or WhatsApp us directly.');
