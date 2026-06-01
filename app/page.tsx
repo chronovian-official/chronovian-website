@@ -341,7 +341,7 @@ export default function Home() {
         .cart-cta { display: flex; flex-direction: column; gap: 0.6rem; }
 
         /* HERO */
-        .hero { position: relative; height: calc(100svh - 62px); min-height: 500px; overflow: hidden; background: #111; }
+        .hero { position: relative; height: 60vh; min-height: 420px; max-height: 620px; overflow: hidden; background: #111; }
         .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
         .hero-slide.active { opacity: 1; }
         .hero-slide img { width: 100%; height: 100%; object-fit: cover; opacity: 0.72; }
