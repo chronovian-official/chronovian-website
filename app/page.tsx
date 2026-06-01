@@ -42,6 +42,7 @@ type Watch = {
 const placeholder = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85";
 
 const getImg = (w: Watch) => w.images?.[0] || placeholder;
+const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
 
 const heroSlides = [
   { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", sub: "Premium Watches & Fine Jewellery" },
@@ -81,6 +82,7 @@ export default function Home() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const navRef = useRef<HTMLElement>(null);
@@ -145,7 +147,7 @@ export default function Home() {
   }, [page, calMonth, calYear]);
 
   const goTo = (p: PageType, watch?: Watch) => {
-    if (p === "product" && watch) setSelectedWatch(watch);
+    if (p === "product" && watch) { setSelectedWatch(watch); setActiveImgIdx(0); }
     setPage(p); setMenuOpen(false); setActiveDropdown(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -397,8 +399,24 @@ export default function Home() {
         .product-breadcrumb button { background: none; border: none; cursor: pointer; color: var(--gray-light); font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; padding: 0; }
         .product-breadcrumb button:hover { color: var(--gold); }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; }
-        .product-img-main { aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; }
-        .product-img-main img { width: 100%; height: 100%; object-fit: cover; }
+        .product-gallery { display: flex; flex-direction: column; gap: 1rem; }
+        .product-img-main video { width: 100%; height: 100%; object-fit: cover; }
+        .product-img-main { aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
+        .product-img-main img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .product-img-main:hover img { transform: scale(1.03); }
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; z-index: 2; }
+        .gallery-nav:hover { background: var(--gold); color: white; }
+        .gallery-nav-prev { left: 0.75rem; }
+        .gallery-nav-next { right: 0.75rem; }
+        .gallery-counter { position: absolute; bottom: 0.75rem; right: 0.75rem; background: rgba(0,0,0,0.5); color: white; font-size: 0.6rem; letter-spacing: 0.1em; padding: 0.25rem 0.6rem; }
+        .product-thumbs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
+        .product-thumbs::-webkit-scrollbar { height: 2px; }
+        .product-thumbs::-webkit-scrollbar-track { background: var(--gray-pale); }
+        .product-thumbs::-webkit-scrollbar-thumb { background: var(--gold); }
+        .product-thumb { width: 64px; height: 72px; flex-shrink: 0; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: var(--gray-pale); }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .product-thumb.active { border-color: var(--gold); }
+        .product-thumb:hover { border-color: var(--gray-light); }
         .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
         .product-brand { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); }
         .product-model { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
@@ -605,6 +623,7 @@ export default function Home() {
           nav { padding: 0 1.25rem; }
           .sell-steps { grid-template-columns: 1fr; }
           .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+          .product-thumbs { gap: 0.4rem; }
           .cart-page-grid { grid-template-columns: 1fr; }
           .checkout-grid { grid-template-columns: 1fr; }
           .form-row { grid-template-columns: 1fr; }
@@ -811,8 +830,34 @@ export default function Home() {
               <span style={{color:"var(--black)"}}>{selectedWatch.model}</span>
             </div>
             <div className="product-grid">
-              <div className="product-img-main">
-                <img src={getImg(selectedWatch)} alt={selectedWatch.model} />
+              <div className="product-gallery">
+                <div className="product-img-main">
+                  {(() => {
+                    const currentMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
+                    return isVideo(currentMedia)
+                      ? <video key={currentMedia} src={currentMedia} controls autoPlay muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}} />
+                      : <img src={currentMedia} alt={`${selectedWatch.model} ${activeImgIdx + 1}`} />;
+                  })()}
+                  {selectedWatch.images?.length > 1 && (
+                    <>
+                      <button className="gallery-nav gallery-nav-prev" onClick={() => setActiveImgIdx(i => (i - 1 + selectedWatch.images.length) % selectedWatch.images.length)}>‹</button>
+                      <button className="gallery-nav gallery-nav-next" onClick={() => setActiveImgIdx(i => (i + 1) % selectedWatch.images.length)}>›</button>
+                      <span className="gallery-counter">{activeImgIdx + 1} / {selectedWatch.images.length}</span>
+                    </>
+                  )}
+                </div>
+                {selectedWatch.images?.length > 1 && (
+                  <div className="product-thumbs">
+                    {selectedWatch.images.map((media, i) => (
+                      <div key={i} className={`product-thumb${activeImgIdx === i ? " active" : ""}`} onClick={() => setActiveImgIdx(i)}>
+                        {isVideo(media)
+                          ? <div style={{width:"100%",height:"100%",background:"#0A0A0A",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:"1.2rem"}}>▶</div>
+                          : <img src={media} alt={`${selectedWatch.model} view ${i + 1}`} />
+                        }
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="product-info">
                 <span className="product-brand">{selectedWatch.brand}</span>

@@ -96,6 +96,8 @@ export default function AdminPage() {
     setOrders(data || []);
   };
 
+  const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
+
   const handleImageUpload = async (files: FileList) => {
     setUploading(true);
     const sb = getClient();
@@ -113,7 +115,7 @@ export default function AdminPage() {
     }
     if (urls.length > 0) {
       setForm(f => ({ ...f, images: [...f.images, ...urls] }));
-      showMsg(`${urls.length} image${urls.length > 1 ? "s" : ""} uploaded successfully`);
+      showMsg(`${urls.length} file${urls.length > 1 ? "s" : ""} uploaded successfully`);
     }
     setUploading(false);
   };
@@ -376,29 +378,33 @@ export default function AdminPage() {
                   </>
                 )}
 
-                <p className="sd">Product Images</p>
+                <p className="sd">Product Images & Videos</p>
                 <div className="ua" onClick={() => fileRef.current?.click()}>
-                  <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: "none" }}
+                  <input ref={fileRef} type="file" multiple accept="image/*,video/*" style={{ display: "none" }}
                     onChange={e => { if (e.target.files && e.target.files.length > 0) handleImageUpload(e.target.files); }} />
                   {uploading
-                    ? <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>⏳ Uploading images...</p>
+                    ? <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>⏳ Uploading files...</p>
                     : <div>
-                        <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>📷</p>
-                        <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>Click to upload images</p>
-                        <p style={{ fontSize: "0.65rem", color: "#ADADAD", marginTop: "0.25rem" }}>JPG, PNG, WEBP — multiple files supported. First image = primary.</p>
+                        <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>📷 🎥</p>
+                        <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>Click to upload images or videos</p>
+                        <p style={{ fontSize: "0.65rem", color: "#ADADAD", marginTop: "0.25rem" }}>JPG, PNG, WEBP, MP4, MOV — multiple files supported. First file = primary.</p>
                       </div>
                   }
                 </div>
 
                 {form.images.length > 0 && (
                   <div>
-                    <p style={{ fontSize: "0.65rem", color: "#6B6B6B", margin: "0.75rem 0 0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>{form.images.length} image{form.images.length > 1 ? "s" : ""} uploaded</p>
+                    <p style={{ fontSize: "0.65rem", color: "#6B6B6B", margin: "0.75rem 0 0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>{form.images.length} file{form.images.length > 1 ? "s" : ""} uploaded</p>
                     <div className="ig">
                       {form.images.map((url, i) => (
                         <div className="it" key={i}>
-                          <img src={url} alt={`Product image ${i + 1}`} onError={e => { (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f5f3f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23adadad' font-size='12'%3ENo image%3C/text%3E%3C/svg%3E"; }} />
-                          <button className="ir" onClick={() => removeImage(url)} title="Remove image">×</button>
+                          {isVideo(url)
+                            ? <video src={url} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
+                            : <img src={url} alt={`Product image ${i + 1}`} onError={e => { (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f5f3f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23adadad' font-size='12'%3ENo image%3C/text%3E%3C/svg%3E"; }} />
+                          }
+                          <button className="ir" onClick={() => removeImage(url)} title="Remove">×</button>
                           {i === 0 && <span style={{ position: "absolute", bottom: 4, left: 4, background: "#B8935A", color: "white", fontSize: "0.45rem", padding: "2px 6px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Primary</span>}
+                          {isVideo(url) && <span style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.6)", color: "white", fontSize: "0.7rem", padding: "2px 6px" }}>▶</span>}
                         </div>
                       ))}
                     </div>
