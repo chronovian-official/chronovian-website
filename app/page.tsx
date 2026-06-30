@@ -466,21 +466,21 @@ export default function Home() {
 
         /* WATCH CARDS */
         .featured { padding: 5rem 2.5rem; max-width: 1300px; margin: 0 auto; }
-        .featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-        .watch-card { cursor: default; }
+        .featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; align-items: start; }
+        .watch-card { cursor: default; display: flex; flex-direction: column; height: 100%; }
         .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; cursor: pointer; }
         .watch-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
         .watch-status.sold { background: var(--black); color: white; }
         .watch-brand { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
-        .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; }
+        .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.65rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 0.88rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.02em; }
         .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; }
         .wishlist-btn:hover { transform: scale(1.15); }
         .added-toast { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); color: white; text-align: center; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem; }
-        .card-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+        .card-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
         .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
         .btn-cart:hover { background: var(--gold); border-color: var(--gold); }
         .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; }
@@ -493,18 +493,18 @@ export default function Home() {
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
         .filter-btn { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--black); color: white; border-color: var(--black); }
-        .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+        .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
 
         /* PRODUCT PAGE */
         .product-page { padding: 3rem 2.5rem; max-width: 1200px; margin: 0 auto; }
         .product-breadcrumb { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-light); margin-bottom: 2.5rem; display: flex; gap: 0.5rem; align-items: center; }
         .product-breadcrumb button { background: none; border: none; cursor: pointer; color: var(--gray-light); font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; padding: 0; }
         .product-breadcrumb button:hover { color: var(--gold); }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; }
-        .product-gallery { display: flex; flex-direction: row; gap: 1rem; }
-        .product-img-main video { width: 100%; height: 100%; object-fit: cover; }
-        .product-img-main { flex: 1; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
-        .product-img-main img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .product-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 5rem; align-items: start; }
+        .product-gallery { display: flex; flex-direction: row; gap: 1rem; width: 100%; }
+        .product-img-main { flex: 1; min-width: 0; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
+        .product-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+        .product-img-main video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .product-img-main:hover img { transform: scale(1.03); }
         .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; z-index: 2; }
         .gallery-nav:hover { background: var(--gold); color: white; }
