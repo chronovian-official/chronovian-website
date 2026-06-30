@@ -366,6 +366,7 @@ export default function Home() {
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
         .nav-link { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
+        .mobile-currency-trigger { display: none; }
 
         /* CATEGORY BAR (scrolls away) */
         .categorybar { background: white; border-bottom: 1px solid var(--border); padding: 0 2rem; height: 50px; display: flex; align-items: center; justify-content: center; gap: 2.25rem; }
@@ -670,15 +671,15 @@ export default function Home() {
         .wishlist-empty p { font-size: 0.82rem; color: var(--gray-mid); margin-top: 1rem; }
 
         /* CATEGORIES */
-        .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #ddd; }
-        .cat-card { position: relative; overflow: hidden; aspect-ratio: 16/10; cursor: pointer; }
+        .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .cat-card { position: relative; overflow: hidden; aspect-ratio: 4/5; cursor: pointer; }
         .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
         .cat-card:hover img { transform: scale(1.04); }
-        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65) 100%); }
-        .cat-content { position: absolute; bottom: 2rem; left: 2rem; color: white; }
-        .cat-tag { font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: #D4AA78; display: block; margin-bottom: 0.4rem; }
-        .cat-name { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; display: block; margin-bottom: 0.75rem; }
-        .cat-link { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 1px; }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.72) 100%); }
+        .cat-content { position: absolute; bottom: 2.5rem; left: 2rem; color: white; }
+        .cat-tag { font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase; color: #D4AA78; display: block; margin-bottom: 0.6rem; }
+        .cat-name { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 300; display: block; margin-bottom: 1rem; line-height: 1.1; }
+        .cat-link { font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; transition: color 0.2s; }
         .cat-card:hover .cat-link { color: #D4AA78; }
 
         /* ABOUT */
@@ -772,8 +773,18 @@ export default function Home() {
           .pillars-grid { grid-template-columns: 1fr; }
           .footer-top { grid-template-columns: 1fr 1fr; }
           .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-          .hero-content { left: 1.5rem; right: 1.5rem; bottom: 2.5rem; }
-          nav { padding: 0 1.25rem; }
+          .hero-content { left: 1.5rem; right: 1.5rem; bottom: 3.5rem; }
+          .hero-title { font-size: clamp(2.2rem, 9vw, 3.2rem); }
+          .hero-dots { bottom: 1.25rem; right: 1.5rem; }
+          .hero-eyebrow { font-size: 0.52rem; margin-bottom: 0.6rem; }
+          .hero-sub { font-size: 0.62rem; margin-top: 0.5rem; }
+          .topbar, .categorybar { padding: 0 1.1rem; }
+          .topbar-side.right { gap: 0.9rem; }
+          .topbar-side { gap: 0.75rem; }
+          .topbar { height: 64px; }
+          .nav-logo { font-size: 1.25rem; letter-spacing: 0.14em; }
+          .mobile-menu { top: 64px; }
+          .mobile-currency-trigger { display: flex; font-size: 0.68rem; padding: 0.3rem 0.45rem; border: 1px solid var(--border); }
           .sell-steps { grid-template-columns: 1fr; }
           .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
           .product-gallery { flex-direction: column-reverse; }
@@ -925,8 +936,11 @@ export default function Home() {
           <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
-          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} title="Search">
+          <button className="nav-icon-btn always-show" onClick={() => setSearchOpen(true)} title="Search">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button className="currency-trigger mobile-currency-trigger" onClick={() => setCurrencyDropdownOpen(true)}>
+            <span style={{fontSize:"0.9rem"}}>{CURRENCY_META[currency]?.flag}</span> {currency}
           </button>
           <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
           <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
@@ -1782,8 +1796,8 @@ export default function Home() {
 
           <section className="categories" id="collections">
             {[
-              { img: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=900&q=80", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
-              { img: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
+              { img: "https://images.unsplash.com/photo-1542496658-e33a6d0d4f17?w=1200&q=90", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
+              { img: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&q=90", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
             ].map(cat => (
               <div className="cat-card" key={cat.name} onClick={cat.action}>
                 <img src={cat.img} alt={cat.name} />
