@@ -334,18 +334,18 @@ export default function Home() {
         .nav-icon-btn { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; position: relative; }
         .nav-icon-btn:hover { color: var(--gold); }
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
-        .nav-link { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; white-space: nowrap; padding: 0; }
+        .nav-link { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
 
         /* DROPDOWN */
         .nav-dropdown-wrap { position: relative; display: flex; align-items: center; }
-        .nav-dropdown-trigger { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; transition: color 0.2s; display: flex; align-items: center; gap: 0.35rem; padding: 0; white-space: nowrap; height: 62px; }
+        .nav-dropdown-trigger { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.35rem; padding: 0; white-space: nowrap; height: 62px; }
         .nav-dropdown-trigger:hover, .nav-dropdown-trigger.open { color: var(--gold); }
         .nav-dropdown-trigger svg { transition: transform 0.25s; }
         .nav-dropdown-trigger.open svg { transform: rotate(180deg); }
         .nav-dropdown { position: absolute; top: 62px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
         .nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
-        .nav-dropdown-item { display: block; width: 100%; padding: 0.85rem 1.5rem; font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; text-align: left; transition: color 0.2s, background 0.2s; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .nav-dropdown-item { display: block; width: 100%; padding: 0.85rem 1.5rem; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 400; text-align: left; transition: color 0.2s, background 0.2s; border-bottom: 1px solid var(--border); white-space: nowrap; }
         .nav-dropdown-item:last-child { border-bottom: none; }
         .nav-dropdown-item:hover { color: var(--gold); background: var(--gray-pale); }
 
@@ -372,7 +372,7 @@ export default function Home() {
           .nav-right .nav-icon-btn { display: none; }
           .mobile-hamburger { display: flex !important; }
           .nav-right .nav-icon-btn.always-show { display: flex; }
-          .currency-trigger { font-size: 0.58rem; padding: 0.35rem 0.5rem; }
+          .currency-trigger { font-size: 0.68rem; padding: 0.35rem 0.5rem; }
           #mobile-search-btn { display: flex !important; }
         }
 
@@ -385,7 +385,7 @@ export default function Home() {
 
         /* CURRENCY DROPDOWN */
         .currency-wrap { position: relative; display: flex; align-items: center; }
-        .currency-trigger { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; padding: 0.4rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; transition: border-color 0.2s; white-space: nowrap; }
+        .currency-trigger { font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--black); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; padding: 0.4rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; transition: border-color 0.2s; white-space: nowrap; }
         .currency-trigger:hover { border-color: var(--gold); }
         .currency-trigger svg { transition: transform 0.25s; flex-shrink: 0; }
         .currency-trigger.open svg { transform: rotate(180deg); }
@@ -475,15 +475,15 @@ export default function Home() {
         .watch-status.sold { background: var(--black); color: white; }
         .watch-brand { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
         .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
-        .watch-ref { font-size: 0.65rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
-        .watch-price { font-size: 0.88rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.02em; }
+        .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
+        .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
         .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; }
         .wishlist-btn:hover { transform: scale(1.15); }
         .added-toast { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); color: white; text-align: center; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem; }
         .card-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
-        .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
+        .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
         .btn-cart:hover { background: var(--gold); border-color: var(--gold); }
-        .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; }
+        .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
         .enquire-btn:hover { border-color: var(--gold); color: var(--gold); }
         .featured-footer { text-align: center; margin-top: 3rem; }
 
@@ -491,7 +491,7 @@ export default function Home() {
         .watches-page { padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .watches-page-header { margin-bottom: 3rem; }
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
-        .filter-btn { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; color: var(--black); }
+        .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--black); color: white; border-color: var(--black); }
         .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
 
