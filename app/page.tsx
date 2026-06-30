@@ -54,27 +54,27 @@ type CartItem = { watch: Watch; qty: number };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
-const CURRENCY_META: Record<string, { symbol: string; label: string; locale: string }> = {
-  INR: { symbol: "₹", label: "Indian Rupee", locale: "en-IN" },
-  USD: { symbol: "$", label: "US Dollar", locale: "en-US" },
-  EUR: { symbol: "€", label: "Euro", locale: "de-DE" },
-  GBP: { symbol: "£", label: "British Pound", locale: "en-GB" },
-  AED: { symbol: "د.إ", label: "UAE Dirham", locale: "ar-AE" },
-  SGD: { symbol: "S$", label: "Singapore Dollar", locale: "en-SG" },
-  AUD: { symbol: "A$", label: "Australian Dollar", locale: "en-AU" },
-  CAD: { symbol: "C$", label: "Canadian Dollar", locale: "en-CA" },
-  CHF: { symbol: "Fr.", label: "Swiss Franc", locale: "de-CH" },
-  JPY: { symbol: "¥", label: "Japanese Yen", locale: "ja-JP" },
-  HKD: { symbol: "HK$", label: "Hong Kong Dollar", locale: "en-HK" },
-  CNY: { symbol: "¥", label: "Chinese Yuan", locale: "zh-CN" },
-  SAR: { symbol: "﷼", label: "Saudi Riyal", locale: "ar-SA" },
-  QAR: { symbol: "ر.ق", label: "Qatari Riyal", locale: "ar-QA" },
-  KWD: { symbol: "د.ك", label: "Kuwaiti Dinar", locale: "ar-KW" },
-  MYR: { symbol: "RM", label: "Malaysian Ringgit", locale: "ms-MY" },
-  THB: { symbol: "฿", label: "Thai Baht", locale: "th-TH" },
-  ZAR: { symbol: "R", label: "South African Rand", locale: "en-ZA" },
-  NZD: { symbol: "NZ$", label: "New Zealand Dollar", locale: "en-NZ" },
-  OMR: { symbol: "ر.ع.", label: "Omani Rial", locale: "ar-OM" },
+const CURRENCY_META: Record<string, { symbol: string; label: string; locale: string; flag: string }> = {
+  INR: { symbol: "₹", label: "Indian Rupee", locale: "en-IN", flag: "🇮🇳" },
+  USD: { symbol: "$", label: "US Dollar", locale: "en-US", flag: "🇺🇸" },
+  EUR: { symbol: "€", label: "Euro", locale: "de-DE", flag: "🇪🇺" },
+  GBP: { symbol: "£", label: "British Pound", locale: "en-GB", flag: "🇬🇧" },
+  AED: { symbol: "د.إ", label: "UAE Dirham", locale: "ar-AE", flag: "🇦🇪" },
+  SGD: { symbol: "S$", label: "Singapore Dollar", locale: "en-SG", flag: "🇸🇬" },
+  AUD: { symbol: "A$", label: "Australian Dollar", locale: "en-AU", flag: "🇦🇺" },
+  CAD: { symbol: "C$", label: "Canadian Dollar", locale: "en-CA", flag: "🇨🇦" },
+  CHF: { symbol: "Fr.", label: "Swiss Franc", locale: "de-CH", flag: "🇨🇭" },
+  JPY: { symbol: "¥", label: "Japanese Yen", locale: "ja-JP", flag: "🇯🇵" },
+  HKD: { symbol: "HK$", label: "Hong Kong Dollar", locale: "en-HK", flag: "🇭🇰" },
+  CNY: { symbol: "¥", label: "Chinese Yuan", locale: "zh-CN", flag: "🇨🇳" },
+  SAR: { symbol: "﷼", label: "Saudi Riyal", locale: "ar-SA", flag: "🇸🇦" },
+  QAR: { symbol: "ر.ق", label: "Qatari Riyal", locale: "ar-QA", flag: "🇶🇦" },
+  KWD: { symbol: "د.ك", label: "Kuwaiti Dinar", locale: "ar-KW", flag: "🇰🇼" },
+  MYR: { symbol: "RM", label: "Malaysian Ringgit", locale: "ms-MY", flag: "🇲🇾" },
+  THB: { symbol: "฿", label: "Thai Baht", locale: "th-TH", flag: "🇹🇭" },
+  ZAR: { symbol: "R", label: "South African Rand", locale: "en-ZA", flag: "🇿🇦" },
+  NZD: { symbol: "NZ$", label: "New Zealand Dollar", locale: "en-NZ", flag: "🇳🇿" },
+  OMR: { symbol: "ر.ع.", label: "Omani Rial", locale: "ar-OM", flag: "🇴🇲" },
 };
 
 // Maps country codes (from IP geolocation) to a default currency
@@ -326,24 +326,24 @@ export default function Home() {
         body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
         /* NAV */
-        nav { position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2.5rem; height: 62px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
+        nav { position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 66px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
         nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.75rem; flex: 1; }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.4rem; flex: 1; }
         .nav-right { justify-content: flex-end; }
         .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
         .nav-icon-btn { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; position: relative; }
         .nav-icon-btn:hover { color: var(--gold); }
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
-        .nav-link { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
+        .nav-link { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
 
         /* DROPDOWN */
         .nav-dropdown-wrap { position: relative; display: flex; align-items: center; }
-        .nav-dropdown-trigger { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.35rem; padding: 0; white-space: nowrap; height: 62px; }
+        .nav-dropdown-trigger { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.3rem; padding: 0; white-space: nowrap; height: 66px; }
         .nav-dropdown-trigger:hover, .nav-dropdown-trigger.open { color: var(--gold); }
         .nav-dropdown-trigger svg { transition: transform 0.25s; }
         .nav-dropdown-trigger.open svg { transform: rotate(180deg); }
-        .nav-dropdown { position: absolute; top: 62px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
+        .nav-dropdown { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
         .nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
         .nav-dropdown-item { display: block; width: 100%; padding: 0.85rem 1.5rem; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 400; text-align: left; transition: color 0.2s, background 0.2s; border-bottom: 1px solid var(--border); white-space: nowrap; }
         .nav-dropdown-item:last-child { border-bottom: none; }
@@ -355,7 +355,7 @@ export default function Home() {
         .mobile-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
         .mobile-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .mobile-menu { display: none; position: fixed; inset: 0; top: 62px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu { display: none; position: fixed; inset: 0; top: 66px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
         .mobile-section { border-bottom: 1px solid var(--border); }
         .mobile-section-trigger { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); background: none; border: none; cursor: pointer; width: 100%; }
@@ -372,7 +372,7 @@ export default function Home() {
           .nav-right .nav-icon-btn { display: none; }
           .mobile-hamburger { display: flex !important; }
           .nav-right .nav-icon-btn.always-show { display: flex; }
-          .currency-trigger { font-size: 0.68rem; padding: 0.35rem 0.5rem; }
+          .currency-trigger { font-size: 0.65rem; padding: 0; }
           #mobile-search-btn { display: flex !important; }
         }
 
@@ -383,20 +383,31 @@ export default function Home() {
         .skeleton-img { aspect-ratio: 3/4; border-radius: 0; }
         .skeleton-line { height: 12px; border-radius: 2px; }
 
-        /* CURRENCY DROPDOWN */
+        /* CURRENCY MODAL */
         .currency-wrap { position: relative; display: flex; align-items: center; }
-        .currency-trigger { font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--black); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; padding: 0.4rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; transition: border-color 0.2s; white-space: nowrap; }
-        .currency-trigger:hover { border-color: var(--gold); }
+        .currency-trigger { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; padding: 0; display: flex; align-items: center; gap: 0.3rem; transition: color 0.2s; white-space: nowrap; }
+        .currency-trigger:hover { color: var(--gold); }
         .currency-trigger svg { transition: transform 0.25s; flex-shrink: 0; }
         .currency-trigger.open svg { transform: rotate(180deg); }
-        .currency-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 220px; max-height: 320px; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.1); opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity 0.2s, transform 0.2s; z-index: 300; }
-        .currency-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
-        .currency-option { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.65rem 1rem; font-size: 0.72rem; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; text-align: left; transition: background 0.15s; border-bottom: 1px solid var(--border); }
-        .currency-option:last-child { border-bottom: none; }
-        .currency-option:hover { background: var(--gray-pale); }
-        .currency-option.active { color: var(--gold); font-weight: 500; }
-        .currency-option-code { font-size: 0.6rem; letter-spacing: 0.08em; color: var(--gray-light); }
-        .currency-updated-note { padding: 0.5rem 1rem; font-size: 0.55rem; color: var(--gray-light); border-top: 1px solid var(--border); letter-spacing: 0.05em; }
+        .currency-modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 600; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; overflow-y: auto; }
+        .currency-modal-overlay.open { opacity: 1; pointer-events: all; }
+        .currency-modal { background: white; width: 100%; max-width: 760px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(-10px); transition: transform 0.25s; }
+        .currency-modal-overlay.open .currency-modal { transform: translateY(0); }
+        .currency-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+        .currency-modal-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; }
+        .currency-modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--gray-mid); line-height: 1; padding: 0.25rem; transition: color 0.2s; }
+        .currency-modal-close:hover { color: var(--black); }
+        .currency-modal-body { padding: 1.5rem 2rem 2rem; }
+        .currency-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem 1rem; }
+        .currency-cell { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.5rem; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; text-align: left; transition: background 0.15s; border-radius: 2px; }
+        .currency-cell:hover { background: var(--gray-pale); }
+        .currency-cell.active .currency-cell-code { color: var(--gold); font-weight: 600; }
+        .currency-cell-flag { font-size: 1.3rem; flex-shrink: 0; line-height: 1; }
+        .currency-cell-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+        .currency-cell-code { font-size: 0.82rem; font-weight: 500; color: var(--black); display: flex; align-items: center; gap: 0.4rem; }
+        .currency-cell-symbol { font-size: 0.65rem; color: var(--gray-light); background: var(--gray-pale); padding: 0.05rem 0.35rem; border-radius: 2px; }
+        .currency-updated-note { padding: 1rem 2rem; font-size: 0.65rem; color: var(--gray-light); border-top: 1px solid var(--border); letter-spacing: 0.05em; text-align: center; }
+        @media (max-width: 640px) { .currency-grid { grid-template-columns: repeat(2, 1fr); } .currency-modal-header, .currency-modal-body { padding-left: 1.25rem; padding-right: 1.25rem; } }
 
         /* SEARCH OVERLAY */
         .search-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
@@ -740,6 +751,33 @@ export default function Home() {
         }
       `}</style>
 
+      {/* CURRENCY MODAL */}
+      <div className={`currency-modal-overlay${currencyDropdownOpen ? " open" : ""}`} onClick={() => setCurrencyDropdownOpen(false)}>
+        <div className="currency-modal" onClick={e => e.stopPropagation()}>
+          <div className="currency-modal-header">
+            <span className="currency-modal-title">Select Currency</span>
+            <button className="currency-modal-close" onClick={() => setCurrencyDropdownOpen(false)}>×</button>
+          </div>
+          <div className="currency-modal-body">
+            <div className="currency-grid">
+              {Object.keys(CURRENCY_META).map(code => (
+                <button key={code} className={`currency-cell${currency === code ? " active" : ""}`} onClick={() => changeCurrency(code)}>
+                  <span className="currency-cell-flag">{CURRENCY_META[code].flag}</span>
+                  <div className="currency-cell-text">
+                    <span className="currency-cell-code">{code} <span className="currency-cell-symbol">{CURRENCY_META[code].symbol}</span></span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          {ratesUpdatedAt && (
+            <div className="currency-updated-note">
+              Exchange rates updated {new Date(ratesUpdatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* SEARCH OVERLAY */}
       <div className={`search-overlay${searchOpen ? " open" : ""}`}>
         <div className="search-overlay-header">
@@ -888,24 +926,11 @@ export default function Home() {
         <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
 
         <div className="nav-right">
-          <div className="currency-wrap" onMouseEnter={() => setCurrencyDropdownOpen(true)} onMouseLeave={() => setCurrencyDropdownOpen(false)}>
-            <button className={`currency-trigger${currencyDropdownOpen ? " open" : ""}`}>
-              {CURRENCY_META[currency]?.symbol} {currency}
+          <div className="currency-wrap">
+            <button className="currency-trigger" onClick={() => setCurrencyDropdownOpen(true)}>
+              <span style={{fontSize:"0.9rem"}}>{CURRENCY_META[currency]?.flag}</span> {currency}
               <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            <div className={`currency-dropdown${currencyDropdownOpen ? " open" : ""}`}>
-              {Object.keys(CURRENCY_META).map(code => (
-                <button key={code} className={`currency-option${currency === code ? " active" : ""}`} onClick={() => changeCurrency(code)}>
-                  <span>{CURRENCY_META[code].symbol} {CURRENCY_META[code].label}</span>
-                  <span className="currency-option-code">{code}</span>
-                </button>
-              ))}
-              {ratesUpdatedAt && (
-                <div className="currency-updated-note">
-                  Rates updated {new Date(ratesUpdatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                </div>
-              )}
-            </div>
           </div>
           <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
           <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
