@@ -54,6 +54,38 @@ type CartItem = { watch: Watch; qty: number };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
+const CURRENCY_META: Record<string, { symbol: string; label: string; locale: string }> = {
+  INR: { symbol: "₹", label: "Indian Rupee", locale: "en-IN" },
+  USD: { symbol: "$", label: "US Dollar", locale: "en-US" },
+  EUR: { symbol: "€", label: "Euro", locale: "de-DE" },
+  GBP: { symbol: "£", label: "British Pound", locale: "en-GB" },
+  AED: { symbol: "د.إ", label: "UAE Dirham", locale: "ar-AE" },
+  SGD: { symbol: "S$", label: "Singapore Dollar", locale: "en-SG" },
+  AUD: { symbol: "A$", label: "Australian Dollar", locale: "en-AU" },
+  CAD: { symbol: "C$", label: "Canadian Dollar", locale: "en-CA" },
+  CHF: { symbol: "Fr.", label: "Swiss Franc", locale: "de-CH" },
+  JPY: { symbol: "¥", label: "Japanese Yen", locale: "ja-JP" },
+  HKD: { symbol: "HK$", label: "Hong Kong Dollar", locale: "en-HK" },
+  CNY: { symbol: "¥", label: "Chinese Yuan", locale: "zh-CN" },
+  SAR: { symbol: "﷼", label: "Saudi Riyal", locale: "ar-SA" },
+  QAR: { symbol: "ر.ق", label: "Qatari Riyal", locale: "ar-QA" },
+  KWD: { symbol: "د.ك", label: "Kuwaiti Dinar", locale: "ar-KW" },
+  MYR: { symbol: "RM", label: "Malaysian Ringgit", locale: "ms-MY" },
+  THB: { symbol: "฿", label: "Thai Baht", locale: "th-TH" },
+  ZAR: { symbol: "R", label: "South African Rand", locale: "en-ZA" },
+  NZD: { symbol: "NZ$", label: "New Zealand Dollar", locale: "en-NZ" },
+  OMR: { symbol: "ر.ع.", label: "Omani Rial", locale: "ar-OM" },
+};
+
+// Maps country codes (from IP geolocation) to a default currency
+const COUNTRY_TO_CURRENCY: Record<string, string> = {
+  IN: "INR", US: "USD", GB: "GBP", AE: "AED", SG: "SGD", AU: "AUD", CA: "CAD",
+  CH: "CHF", JP: "JPY", HK: "HKD", CN: "CNY", SA: "SAR", QA: "QAR", KW: "KWD",
+  MY: "MYR", TH: "THB", ZA: "ZAR", NZ: "NZD", OM: "OMR",
+  DE: "EUR", FR: "EUR", IT: "EUR", ES: "EUR", NL: "EUR", IE: "EUR", PT: "EUR",
+  AT: "EUR", BE: "EUR", FI: "EUR", GR: "EUR",
+};
+
 const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
 export default function Home() {
@@ -85,7 +117,68 @@ export default function Home() {
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [currency, setCurrency] = useState("INR");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({ INR: 1 });
+  const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
+  const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
+
+  // Fetch cached exchange rates from Supabase
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const sb = getSupabase();
+        const { data } = await sb.from("exchange_rates").select("*").eq("id", 1).single();
+        if (data?.rates) {
+          setExchangeRates(data.rates);
+          setRatesUpdatedAt(data.updated_at);
+        }
+      } catch (e) {
+        console.error("Failed to fetch exchange rates:", e);
+      }
+    };
+    fetchRates();
+  }, []);
+
+  // Auto-detect currency from user's location (once, on first load)
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("chronovian_currency") : null;
+    if (saved && CURRENCY_META[saved]) {
+      setCurrency(saved);
+      return;
+    }
+    const detectLocation = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        const detected = COUNTRY_TO_CURRENCY[data.country_code];
+        if (detected && CURRENCY_META[detected]) setCurrency(detected);
+      } catch {
+        // Silently fall back to INR if detection fails
+      }
+    };
+    detectLocation();
+  }, []);
+
+  const changeCurrency = (code: string) => {
+    setCurrency(code);
+    setCurrencyDropdownOpen(false);
+    if (typeof window !== "undefined") localStorage.setItem("chronovian_currency", code);
+  };
+
+  // Convert a price (stored in INR) to the selected currency and format it
+  const fmtPrice = (priceInr: number) => {
+    const rate = exchangeRates[currency] || (currency === "INR" ? 1 : null);
+    const meta = CURRENCY_META[currency] || CURRENCY_META.INR;
+    if (rate === null || rate === undefined) {
+      return "₹" + priceInr.toLocaleString("en-IN");
+    }
+    const converted = priceInr * rate;
+    // JPY and a few others don't use decimals
+    const decimals = ["JPY", "KRW"].includes(currency) ? 0 : 0;
+    const formatted = converted.toLocaleString(meta.locale, { maximumFractionDigits: decimals });
+    return `${meta.symbol}${formatted}`;
+  };
 
   // Fetch all products from Supabase
   useEffect(() => {
@@ -191,13 +284,6 @@ export default function Home() {
     return () => clearInterval(id);
   }, [totalWatchPages]);
 
-  const shopItems: DropdownItem[] = [
-    { label: "All Watches", page: "watches" },
-    { label: "Jewellery", page: "jewellery" },
-    { label: "Bags", page: "bags" },
-    { label: "Accessories", page: "accessories" },
-    { label: "New Arrivals", page: "watches" },
-  ];
   const sellItems = [
     { label: "How It Works", page: "sell" as PageType },
   ];
@@ -218,7 +304,7 @@ export default function Home() {
       <span className="watch-brand">{w.brand}</span>
       <span className="watch-model" onClick={() => goTo("product", w)} style={{cursor:"pointer"}}>{w.model}</span>
       <span className="watch-ref">{w.ref}</span>
-      <span className="watch-price">{fmt(w.price)}</span>
+      <span className="watch-price">{fmtPrice(w.price)}</span>
       <div className="card-actions">
         <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>
         {showEnquire && <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>}
@@ -236,7 +322,7 @@ export default function Home() {
           --black: #0A0A0A; --gray-mid: #6B6B6B; --gray-light: #ADADAD;
           --gray-pale: #F5F3F0; --white: #FFFFFF; --border: rgba(0,0,0,0.09);
         }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; font-size: 17px; }
         body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
         /* NAV */
@@ -286,6 +372,7 @@ export default function Home() {
           .nav-right .nav-icon-btn { display: none; }
           .mobile-hamburger { display: flex !important; }
           .nav-right .nav-icon-btn.always-show { display: flex; }
+          .currency-trigger { font-size: 0.58rem; padding: 0.35rem 0.5rem; }
           #mobile-search-btn { display: flex !important; }
         }
 
@@ -295,6 +382,21 @@ export default function Home() {
         .skeleton-card { display: flex; flex-direction: column; gap: 0.75rem; }
         .skeleton-img { aspect-ratio: 3/4; border-radius: 0; }
         .skeleton-line { height: 12px; border-radius: 2px; }
+
+        /* CURRENCY DROPDOWN */
+        .currency-wrap { position: relative; display: flex; align-items: center; }
+        .currency-trigger { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; padding: 0.4rem 0.65rem; display: flex; align-items: center; gap: 0.35rem; transition: border-color 0.2s; white-space: nowrap; }
+        .currency-trigger:hover { border-color: var(--gold); }
+        .currency-trigger svg { transition: transform 0.25s; flex-shrink: 0; }
+        .currency-trigger.open svg { transform: rotate(180deg); }
+        .currency-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 220px; max-height: 320px; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.1); opacity: 0; pointer-events: none; transform: translateY(-6px); transition: opacity 0.2s, transform 0.2s; z-index: 300; }
+        .currency-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .currency-option { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.65rem 1rem; font-size: 0.72rem; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; text-align: left; transition: background 0.15s; border-bottom: 1px solid var(--border); }
+        .currency-option:last-child { border-bottom: none; }
+        .currency-option:hover { background: var(--gray-pale); }
+        .currency-option.active { color: var(--gold); font-weight: 500; }
+        .currency-option-code { font-size: 0.6rem; letter-spacing: 0.08em; color: var(--gray-light); }
+        .currency-updated-note { padding: 0.5rem 1rem; font-size: 0.55rem; color: var(--gray-light); border-top: 1px solid var(--border); letter-spacing: 0.05em; }
 
         /* SEARCH OVERLAY */
         .search-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
@@ -679,7 +781,7 @@ export default function Home() {
                     <span className="watch-brand">{w.brand}</span>
                     <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }} style={{cursor:"pointer"}}>{w.model}</span>
                     <span className="watch-ref">{w.ref}</span>
-                    <span className="watch-price">{fmt(w.price)}</span>
+                    <span className="watch-price">{fmtPrice(w.price)}</span>
                     <div className="card-actions">
                       <button className="btn-cart" onClick={() => { addToCart(w); setSearchOpen(false); setSearchQuery(""); }}>Add to Cart</button>
                     </div>
@@ -714,7 +816,7 @@ export default function Home() {
                 <div className="cart-item-info">
                   <span className="cart-item-brand">{item.watch.brand}</span>
                   <span className="cart-item-model">{item.watch.model}</span>
-                  <span className="cart-item-price">{fmt(item.watch.price)}</span>
+                  <span className="cart-item-price">{fmtPrice(item.watch.price)}</span>
                   <button className="cart-item-remove" onClick={() => removeFromCart(item.watch.id)}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                     Remove
@@ -728,7 +830,7 @@ export default function Home() {
           <div className="cart-footer">
             <div className="cart-subtotal">
               <span className="cart-subtotal-label">Subtotal</span>
-              <span className="cart-subtotal-value">{fmt(cartTotal)}</span>
+              <span className="cart-subtotal-value">{fmtPrice(cartTotal)}</span>
             </div>
             <div className="cart-cta">
               <button className="btn-gold" style={{width:"100%",textAlign:"center"}} onClick={() => { setCartOpen(false); goTo("checkout"); }}>Proceed to Checkout</button>
@@ -747,8 +849,11 @@ export default function Home() {
           <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} style={{display:"none",padding:"0 0.25rem"}} id="mobile-search-btn">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
+          <button className={`nav-link${page === "watches" ? " active" : ""}`} onClick={() => goTo("watches")}>Watches</button>
+          <button className={`nav-link${page === "jewellery" ? " active" : ""}`} onClick={() => goTo("jewellery")}>Jewellery</button>
+          <button className={`nav-link${page === "bags" ? " active" : ""}`} onClick={() => goTo("bags")}>Bags</button>
+          <button className={`nav-link${page === "accessories" ? " active" : ""}`} onClick={() => goTo("accessories")}>Accessories</button>
           {([
-            { key: "shop", label: "Shop Now", items: shopItems },
             { key: "selltrade", label: "Sell / Trade", items: [
               { label: "Sell — How It Works", page: "sell" as PageType },
               { label: "Trade — How It Works", page: "trade" as PageType },
@@ -776,6 +881,25 @@ export default function Home() {
         <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
 
         <div className="nav-right">
+          <div className="currency-wrap" onMouseEnter={() => setCurrencyDropdownOpen(true)} onMouseLeave={() => setCurrencyDropdownOpen(false)}>
+            <button className={`currency-trigger${currencyDropdownOpen ? " open" : ""}`}>
+              {CURRENCY_META[currency]?.symbol} {currency}
+              <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <div className={`currency-dropdown${currencyDropdownOpen ? " open" : ""}`}>
+              {Object.keys(CURRENCY_META).map(code => (
+                <button key={code} className={`currency-option${currency === code ? " active" : ""}`} onClick={() => changeCurrency(code)}>
+                  <span>{CURRENCY_META[code].symbol} {CURRENCY_META[code].label}</span>
+                  <span className="currency-option-code">{code}</span>
+                </button>
+              ))}
+              {ratesUpdatedAt && (
+                <div className="currency-updated-note">
+                  Rates updated {new Date(ratesUpdatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </div>
+              )}
+            </div>
+          </div>
           <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
           <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
           <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
@@ -789,10 +913,14 @@ export default function Home() {
         </div>
       </nav>
 
+
       {/* MOBILE MENU */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+        <button className="mobile-plain" onClick={() => goTo("watches")}>Watches</button>
+        <button className="mobile-plain" onClick={() => goTo("jewellery")}>Jewellery</button>
+        <button className="mobile-plain" onClick={() => goTo("bags")}>Bags</button>
+        <button className="mobile-plain" onClick={() => goTo("accessories")}>Accessories</button>
         {([
-          { key: "shop", label: "Shop Now", items: shopItems },
           { key: "selltrade", label: "Sell / Trade", items: [
             { label: "Sell — How It Works", page: "sell" as PageType },
             { label: "Trade — How It Works", page: "trade" as PageType },
@@ -816,6 +944,14 @@ export default function Home() {
         <button className="mobile-plain" onClick={() => goTo("booking")}>Book Appointment</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
+        <div style={{padding:"1rem 0"}}>
+          <span style={{fontSize:"0.55rem",letterSpacing:"0.2em",textTransform:"uppercase",color:"var(--gray-mid)",display:"block",marginBottom:"0.75rem"}}>Currency</span>
+          <select className="form-select" value={currency} onChange={e => changeCurrency(e.target.value)} style={{width:"100%"}}>
+            {Object.keys(CURRENCY_META).map(code => (
+              <option key={code} value={code}>{CURRENCY_META[code].symbol} {CURRENCY_META[code].label} ({code})</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* PRODUCT PAGE */}
@@ -863,7 +999,7 @@ export default function Home() {
                 <span className="product-brand">{selectedWatch.brand}</span>
                 <h1 className="product-model">{selectedWatch.model}</h1>
                 <span className="product-ref">{selectedWatch.ref}</span>
-                <div className="product-price">{fmt(selectedWatch.price)}</div>
+                <div className="product-price">{fmtPrice(selectedWatch.price)}</div>
                 <p className="product-desc">{selectedWatch.description}</p>
                 <div className="product-specs">
                   {[
@@ -967,7 +1103,7 @@ export default function Home() {
                           </button>
                         </div>
                         <div className="cart-page-right">
-                          <span className="cart-page-price">{fmt(item.watch.price)}</span>
+                          <span className="cart-page-price">{fmtPrice(item.watch.price)}</span>
                           <button className="cart-page-remove-icon" onClick={() => removeFromCart(item.watch.id)} title="Remove">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                           </button>
@@ -980,13 +1116,13 @@ export default function Home() {
                     {cart.map(item => (
                       <div className="summary-row" key={item.watch.id}>
                         <span>{item.watch.model}</span>
-                        <span>{fmt(item.watch.price)}</span>
+                        <span>{fmtPrice(item.watch.price)}</span>
                       </div>
                     ))}
                     <div className="summary-row"><span>Shipping</span><span>Calculated at checkout</span></div>
                     <div className="summary-total">
                       <span className="summary-total-label">Total</span>
-                      <span className="summary-total-value">{fmt(cartTotal)}</span>
+                      <span className="summary-total-value">{fmtPrice(cartTotal)}</span>
                     </div>
                     <button className="btn-gold" style={{width:"100%",marginTop:"1.5rem",textAlign:"center"}} onClick={() => goTo("checkout")}>Proceed to Checkout</button>
                     <button className="btn-outline" style={{width:"100%",marginTop:"0.75rem",textAlign:"center"}} onClick={() => goTo("watches")}>Continue Shopping</button>
@@ -1087,17 +1223,17 @@ export default function Home() {
                           <span className="checkout-item-model">{item.watch.model}</span>
                           <span style={{fontSize:"0.6rem",color:"var(--gray-light)"}}>{item.watch.ref}</span>
                         </div>
-                        <span className="checkout-item-price">{fmt(item.watch.price)}</span>
+                        <span className="checkout-item-price">{fmtPrice(item.watch.price)}</span>
                       </div>
                     ))}
                     <div style={{marginTop:"1rem"}}>
-                      <div className="summary-row"><span>Subtotal</span><span>{fmt(cartTotal)}</span></div>
+                      <div className="summary-row"><span>Subtotal</span><span>{fmtPrice(cartTotal)}</span></div>
                       <div className="summary-row"><span>Shipping</span><span>₹500</span></div>
                       <div className="summary-row"><span>Insurance</span><span>Included</span></div>
                     </div>
                     <div className="summary-total" style={{marginTop:"0.75rem"}}>
                       <span className="summary-total-label">Total</span>
-                      <span className="summary-total-value">{fmt(cartTotal + 500)}</span>
+                      <span className="summary-total-value">{fmtPrice(cartTotal + 500)}</span>
                     </div>
                     <button className="place-order-btn" onClick={() => setOrderPlaced(true)}>Place Order</button>
                     <p className="secure-note">🔒 SSL Secured · All transactions encrypted</p>
