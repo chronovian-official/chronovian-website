@@ -523,21 +523,27 @@ export default function Home() {
         .product-brand { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); }
         .product-model { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
         .product-ref { font-size: 0.72rem; color: var(--gray-mid); }
-        .product-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; }
+        .product-price-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .product-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; }
+        .product-price-tax-note { font-size: 0.62rem; color: var(--gray-light); letter-spacing: 0.04em; }
+        .product-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .btn-contact-us { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
+        .btn-contact-us:hover { background: #222; }
+        .btn-buy-online { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: white; color: var(--black); border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; }
+        .btn-buy-online:hover { background: var(--black); color: white; }
+        .product-secondary-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .btn-addcart-sm { flex: 1; padding: 0.75rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; color: var(--black); border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
+        .btn-addcart-sm:hover { border-color: var(--gold); color: var(--gold); }
+        .product-wishlist { display: flex; align-items: center; gap: 0.4rem; background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); transition: all 0.2s; padding: 0.75rem 1rem; }
+        .product-wishlist:hover { border-color: var(--gold); color: var(--gold); }
         .product-desc { font-size: 0.82rem; line-height: 2; color: var(--gray-mid); }
-        .product-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1.5rem; }
-        .product-spec { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
-        .product-spec-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-light); }
-        .product-spec-value { font-size: 0.8rem; color: var(--black); }
-        .product-actions { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
-        .btn-buynow { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: var(--gold); color: white; border: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: background 0.2s; }
-        .btn-buynow:hover { background: var(--gold-light); }
-        .btn-addcart { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
-        .btn-addcart:hover { background: white; color: var(--black); }
-        .btn-enquire-full { width: 100%; padding: 1rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; background: none; color: var(--black); border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
-        .btn-enquire-full:hover { border-color: var(--gold); color: var(--gold); }
-        .product-wishlist { display: flex; align-items: center; gap: 0.5rem; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); transition: color 0.2s; padding: 0; }
-        .product-wishlist:hover { color: var(--gold); }
+        .product-specs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+        .product-spec-item { display: flex; gap: 0.6rem; align-items: flex-start; }
+        .product-spec-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--gold); margin-top: 1px; }
+        .product-spec-text { display: flex; flex-direction: column; gap: 0.15rem; }
+        .product-spec-text-label { font-size: 0.62rem; font-weight: 500; color: var(--black); }
+        .product-spec-text-value { font-size: 0.78rem; color: var(--gray-mid); }
+        @media (max-width: 600px) { .product-specs-grid { grid-template-columns: repeat(2, 1fr); } .product-cta-row { grid-template-columns: 1fr; } }
 
         /* CART PAGE */
         .cart-page { padding: 4rem 2.5rem; max-width: 1200px; margin: 0 auto; min-height: 60vh; }
@@ -998,40 +1004,52 @@ export default function Home() {
               <div className="product-info">
                 <span className="product-brand">{selectedWatch.brand}</span>
                 <h1 className="product-model">{selectedWatch.model}</h1>
-                <span className="product-ref">{selectedWatch.ref}</span>
-                <div className="product-price">{fmtPrice(selectedWatch.price)}</div>
-                <p className="product-desc">{selectedWatch.description}</p>
-                <div className="product-specs">
+                <span className="product-ref">Model No: {selectedWatch.ref}</span>
+
+                <div className="product-price-row">
+                  <span className="product-price">{fmtPrice(selectedWatch.price)}</span>
+                  <span className="product-price-tax-note">*Inclusive of all taxes</span>
+                </div>
+
+                <div className="product-cta-row">
+                  <a className="btn-contact-us" href={`mailto:enquiries@chronovian.com?subject=Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`}>Contact Us</a>
+                  <button className="btn-buy-online" onClick={() => { addToCart(selectedWatch); setCartOpen(false); goTo("checkout"); }}>Buy Online</button>
+                </div>
+
+                <div className="product-secondary-row">
+                  <button className="btn-addcart-sm" onClick={() => addToCart(selectedWatch)}>Add to Cart</button>
+                  <button className="product-wishlist" onClick={() => toggleWishlist(selectedWatch.id)}>
+                    {wishlist.includes(selectedWatch.id) ? "♥ Saved" : "♡ Save to Wishlist"}
+                  </button>
+                </div>
+
+                {selectedWatch.description && <p className="product-desc">{selectedWatch.description}</p>}
+
+                <div className="product-specs-grid">
                   {[
-                    { label: "Condition", value: selectedWatch.condition },
-                    { label: "Year", value: selectedWatch.year },
-                    { label: "Box", value: selectedWatch.box ? "Included" : "Not included" },
-                    { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
-                    { label: "Status", value: selectedWatch.status },
-                    { label: "Reference", value: selectedWatch.ref },
-                    ...(selectedWatch.case_size ? [{ label: "Case Size", value: selectedWatch.case_size }] : []),
-                    ...(selectedWatch.movement ? [{ label: "Movement", value: selectedWatch.movement }] : []),
-                    ...(selectedWatch.dial_color ? [{ label: "Dial", value: selectedWatch.dial_color }] : []),
-                    ...(selectedWatch.case_material ? [{ label: "Case", value: selectedWatch.case_material }] : []),
-                    ...(selectedWatch.bracelet_material ? [{ label: "Bracelet", value: selectedWatch.bracelet_material }] : []),
-                    ...(selectedWatch.material ? [{ label: "Material", value: selectedWatch.material }] : []),
-                    ...(selectedWatch.gemstone ? [{ label: "Gemstone", value: selectedWatch.gemstone }] : []),
-                    ...(selectedWatch.color ? [{ label: "Colour", value: selectedWatch.color }] : []),
-                    ...(selectedWatch.hardware ? [{ label: "Hardware", value: selectedWatch.hardware }] : []),
+                    { label: "Condition", value: selectedWatch.condition, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
+                    { label: "Purchase Year", value: selectedWatch.year || "N/A", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
+                    { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+                    { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+                    { label: "Status", value: selectedWatch.status, icon: "M5 13l4 4L19 7" },
+                    ...(selectedWatch.case_size ? [{ label: "Size", value: selectedWatch.case_size, icon: "M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0-6a10 10 0 100 20 10 10 0 000-20z" }] : []),
+                    ...(selectedWatch.movement ? [{ label: "Movement", value: selectedWatch.movement, icon: "M13 10V3L4 14h7v7l9-11h-7z" }] : []),
+                    ...(selectedWatch.dial_color ? [{ label: "Dial Colour", value: selectedWatch.dial_color, icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2V9a2 2 0 00-2-2h-2.343" }] : []),
+                    ...(selectedWatch.case_material ? [{ label: "Case Material", value: selectedWatch.case_material, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" }] : []),
+                    ...(selectedWatch.bracelet_material ? [{ label: "Bracelet", value: selectedWatch.bracelet_material, icon: "M13 10V3L4 14h7v7l9-11h-7z" }] : []),
+                    ...(selectedWatch.material ? [{ label: "Material", value: selectedWatch.material, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" }] : []),
+                    ...(selectedWatch.gemstone ? [{ label: "Gemstone", value: selectedWatch.gemstone, icon: "M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0-6a10 10 0 100 20 10 10 0 000-20z" }] : []),
+                    ...(selectedWatch.color ? [{ label: "Colour", value: selectedWatch.color, icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2V9a2 2 0 00-2-2h-2.343" }] : []),
+                    ...(selectedWatch.hardware ? [{ label: "Hardware", value: selectedWatch.hardware, icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" }] : []),
                   ].filter(s => s.value).map(s => (
-                    <div className="product-spec" key={s.label}>
-                      <span className="product-spec-label">{s.label}</span>
-                      <span className="product-spec-value">{s.value}</span>
+                    <div className="product-spec-item" key={s.label}>
+                      <svg className="product-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={s.icon} /></svg>
+                      <div className="product-spec-text">
+                        <span className="product-spec-text-label">{s.label}</span>
+                        <span className="product-spec-text-value">{s.value}</span>
+                      </div>
                     </div>
                   ))}
-                </div>
-                <div className="product-actions">
-                  <button className="btn-buynow" onClick={() => { addToCart(selectedWatch); setCartOpen(false); goTo("checkout"); }}>Buy Now</button>
-                  <button className="btn-addcart" onClick={() => addToCart(selectedWatch)}>Add to Cart</button>
-                  <a className="btn-enquire-full" href={`mailto:info@chronovian.com?subject=Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`}>Enquire About This Watch</a>
-                  <button className="product-wishlist" onClick={() => toggleWishlist(selectedWatch.id)}>
-                    {wishlist.includes(selectedWatch.id) ? "♥ Saved to Wishlist" : "♡ Save to Wishlist"}
-                  </button>
                 </div>
               </div>
             </div>

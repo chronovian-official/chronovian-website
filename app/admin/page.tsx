@@ -307,7 +307,7 @@ export default function AdminPage() {
                   <div><label className="al">Subcategory</label><input className="ai" value={form.subcategory} onChange={e => setForm(f => ({ ...f, subcategory: e.target.value }))} placeholder="e.g. Dress Watch, Ring, Tote" /></div>
                 </div>
                 <div className="fg">
-                  <div><label className="al">Reference / SKU</label><input className="ai" value={form.ref} onChange={e => setForm(f => ({ ...f, ref: e.target.value }))} placeholder="e.g. Ref. 126610LN" /></div>
+                  <div><label className="al">Model No</label><input className="ai" value={form.ref} onChange={e => setForm(f => ({ ...f, ref: e.target.value }))} placeholder="e.g. 126610LN" /></div>
                   <div><label className="al">Serial Number</label><input className="ai" value={form.serial_number} onChange={e => setForm(f => ({ ...f, serial_number: e.target.value }))} /></div>
                 </div>
                 <div className="fg">
