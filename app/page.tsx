@@ -129,6 +129,11 @@ export default function Home() {
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [heroSlides, setHeroSlides] = useState<HeroBanner[]>(FALLBACK_HERO_SLIDES);
+  const [catImages, setCatImagesState] = useState<Record<string, string>>({
+    watches: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=90",
+    jewellery: "https://images.unsplash.com/photo-1573408301185-9519f94816b5?w=800&q=90",
+    bags: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=90",
+  });
   const [currency, setCurrency] = useState("INR");
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({ INR: 1 });
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
@@ -229,6 +234,22 @@ export default function Home() {
       }
     };
     fetchBanners();
+
+    // Fetch category images
+    const fetchCatImages = async () => {
+      try {
+        const sb = getSupabase();
+        const { data } = await sb.from("category_images").select("*");
+        if (data) {
+          const map: Record<string, string> = {};
+          data.forEach((row: any) => { if (row.image_url) map[row.id] = row.image_url; });
+          if (Object.keys(map).length > 0) setCatImagesState(prev => ({ ...prev, ...map }));
+        }
+      } catch (e) {
+        console.error("Failed to fetch category images:", e);
+      }
+    };
+    fetchCatImages();
   }, []);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
@@ -671,15 +692,17 @@ export default function Home() {
 
         /* CATEGORIES */
         .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .cat-card { position: relative; overflow: hidden; aspect-ratio: 4/5; cursor: pointer; }
-        .cat-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
-        .cat-card:hover img { transform: scale(1.04); }
-        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.72) 100%); }
-        .cat-content { position: absolute; bottom: 2.5rem; left: 2rem; color: white; }
-        .cat-tag { font-size: 0.58rem; letter-spacing: 0.28em; text-transform: uppercase; color: #D4AA78; display: block; margin-bottom: 0.6rem; }
-        .cat-name { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 300; display: block; margin-bottom: 1rem; line-height: 1.1; }
-        .cat-link { font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.85); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; transition: color 0.2s; }
-        .cat-card:hover .cat-link { color: #D4AA78; }
+        .categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; }
+        .cat-card { cursor: pointer; display: flex; flex-direction: column; }
+        .cat-img-wrap { position: relative; overflow: hidden; aspect-ratio: 4/5; background: var(--gray-pale); }
+        .cat-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; display: block; }
+        .cat-card:hover .cat-img-wrap img { transform: scale(1.04); }
+        .cat-text { padding: 1rem 0 0.5rem; border-bottom: 2px solid var(--black); margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .cat-name { font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.05em; color: var(--black); text-transform: none; }
+        .cat-arrow { font-size: 1rem; color: var(--black); transition: transform 0.2s; }
+        .cat-card:hover .cat-arrow { transform: translateX(4px); }
+        .cat-eyebrow { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 0.35rem; display: block; }
+        @media (max-width: 768px) { .categories { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.5rem; } }
 
         /* ABOUT */
         .about-strip { padding: 5rem 2.5rem; max-width: 700px; margin: 0 auto; text-align: center; }
@@ -1790,17 +1813,24 @@ export default function Home() {
           </section>
 
           <section className="categories" id="collections">
+            <div style={{gridColumn:"1/-1", marginBottom:"0.5rem"}}>
+              <span className="section-eyebrow">Our Collections</span>
+            </div>
             {[
-              { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1200&q=90", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
-              { img: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1200&q=90", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
+              { img: catImages.watches, tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
+              { img: catImages.jewellery, tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
+              { img: catImages.bags, tag: "Luxury Accessories", name: "Bags", action: () => goTo("bags") },
             ].map(cat => (
               <div className="cat-card" key={cat.name} onClick={cat.action}>
-                <img src={cat.img} alt={cat.name} />
-                <div className="cat-overlay" />
-                <div className="cat-content">
-                  <span className="cat-tag">{cat.tag}</span>
-                  <span className="cat-name">{cat.name}</span>
-                  <span className="cat-link">Explore →</span>
+                <div className="cat-img-wrap">
+                  <img src={cat.img} alt={cat.name} />
+                </div>
+                <div className="cat-text">
+                  <div>
+                    <span className="cat-eyebrow">{cat.tag}</span>
+                    <span className="cat-name">{cat.name}</span>
+                  </div>
+                  <span className="cat-arrow">→</span>
                 </div>
               </div>
             ))}

@@ -72,7 +72,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners">("products");
+  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners" | "homepage">("products");
   const [banners, setBanners] = useState<Banner[]>([]);
   const [bannerForm, setBannerForm] = useState<Banner>(emptyBanner);
   const [editingBanner, setEditingBanner] = useState<string | null>(null);
@@ -81,6 +81,9 @@ export default function AdminPage() {
   const [bannerSaving, setBannerSaving] = useState(false);
   const [draggedBannerId, setDraggedBannerId] = useState<string | null>(null);
   const bannerFileRef = useRef<HTMLInputElement>(null);
+  const [catImages, setCatImages] = useState<Record<string, string>>({ watches: "", jewellery: "", bags: "" });
+  const [catUploading, setCatUploading] = useState<string | null>(null);
+  const catFileRefs = { watches: useRef<HTMLInputElement>(null), jewellery: useRef<HTMLInputElement>(null), bags: useRef<HTMLInputElement>(null) };
   const [form, setForm] = useState<Product>(emptyProduct);
   const [editing, setEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -91,7 +94,7 @@ export default function AdminPage() {
   const [lastProduct, setLastProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); }
+    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); }
   }, [authed]);
 
   const showMsg = (text: string, type: "success" | "error" = "success") => {
@@ -123,6 +126,32 @@ export default function AdminPage() {
     const { data, error } = await sb.from("hero_banners").select("*").order("sort_order", { ascending: true });
     if (error) showMsg("Failed to fetch banners: " + error.message, "error");
     else setBanners(data || []);
+  };
+
+  const fetchCategoryImages = async () => {
+    const sb = getClient();
+    const { data } = await sb.from("category_images").select("*");
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach((row: any) => { map[row.id] = row.image_url; });
+      setCatImages(prev => ({ ...prev, ...map }));
+    }
+  };
+
+  const handleCatImageUpload = async (category: string, files: FileList) => {
+    if (!files[0]) return;
+    setCatUploading(category);
+    const sb = getClient();
+    const file = files[0];
+    const ext = file.name.split(".").pop();
+    const fileName = `category-${category}-${Date.now()}.${ext}`;
+    const { error } = await sb.storage.from("product-images").upload(fileName, file, { cacheControl: "3600", upsert: false });
+    if (error) { showMsg("Upload failed: " + error.message, "error"); setCatUploading(null); return; }
+    const { data: { publicUrl } } = sb.storage.from("product-images").getPublicUrl(fileName);
+    await sb.from("category_images").upsert({ id: category, image_url: publicUrl, updated_at: new Date().toISOString() });
+    setCatImages(prev => ({ ...prev, [category]: publicUrl }));
+    showMsg(`${category.charAt(0).toUpperCase() + category.slice(1)} image updated!`);
+    setCatUploading(null);
   };
 
   const handleBannerImageUpload = async (files: FileList) => {
@@ -371,7 +400,7 @@ export default function AdminPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <span style={{ fontFamily: "Georgia,serif", fontSize: "1rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>Chronovian Admin</span>
           <div>
-            {(["products", "banners", "bookings", "orders"] as const).map(t => (
+            {(["products", "banners", "homepage", "bookings", "orders"] as const).map(t => (
               <button key={t} className={`tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</button>
             ))}
           </div>
@@ -672,6 +701,76 @@ export default function AdminPage() {
                   </div>
                 ))
               }
+            </div>
+          </div>
+        )}
+
+        {/* HOMEPAGE TAB */}
+        {tab === "homepage" && (
+          <div>
+            <div style={{ marginBottom: "2rem" }}>
+              <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Homepage Category Images</h2>
+              <p style={{ fontSize: "0.72rem", color: "#6B6B6B", marginTop: "0.25rem" }}>Upload the images shown in the "Our Collections" section on the homepage</p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2rem" }}>
+              {(["watches", "jewellery", "bags"] as const).map(cat => (
+                <div key={cat} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <div style={{ background: "white", border: "1px solid #E5E3E0", overflow: "hidden", aspectRatio: "4/5", position: "relative" }}>
+                    {catImages[cat]
+                      ? <img src={catImages[cat]} alt={cat} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", background: "#F5F3F0" }}>
+                          <span style={{ fontSize: "2rem" }}>📷</span>
+                          <span style={{ fontSize: "0.72rem", color: "#ADADAD" }}>No image uploaded</span>
+                        </div>
+                    }
+                    {catUploading === cat && (
+                      <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.82rem", color: "#6B6B6B" }}>
+                        ⏳ Uploading...
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#B8935A", marginBottom: "0.5rem" }}>
+                      {cat === "watches" ? "Haute Horlogerie" : cat === "jewellery" ? "Fine Jewellery" : "Luxury Accessories"}
+                    </p>
+                    <p style={{ fontFamily: "Georgia,serif", fontSize: "1rem", marginBottom: "0.75rem" }}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </p>
+                    <input
+                      ref={catFileRefs[cat]}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={e => { if (e.target.files && e.target.files.length > 0) handleCatImageUpload(cat, e.target.files); }}
+                    />
+                    <button
+                      className="ab ab-gold"
+                      style={{ width: "100%" }}
+                      onClick={() => catFileRefs[cat].current?.click()}
+                      disabled={catUploading === cat}
+                    >
+                      {catImages[cat] ? "Replace Image" : "Upload Image"}
+                    </button>
+                    {catImages[cat] && (
+                      <button
+                        className="ab ab-out"
+                        style={{ width: "100%", marginTop: "0.5rem" }}
+                        onClick={async () => {
+                          const sb = getClient();
+                          await sb.from("category_images").upsert({ id: cat, image_url: "", updated_at: new Date().toISOString() });
+                          setCatImages(prev => ({ ...prev, [cat]: "" }));
+                          showMsg(`${cat} image removed.`);
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: "2rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #B8935A", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
+              💡 Tip: Use portrait-oriented images (taller than wide) for best results. Minimum recommended size: 800 × 1000px. The client's own product photography works best here.
             </div>
           </div>
         )}
