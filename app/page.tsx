@@ -44,10 +44,21 @@ const placeholder = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w
 const getImg = (w: Watch) => w.images?.[0] || placeholder;
 const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
 
-const heroSlides = [
-  { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", sub: "Premium Watches & Fine Jewellery" },
-  { img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", sub: "By Appointment Only — Hyderabad, Telangana, India" },
-  { img: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", sub: "Opening June 25, 2026" },
+type HeroBanner = {
+  id: string;
+  image_url: string;
+  headline: string;
+  subheadline: string;
+  tagline: string;
+  sort_order: number;
+  active: boolean;
+};
+
+// Fallback in case the database has no banners yet (or fails to load)
+const FALLBACK_HERO_SLIDES: HeroBanner[] = [
+  { id: "fallback-1", image_url: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", tagline: "Premium Watches & Fine Jewellery", sort_order: 0, active: true },
+  { id: "fallback-2", image_url: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", tagline: "By Appointment Only — Hyderabad, Telangana, India", sort_order: 1, active: true },
+  { id: "fallback-3", image_url: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", tagline: "Opening June 25, 2026", sort_order: 2, active: true },
 ];
 
 type CartItem = { watch: Watch; qty: number };
@@ -117,6 +128,7 @@ export default function Home() {
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [heroSlides, setHeroSlides] = useState<HeroBanner[]>(FALLBACK_HERO_SLIDES);
   const [currency, setCurrency] = useState("INR");
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({ INR: 1 });
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
@@ -201,6 +213,24 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // Fetch hero banners from Supabase
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const sb = getSupabase();
+        const { data, error } = await sb
+          .from("hero_banners")
+          .select("*")
+          .eq("active", true)
+          .order("sort_order", { ascending: true });
+        if (!error && data && data.length > 0) setHeroSlides(data);
+      } catch (e) {
+        console.error("Failed to fetch hero banners:", e);
+      }
+    };
+    fetchBanners();
+  }, []);
+
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [page]);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -210,7 +240,7 @@ export default function Home() {
   useEffect(() => {
     const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [heroSlides.length]);
   useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen || searchOpen) ? "hidden" : ""; }, [menuOpen, cartOpen, searchOpen]);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -1695,19 +1725,19 @@ export default function Home() {
         <main>
           <section className="hero">
             {heroSlides.map((s, i) => (
-              <div key={i} className={`hero-slide${slide === i ? " active" : ""}`}>
-                <img src={s.img} alt={s.headline} />
+              <div key={s.id} className={`hero-slide${slide === i ? " active" : ""}`}>
+                <img src={s.image_url} alt={s.headline} />
               </div>
             ))}
             <div className="hero-gradient" />
             <div className="hero-content">
               <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
-              <h1 className="hero-title">{heroSlides[slide].headline}<br /><em>{heroSlides[slide].subheadline}</em></h1>
-              <p className="hero-sub">{heroSlides[slide].sub}</p>
+              <h1 className="hero-title">{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
+              <p className="hero-sub">{heroSlides[slide]?.tagline}</p>
             </div>
             <div className="hero-dots">
-              {heroSlides.map((_, i) => (
-                <button key={i} className={`hero-dot${slide === i ? " active" : ""}`} onClick={() => setSlide(i)} />
+              {heroSlides.map((s, i) => (
+                <button key={s.id} className={`hero-dot${slide === i ? " active" : ""}`} onClick={() => setSlide(i)} />
               ))}
             </div>
           </section>
