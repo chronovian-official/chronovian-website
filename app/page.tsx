@@ -355,25 +355,28 @@ export default function Home() {
         html { scroll-behavior: smooth; font-size: 17px; }
         body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
 
-        /* NAV */
-        nav { position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 66px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
-        nav.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 1.4rem; flex: 1; }
-        .nav-right { justify-content: flex-end; }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
+        /* TOP BAR (frozen) */
+        .topbar { position: sticky; top: 0; z-index: 210; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 72px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
+        .topbar.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
+        .topbar-side { display: flex; align-items: center; gap: 1.4rem; flex: 1; }
+        .topbar-side.right { justify-content: flex-end; }
+        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
         .nav-icon-btn { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; position: relative; }
         .nav-icon-btn:hover { color: var(--gold); }
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
         .nav-link { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
 
+        /* CATEGORY BAR (scrolls away) */
+        .categorybar { background: white; border-bottom: 1px solid var(--border); padding: 0 2rem; height: 50px; display: flex; align-items: center; justify-content: center; gap: 2.25rem; }
+
         /* DROPDOWN */
         .nav-dropdown-wrap { position: relative; display: flex; align-items: center; }
-        .nav-dropdown-trigger { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.3rem; padding: 0; white-space: nowrap; height: 66px; }
+        .nav-dropdown-trigger { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.3rem; padding: 0; white-space: nowrap; height: 50px; }
         .nav-dropdown-trigger:hover, .nav-dropdown-trigger.open { color: var(--gold); }
         .nav-dropdown-trigger svg { transition: transform 0.25s; }
         .nav-dropdown-trigger.open svg { transform: rotate(180deg); }
-        .nav-dropdown { position: absolute; top: 66px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
+        .nav-dropdown { position: absolute; top: 50px; left: 50%; transform: translateX(-50%) translateY(-6px); background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 300; }
         .nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
         .nav-dropdown-item { display: block; width: 100%; padding: 0.85rem 1.5rem; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 400; text-align: left; transition: color 0.2s, background 0.2s; border-bottom: 1px solid var(--border); white-space: nowrap; }
         .nav-dropdown-item:last-child { border-bottom: none; }
@@ -385,7 +388,7 @@ export default function Home() {
         .mobile-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .mobile-hamburger.open span:nth-child(2) { opacity: 0; }
         .mobile-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-        .mobile-menu { display: none; position: fixed; inset: 0; top: 66px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
+        .mobile-menu { display: none; position: fixed; inset: 0; top: 72px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
         .mobile-section { border-bottom: 1px solid var(--border); }
         .mobile-section-trigger { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); background: none; border: none; cursor: pointer; width: 100%; }
@@ -398,10 +401,11 @@ export default function Home() {
         .mobile-plain { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
         .mobile-plain:hover { color: var(--gold); }
         @media (max-width: 900px) {
-          .nav-left .nav-dropdown-wrap, .nav-left .nav-link, .nav-right .nav-link { display: none; }
-          .nav-right .nav-icon-btn { display: none; }
+          .categorybar { display: none; }
+          .topbar-side .nav-link { display: none; }
           .mobile-hamburger { display: flex !important; }
-          .nav-right .nav-icon-btn.always-show { display: flex; }
+          .topbar-side .nav-icon-btn:not(.always-show) { display: none; }
+          .topbar-side .nav-icon-btn.always-show { display: flex; }
           .currency-trigger { font-size: 0.65rem; padding: 0; }
           #mobile-search-btn { display: flex !important; }
         }
@@ -915,55 +919,25 @@ export default function Home() {
         )}
       </div>
 
-      {/* NAV */}
-      <nav className={scrolled ? "scrolled" : ""} ref={navRef}>
-        <div className="nav-left">
+      {/* TOP BAR (frozen) */}
+      <nav className={`topbar${scrolled ? " scrolled" : ""}`} ref={navRef}>
+        <div className="topbar-side">
           <button className={`mobile-hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
           </button>
-          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} style={{display:"none",padding:"0 0.25rem"}} id="mobile-search-btn">
+          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} title="Search">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          <button className={`nav-link${page === "watches" ? " active" : ""}`} onClick={() => goTo("watches")}>Watches</button>
-          <button className={`nav-link${page === "jewellery" ? " active" : ""}`} onClick={() => goTo("jewellery")}>Jewellery</button>
-          <button className={`nav-link${page === "bags" ? " active" : ""}`} onClick={() => goTo("bags")}>Bags</button>
-          <button className={`nav-link${page === "accessories" ? " active" : ""}`} onClick={() => goTo("accessories")}>Accessories</button>
-          {([
-            { key: "selltrade", label: "Sell / Trade", items: [
-              { label: "Sell — How It Works", page: "sell" as PageType },
-              { label: "Trade — How It Works", page: "trade" as PageType },
-            ] as DropdownItem[] },
-          ]).map(dd => (
-            <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
-              <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
-                {dd.label}
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </button>
-              <div className={`nav-dropdown${activeDropdown === dd.key ? " open" : ""}`}>
-                {dd.items.map(item => (
-                  "href" in item
-                    ? <a key={item.label} className="nav-dropdown-item" href={item.href}>{item.label}</a>
-                    : <button key={item.label} className="nav-dropdown-item" onClick={() => goTo(item.page!)}>{item.label}</button>
-                ))}
-              </div>
-            </div>
-          ))}
-          <button className="nav-icon-btn" onClick={() => setSearchOpen(true)} title="Search" style={{padding:"0 0.25rem"}}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </button>
+          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
+          <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
         </div>
 
         <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
 
-        <div className="nav-right">
-          <div className="currency-wrap">
-            <button className="currency-trigger" onClick={() => setCurrencyDropdownOpen(true)}>
-              <span style={{fontSize:"0.9rem"}}>{CURRENCY_META[currency]?.flag}</span> {currency}
-              <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          </div>
-          <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
-          <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
+        <div className="topbar-side right">
+          <button className="nav-icon-btn always-show" title="Sign In / Sign Up" onClick={() => alert("Sign in coming soon!")}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
           <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
             <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
@@ -974,6 +948,40 @@ export default function Home() {
           </button>
         </div>
       </nav>
+
+      {/* CATEGORY BAR (scrolls away) */}
+      <div className="categorybar">
+        <button className={`nav-link${page === "watches" ? " active" : ""}`} onClick={() => goTo("watches")}>Watches</button>
+        <button className={`nav-link${page === "jewellery" ? " active" : ""}`} onClick={() => goTo("jewellery")}>Jewellery</button>
+        <button className={`nav-link${page === "bags" ? " active" : ""}`} onClick={() => goTo("bags")}>Bags</button>
+        <button className={`nav-link${page === "accessories" ? " active" : ""}`} onClick={() => goTo("accessories")}>Accessories</button>
+        {([
+          { key: "selltrade", label: "Sell / Trade", items: [
+            { label: "Sell — How It Works", page: "sell" as PageType },
+            { label: "Trade — How It Works", page: "trade" as PageType },
+          ] as DropdownItem[] },
+        ]).map(dd => (
+          <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
+            <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
+              {dd.label}
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <div className={`nav-dropdown${activeDropdown === dd.key ? " open" : ""}`}>
+              {dd.items.map(item => (
+                "href" in item
+                  ? <a key={item.label} className="nav-dropdown-item" href={item.href}>{item.label}</a>
+                  : <button key={item.label} className="nav-dropdown-item" onClick={() => goTo(item.page!)}>{item.label}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div className="currency-wrap">
+          <button className="currency-trigger" onClick={() => setCurrencyDropdownOpen(true)}>
+            <span style={{fontSize:"0.9rem"}}>{CURRENCY_META[currency]?.flag}</span> {currency}
+            <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
 
 
       {/* MOBILE MENU */}
@@ -1004,6 +1012,7 @@ export default function Home() {
         ))}
         <button className="mobile-plain" onClick={() => goTo("contact")}>Contact</button>
         <button className="mobile-plain" onClick={() => goTo("booking")}>Book Appointment</button>
+        <button className="mobile-plain" onClick={() => alert("Sign in coming soon!")}>Sign In / Sign Up</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
         <div style={{padding:"1rem 0"}}>
