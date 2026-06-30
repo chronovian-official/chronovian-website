@@ -366,7 +366,6 @@ export default function Home() {
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
         .nav-link { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); text-decoration: none; background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; white-space: nowrap; padding: 0; }
         .nav-link:hover, .nav-link.active { color: var(--gold); }
-        .mobile-currency-trigger { display: none; }
 
         /* CATEGORY BAR (scrolls away) */
         .categorybar { background: white; border-bottom: 1px solid var(--border); padding: 0 2rem; height: 50px; display: flex; align-items: center; justify-content: center; gap: 2.25rem; }
@@ -784,7 +783,6 @@ export default function Home() {
           .topbar { height: 64px; }
           .nav-logo { font-size: 1.25rem; letter-spacing: 0.14em; }
           .mobile-menu { top: 64px; }
-          .mobile-currency-trigger { display: flex; font-size: 0.68rem; padding: 0.3rem 0.45rem; border: 1px solid var(--border); }
           .sell-steps { grid-template-columns: 1fr; }
           .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
           .product-gallery { flex-direction: column-reverse; }
@@ -938,9 +936,6 @@ export default function Home() {
           </button>
           <button className="nav-icon-btn always-show" onClick={() => setSearchOpen(true)} title="Search">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </button>
-          <button className="currency-trigger mobile-currency-trigger" onClick={() => setCurrencyDropdownOpen(true)}>
-            <span style={{fontSize:"0.9rem"}}>{CURRENCY_META[currency]?.flag}</span> {currency}
           </button>
           <button className={`nav-link${page === "contact" ? " active" : ""}`} onClick={() => goTo("contact")}>Contact</button>
           <button className={`nav-link${page === "booking" ? " active" : ""}`} onClick={() => goTo("booking")}>Book Appointment</button>
@@ -1796,8 +1791,8 @@ export default function Home() {
 
           <section className="categories" id="collections">
             {[
-              { img: "https://images.unsplash.com/photo-1542496658-e33a6d0d4f17?w=1200&q=90", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
-              { img: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&q=90", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
+              { img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1200&q=90", tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
+              { img: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1200&q=90", tag: "Fine Jewellery", name: "Jewellery", action: () => goTo("jewellery") },
             ].map(cat => (
               <div className="cat-card" key={cat.name} onClick={cat.action}>
                 <img src={cat.img} alt={cat.name} />
