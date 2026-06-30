@@ -501,9 +501,9 @@ export default function Home() {
         .product-breadcrumb button { background: none; border: none; cursor: pointer; color: var(--gray-light); font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; padding: 0; }
         .product-breadcrumb button:hover { color: var(--gold); }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; }
-        .product-gallery { display: flex; flex-direction: column; gap: 1rem; }
+        .product-gallery { display: flex; flex-direction: row; gap: 1rem; }
         .product-img-main video { width: 100%; height: 100%; object-fit: cover; }
-        .product-img-main { aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
+        .product-img-main { flex: 1; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
         .product-img-main img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .product-img-main:hover img { transform: scale(1.03); }
         .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; z-index: 2; }
@@ -511,8 +511,8 @@ export default function Home() {
         .gallery-nav-prev { left: 0.75rem; }
         .gallery-nav-next { right: 0.75rem; }
         .gallery-counter { position: absolute; bottom: 0.75rem; right: 0.75rem; background: rgba(0,0,0,0.5); color: white; font-size: 0.6rem; letter-spacing: 0.1em; padding: 0.25rem 0.6rem; }
-        .product-thumbs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; }
-        .product-thumbs::-webkit-scrollbar { height: 2px; }
+        .product-thumbs { display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; max-height: 560px; flex-shrink: 0; }
+        .product-thumbs::-webkit-scrollbar { width: 2px; }
         .product-thumbs::-webkit-scrollbar-track { background: var(--gray-pale); }
         .product-thumbs::-webkit-scrollbar-thumb { background: var(--gold); }
         .product-thumb { width: 64px; height: 72px; flex-shrink: 0; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: var(--gray-pale); }
@@ -541,8 +541,8 @@ export default function Home() {
         .product-spec-item { display: flex; gap: 0.6rem; align-items: flex-start; }
         .product-spec-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--gold); margin-top: 1px; }
         .product-spec-text { display: flex; flex-direction: column; gap: 0.15rem; }
-        .product-spec-text-label { font-size: 0.62rem; font-weight: 500; color: var(--black); }
-        .product-spec-text-value { font-size: 0.78rem; color: var(--gray-mid); }
+        .product-spec-text-label { font-size: 0.7rem; font-weight: 400; color: var(--gray-mid); letter-spacing: 0.02em; }
+        .product-spec-text-value { font-size: 0.95rem; color: var(--black); font-weight: 500; }
         @media (max-width: 600px) { .product-specs-grid { grid-template-columns: repeat(2, 1fr); } .product-cta-row { grid-template-columns: 1fr; } }
 
         /* CART PAGE */
@@ -731,7 +731,8 @@ export default function Home() {
           nav { padding: 0 1.25rem; }
           .sell-steps { grid-template-columns: 1fr; }
           .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-          .product-thumbs { gap: 0.4rem; }
+          .product-gallery { flex-direction: column-reverse; }
+          .product-thumbs { flex-direction: row; gap: 0.4rem; max-height: none; overflow-x: auto; overflow-y: hidden; }
           .cart-page-grid { grid-template-columns: 1fr; }
           .checkout-grid { grid-template-columns: 1fr; }
           .form-row { grid-template-columns: 1fr; }
@@ -973,6 +974,18 @@ export default function Home() {
             </div>
             <div className="product-grid">
               <div className="product-gallery">
+                {selectedWatch.images?.length > 1 && (
+                  <div className="product-thumbs">
+                    {selectedWatch.images.map((media, i) => (
+                      <div key={i} className={`product-thumb${activeImgIdx === i ? " active" : ""}`} onClick={() => setActiveImgIdx(i)}>
+                        {isVideo(media)
+                          ? <div style={{width:"100%",height:"100%",background:"#0A0A0A",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:"1.2rem"}}>▶</div>
+                          : <img src={media} alt={`${selectedWatch.model} view ${i + 1}`} />
+                        }
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="product-img-main">
                   {(() => {
                     const currentMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
@@ -988,18 +1001,6 @@ export default function Home() {
                     </>
                   )}
                 </div>
-                {selectedWatch.images?.length > 1 && (
-                  <div className="product-thumbs">
-                    {selectedWatch.images.map((media, i) => (
-                      <div key={i} className={`product-thumb${activeImgIdx === i ? " active" : ""}`} onClick={() => setActiveImgIdx(i)}>
-                        {isVideo(media)
-                          ? <div style={{width:"100%",height:"100%",background:"#0A0A0A",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:"1.2rem"}}>▶</div>
-                          : <img src={media} alt={`${selectedWatch.model} view ${i + 1}`} />
-                        }
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
               <div className="product-info">
                 <span className="product-brand">{selectedWatch.brand}</span>
