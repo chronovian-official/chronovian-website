@@ -1806,9 +1806,8 @@ export default function Home() {
 
           <section className="categories" id="collections">
             <div style={{gridColumn:"1/-1", marginBottom:"1.5rem", textAlign:"center"}}>
-              <span className="section-eyebrow">Our Categories</span>
-              <h2 className="section-title">Shop by <em>Category</em></h2>
-              <div className="gold-rule" />
+              <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Categories</span>
+              <div className="gold-rule" style={{margin:"1rem auto 0"}} />
             </div>
             {[
               { img: catImages.watches, tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
@@ -1820,10 +1819,7 @@ export default function Home() {
                   <img src={cat.img} alt={cat.name} />
                 </div>
                 <div className="cat-text">
-                  <div>
-                    <span className="cat-eyebrow">{cat.tag}</span>
-                    <span className="cat-name">{cat.name}</span>
-                  </div>
+                  <span className="cat-name">{cat.name}</span>
                   <span className="cat-arrow">→</span>
                 </div>
               </div>
@@ -1831,8 +1827,8 @@ export default function Home() {
           </section>
 
           <section className="about-strip">
-            <span className="section-eyebrow">Our Philosophy</span>
-            <h2 className="section-title">A Sanctuary for the <em>Extraordinary</em></h2>
+            <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Philosophy</span>
+            <h2 className="section-title" style={{fontSize:"clamp(1.4rem, 2.5vw, 2rem)"}}>A Sanctuary for the <em>Extraordinary</em></h2>
             <div className="gold-rule" />
             <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
             <button className="btn-outline" onClick={() => goTo("booking")}>Schedule a Private Viewing</button>
