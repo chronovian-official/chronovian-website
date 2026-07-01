@@ -261,7 +261,8 @@ export default function Home() {
 
   // Prefill profile form + fetch orders/bookings when opening the account page
   useEffect(() => {
-    if (!user || page !== "account") return;
+    if (!user || !user.email || page !== "account") return;
+    const userEmail = user.email;
     setProfileForm({ full_name: user.user_metadata?.full_name || "", phone: (user.user_metadata as any)?.phone || "" });
 
     const sb = getSupabase();
@@ -269,7 +270,7 @@ export default function Home() {
     (async () => {
       setOrdersLoading(true);
       try {
-        const { data, error } = await sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${user.email}`).order("created_at", { ascending: false });
+        const { data, error } = await sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${userEmail}`).order("created_at", { ascending: false });
         if (!error && data) setMyOrders(data as Order[]);
       } finally {
         setOrdersLoading(false);
@@ -279,7 +280,7 @@ export default function Home() {
     (async () => {
       setMyBookingsLoading(true);
       try {
-        const { data, error } = await sb.from("bookings").select("*").eq("email", user.email).order("id", { ascending: false });
+        const { data, error } = await sb.from("bookings").select("*").eq("email", userEmail).order("id", { ascending: false });
         if (!error && data) setMyBookings(data as MyBooking[]);
       } finally {
         setMyBookingsLoading(false);
