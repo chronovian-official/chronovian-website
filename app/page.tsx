@@ -374,7 +374,7 @@ export default function Home() {
           --gray-pale: #F5F3F0; --white: #FFFFFF; --border: rgba(0,0,0,0.09);
         }
         html { scroll-behavior: smooth; font-size: 17px; }
-        body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
+        body { background: var(--white); color: var(--black); font-family: 'Jost', sans-serif; font-weight: 400; overflow-x: hidden; }
 
         /* TOP BAR (frozen) */
         .topbar { position: sticky; top: 0; z-index: 210; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 72px; display: flex; align-items: center; justify-content: space-between; transition: box-shadow 0.3s; }
@@ -691,7 +691,6 @@ export default function Home() {
         .wishlist-empty p { font-size: 0.82rem; color: var(--gray-mid); margin-top: 1rem; }
 
         /* CATEGORIES */
-        .categories { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
         .categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .cat-card { cursor: pointer; display: flex; flex-direction: column; }
         .cat-img-wrap { position: relative; overflow: hidden; aspect-ratio: 4/5; background: var(--gray-pale); }
@@ -786,7 +785,6 @@ export default function Home() {
 
         @media (max-width: 768px) {
           .featured-grid, .watches-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-          .categories { grid-template-columns: 1fr; }
           .pillars-grid { grid-template-columns: 1fr; }
           .footer-top { grid-template-columns: 1fr 1fr; }
           .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
@@ -1780,8 +1778,7 @@ export default function Home() {
 
           <section className="featured" id="featured">
             <div className="section-header">
-              <span className="section-eyebrow">Our Collection</span>
-              <h2 className="section-title">Featured <em>Timepieces</em></h2>
+              <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Collection</span>
               <div className="gold-rule" />
             </div>
             <div className="featured-grid">
@@ -1808,8 +1805,10 @@ export default function Home() {
           </section>
 
           <section className="categories" id="collections">
-            <div style={{gridColumn:"1/-1", marginBottom:"0.5rem"}}>
+            <div style={{gridColumn:"1/-1", marginBottom:"1.5rem", textAlign:"center"}}>
               <span className="section-eyebrow">Our Categories</span>
+              <h2 className="section-title">Shop by <em>Category</em></h2>
+              <div className="gold-rule" />
             </div>
             {[
               { img: catImages.watches, tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
