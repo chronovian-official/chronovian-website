@@ -369,7 +369,7 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-          --gold: #B8935A; --gold-light: #D4AA78;
+          --gold: #9A7340; --gold-light: #B8935A;
           --black: #0A0A0A; --gray-mid: #6B6B6B; --gray-light: #ADADAD;
           --gray-pale: #F5F3F0; --white: #FFFFFF; --border: rgba(0,0,0,0.09);
         }
@@ -525,7 +525,7 @@ export default function Home() {
 
         /* SECTIONS */
         .section-header { text-align: center; margin-bottom: 3rem; }
-        .section-eyebrow { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; display: block; }
+        .section-eyebrow { font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; display: block; font-weight: 500; }
         .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 300; line-height: 1.25; }
         .section-title em { font-style: italic; }
         .gold-rule { width: 32px; height: 1px; background: var(--gold); margin: 1.25rem auto 0; }
@@ -539,7 +539,7 @@ export default function Home() {
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
         .watch-status.sold { background: var(--black); color: white; }
-        .watch-brand { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; }
+        .watch-brand { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
         .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
@@ -701,7 +701,7 @@ export default function Home() {
         .cat-name { font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.05em; color: var(--black); text-transform: none; }
         .cat-arrow { font-size: 1rem; color: var(--black); transition: transform 0.2s; }
         .cat-card:hover .cat-arrow { transform: translateX(4px); }
-        .cat-eyebrow { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 0.35rem; display: block; }
+        .cat-eyebrow { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; display: block; font-weight: 500; }
         @media (max-width: 768px) { .categories { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.5rem; } }
 
         /* ABOUT */
@@ -766,25 +766,20 @@ export default function Home() {
         .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
         .btn-gold:hover { background: var(--gold-light); }
 
-        /* PAYMENT STRIP */
-        .payment-strip { background: var(--gray-pale); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-        .payment-label { font-size: 0.55rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray-light); }
-        .payment-badge { padding: 0.3rem 0.7rem; border-radius: 3px; font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; }
-
         /* FOOTER */
-        footer { background: var(--gray-pale); border-top: 1px solid var(--border); padding: 3.5rem 2.5rem 2rem; }
+        footer { background: var(--gray-pale); border-top: 1px solid var(--border); padding: 5rem 2.5rem 2.5rem; }
         .footer-inner { max-width: 1200px; margin: 0 auto; }
         .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.1rem; letter-spacing: 0.2em; color: var(--black); text-transform: uppercase; display: block; margin-bottom: 0.75rem; }
-        .footer-tagline { font-size: 0.72rem; line-height: 1.8; color: var(--gray-mid); max-width: 220px; }
-        .footer-col-title { font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--black); margin-bottom: 1.25rem; display: block; }
-        .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
-        .footer-links a, .footer-links button { color: var(--gray-mid); text-decoration: none; font-size: 0.75rem; transition: color 0.2s; background: none; border: none; cursor: pointer; padding: 0; text-align: left; font-family: 'Jost', sans-serif; font-weight: 300; }
+        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.2em; color: var(--black); text-transform: uppercase; display: block; margin-bottom: 1rem; }
+        .footer-tagline { font-size: 0.82rem; line-height: 1.9; color: var(--gray-mid); max-width: 240px; }
+        .footer-col-title { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--black); margin-bottom: 1.5rem; display: block; font-weight: 600; }
+        .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
+        .footer-links a, .footer-links button { color: var(--gray-mid); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; background: none; border: none; cursor: pointer; padding: 0; text-align: left; font-family: 'Jost', sans-serif; font-weight: 400; }
         .footer-links a:hover, .footer-links button:hover { color: var(--gold); }
         .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
-        .footer-copy { font-size: 0.62rem; color: var(--gray-light); }
+        .footer-copy { font-size: 0.75rem; color: var(--gray-mid); }
         .footer-social { display: flex; gap: 1.5rem; }
-        .footer-social a { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-mid); text-decoration: none; transition: color 0.2s; }
+        .footer-social a { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-mid); text-decoration: none; transition: color 0.2s; font-weight: 500; }
         .footer-social a:hover { color: var(--gold); }
         .whatsapp-fab { position: fixed; bottom: 1.5rem; right: 1.5rem; height: 48px; padding: 0 1.25rem; border-radius: 24px; background: #25D366; display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: white; box-shadow: 0 4px 16px rgba(37,211,102,0.35); z-index: 100; transition: transform 0.2s, box-shadow 0.2s; }
         .whatsapp-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.45); }
@@ -1814,7 +1809,7 @@ export default function Home() {
 
           <section className="categories" id="collections">
             <div style={{gridColumn:"1/-1", marginBottom:"0.5rem"}}>
-              <span className="section-eyebrow">Our Collections</span>
+              <span className="section-eyebrow">Our Categories</span>
             </div>
             {[
               { img: catImages.watches, tag: "Haute Horlogerie", name: "Watches", action: () => goTo("watches") },
@@ -1867,25 +1862,6 @@ export default function Home() {
           </section>
         </main>
       )}
-
-      {/* PAYMENT STRIP */}
-      <div className="payment-strip">
-        <span className="payment-label">Secure Payments</span>
-        {[
-          { label: "UPI", bg: "#5F259F", color: "white" },
-          { label: "GPay", bg: "#4285F4", color: "white" },
-          { label: "PhonePe", bg: "#5F259F", color: "white" },
-          { label: "Paytm", bg: "#00BAF2", color: "white" },
-          { label: "VISA", bg: "#1A1F71", color: "white" },
-          { label: "MC", bg: "#EB001B", color: "white" },
-          { label: "RuPay", bg: "#007A3D", color: "white" },
-          { label: "NEFT", bg: "#eee", color: "#333" },
-          { label: "EMI", bg: "#eee", color: "#333" },
-        ].map(pm => (
-          <span key={pm.label} className="payment-badge" style={{background:pm.bg, color:pm.color}}>{pm.label}</span>
-        ))}
-        <span style={{fontSize:"0.6rem",color:"var(--gray-light)"}}>🔒 SSL Secured</span>
-      </div>
 
       {/* FOOTER */}
       <footer>
