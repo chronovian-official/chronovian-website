@@ -337,7 +337,7 @@ export default function Home() {
         ref: item.watch.ref, price: item.watch.price, qty: item.qty, image: getImg(item.watch),
       }));
       const address = `${f.addressLine1}${f.addressLine2 ? ", " + f.addressLine2 : ""}, ${f.city}, ${f.state} ${f.pin}`;
-      const { error } = await sb.from("orders").insert({
+      const { error } = await sb.from("orders").insert([{
         user_id: user?.id ?? null,
         customer_name: `${f.firstName} ${f.lastName}`,
         customer_email: f.email,
@@ -348,7 +348,7 @@ export default function Home() {
         delivery_method: f.delivery,
         address,
         payment_method: f.payment,
-      });
+      }]);
       if (error) throw error;
       setOrderPlaced(true);
     } catch (err: any) {
