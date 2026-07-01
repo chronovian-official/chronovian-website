@@ -54,13 +54,6 @@ type HeroBanner = {
   active: boolean;
 };
 
-// Fallback in case the database has no banners yet (or fails to load)
-const FALLBACK_HERO_SLIDES: HeroBanner[] = [
-  { id: "fallback-1", image_url: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1600&q=85", headline: "Where Time", subheadline: "Becomes Art", tagline: "Premium Watches & Fine Jewellery", sort_order: 0, active: true },
-  { id: "fallback-2", image_url: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85", headline: "Crafted for the", subheadline: "Discerning Few", tagline: "By Appointment Only — Hyderabad, Telangana, India", sort_order: 1, active: true },
-  { id: "fallback-3", image_url: "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1600&q=85", headline: "A Legacy", subheadline: "On Your Wrist", tagline: "Opening June 25, 2026", sort_order: 2, active: true },
-];
-
 type CartItem = { watch: Watch; qty: number };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
 type DropdownItem = { label: string; page?: PageType; href?: string };
