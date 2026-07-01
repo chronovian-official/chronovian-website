@@ -377,7 +377,7 @@ export default function Home() {
     try {
       const sb = getSupabase();
       if (editingAddressId) {
-        const { error } = await sb.from("addresses").update({
+        const { error } = await (sb.from("addresses") as any).update({
           label: f.label, address_line1: f.address_line1, address_line2: f.address_line2 || null,
           city: f.city, state: f.state, pin: f.pin,
         }).eq("id", editingAddressId);
@@ -411,8 +411,8 @@ export default function Home() {
   const handleSetDefaultAddress = async (id: string) => {
     if (!user) return;
     const sb = getSupabase();
-    await sb.from("addresses").update({ is_default: false }).eq("user_id", user.id);
-    await sb.from("addresses").update({ is_default: true }).eq("id", id);
+    await (sb.from("addresses") as any).update({ is_default: false }).eq("user_id", user.id);
+    await (sb.from("addresses") as any).update({ is_default: true }).eq("id", id);
     await fetchMyAddresses(user.id);
   };
 
