@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useRef, FormEvent } from "react";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
-let _supabase: ReturnType<typeof createClient> | null = null;
+let _supabase: ReturnType<typeof createClient<Database>> | null = null;
 function getSupabase() {
   if (!_supabase) {
-    _supabase = createClient(
+    _supabase = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
@@ -75,6 +76,7 @@ type Order = {
   payment_method: string;
 };
 type MyBooking = { id: string; date: string; time: string; interest: string; notes: string; status: string; name: string; phone: string; email: string };
+type Address = { id: string; user_id: string; label: string; address_line1: string; address_line2: string; city: string; state: string; pin: string; is_default: boolean; created_at: string };
 type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking" | "account";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
@@ -171,7 +173,7 @@ export default function Home() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   // Account page
-  const [accountTab, setAccountTab] = useState<"profile" | "orders" | "bookings">("profile");
+  const [accountTab, setAccountTab] = useState<"profile" | "addresses" | "orders" | "bookings">("profile");
   const [profileForm, setProfileForm] = useState({ full_name: "", phone: "" });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
@@ -184,6 +186,14 @@ export default function Home() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [myBookings, setMyBookings] = useState<MyBooking[]>([]);
   const [myBookingsLoading, setMyBookingsLoading] = useState(false);
+  const [myAddresses, setMyAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressForm, setAddressForm] = useState({ label: "Home", address_line1: "", address_line2: "", city: "", state: "Telangana", pin: "" });
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressSaving, setAddressSaving] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
 
   // Auth: load current session + subscribe to changes
@@ -247,7 +257,7 @@ export default function Home() {
     setAccountDropdownOpen(false);
   };
 
-  // Prefill checkout contact fields from logged-in user
+  // Prefill checkout contact fields from logged-in user, and load their saved addresses
   useEffect(() => {
     if (user && page === "checkout") {
       setCheckoutForm(f => ({
@@ -256,10 +266,18 @@ export default function Home() {
         firstName: f.firstName || (user.user_metadata?.full_name || "").split(" ")[0] || "",
         lastName: f.lastName || (user.user_metadata?.full_name || "").split(" ").slice(1).join(" ") || "",
       }));
+      fetchMyAddresses(user.id);
     }
   }, [user, page]);
 
-  // Prefill profile form + fetch orders/bookings when opening the account page
+  // Auto-apply the default (or first) saved address once addresses load at checkout
+  useEffect(() => {
+    if (page === "checkout" && myAddresses.length > 0 && !selectedAddressId) {
+      applyAddressToCheckout(myAddresses.find(a => a.is_default) || myAddresses[0]);
+    }
+  }, [myAddresses, page]);
+
+  // Prefill profile form + fetch orders/bookings/addresses when opening the account page
   useEffect(() => {
     if (!user || !user.email || page !== "account") return;
     const userEmail = user.email;
@@ -271,7 +289,7 @@ export default function Home() {
       setOrdersLoading(true);
       try {
         const { data, error } = await sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${userEmail}`).order("created_at", { ascending: false });
-        if (!error && data) setMyOrders(data as Order[]);
+        if (!error && data) setMyOrders(data as unknown as Order[]);
       } finally {
         setOrdersLoading(false);
       }
@@ -281,11 +299,13 @@ export default function Home() {
       setMyBookingsLoading(true);
       try {
         const { data, error } = await sb.from("bookings").select("*").eq("email", userEmail).order("id", { ascending: false });
-        if (!error && data) setMyBookings(data as MyBooking[]);
+        if (!error && data) setMyBookings(data as unknown as MyBooking[]);
       } finally {
         setMyBookingsLoading(false);
       }
     })();
+
+    fetchMyAddresses(user.id);
   }, [user, page]);
 
   const handleUpdateProfile = async (e: FormEvent) => {
@@ -322,6 +342,85 @@ export default function Home() {
     }
   };
 
+  const fetchMyAddresses = async (uid: string) => {
+    setAddressesLoading(true);
+    try {
+      const sb = getSupabase();
+      const { data, error } = await sb.from("addresses").select("*").eq("user_id", uid)
+        .order("is_default", { ascending: false }).order("created_at", { ascending: false });
+      if (!error && data) setMyAddresses(data as unknown as Address[]);
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  const resetAddressForm = () => {
+    setAddressForm({ label: "Home", address_line1: "", address_line2: "", city: "", state: "Telangana", pin: "" });
+    setEditingAddressId(null);
+    setAddressError(null);
+  };
+
+  const handleEditAddress = (addr: Address) => {
+    setAddressForm({ label: addr.label, address_line1: addr.address_line1, address_line2: addr.address_line2 || "", city: addr.city, state: addr.state, pin: addr.pin });
+    setEditingAddressId(addr.id);
+    setAddressError(null);
+    setShowAddressForm(true);
+  };
+
+  const handleSaveAddress = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setAddressError(null);
+    const f = addressForm;
+    if (!f.address_line1 || !f.city || !f.pin) { setAddressError("Please fill in all required fields."); return; }
+    setAddressSaving(true);
+    try {
+      const sb = getSupabase();
+      if (editingAddressId) {
+        const { error } = await sb.from("addresses").update({
+          label: f.label, address_line1: f.address_line1, address_line2: f.address_line2 || null,
+          city: f.city, state: f.state, pin: f.pin,
+        }).eq("id", editingAddressId);
+        if (error) throw error;
+      } else {
+        const { error } = await sb.from("addresses").insert([{
+          user_id: user.id, label: f.label, address_line1: f.address_line1,
+          address_line2: f.address_line2 || null, city: f.city, state: f.state, pin: f.pin,
+          is_default: myAddresses.length === 0,
+        }]);
+        if (error) throw error;
+      }
+      await fetchMyAddresses(user.id);
+      setShowAddressForm(false);
+      resetAddressForm();
+    } catch (err: any) {
+      setAddressError(err.message || "Could not save address.");
+    } finally {
+      setAddressSaving(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!user) return;
+    if (typeof window !== "undefined" && !window.confirm("Delete this address?")) return;
+    const sb = getSupabase();
+    await sb.from("addresses").delete().eq("id", id);
+    await fetchMyAddresses(user.id);
+  };
+
+  const handleSetDefaultAddress = async (id: string) => {
+    if (!user) return;
+    const sb = getSupabase();
+    await sb.from("addresses").update({ is_default: false }).eq("user_id", user.id);
+    await sb.from("addresses").update({ is_default: true }).eq("id", id);
+    await fetchMyAddresses(user.id);
+  };
+
+  const applyAddressToCheckout = (addr: Address) => {
+    setSelectedAddressId(addr.id);
+    setCheckoutForm(f => ({ ...f, addressLine1: addr.address_line1, addressLine2: addr.address_line2 || "", city: addr.city, state: addr.state, pin: addr.pin }));
+  };
+
   const handlePlaceOrder = async () => {
     setCheckoutError(null);
     const f = checkoutForm;
@@ -342,7 +441,7 @@ export default function Home() {
         customer_name: `${f.firstName} ${f.lastName}`,
         customer_email: f.email,
         customer_phone: f.phone,
-        items,
+        items: items as unknown as Database["public"]["Tables"]["orders"]["Insert"]["items"],
         total: cartTotal + 500,
         status: "Pending",
         delivery_method: f.delivery,
@@ -426,7 +525,7 @@ export default function Home() {
           .eq("status", "available")
           .order("featured", { ascending: false })
           .order("created_at", { ascending: false });
-        if (!error && data) setAllWatches(data);
+        if (!error && data) setAllWatches(data as unknown as Watch[]);
       } catch (e) {
         console.error("Failed to fetch products:", e);
       } finally {
@@ -928,6 +1027,23 @@ export default function Home() {
         .order-card-items { padding: 0.5rem 1.25rem; }
         .order-card-footer { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--gray-mid); }
         @media (max-width: 768px) { .account-grid { grid-template-columns: 1fr; } .account-sidebar { position: static; flex-direction: row; flex-wrap: wrap; } .account-tab { flex: 1; text-align: center; border-bottom: 1px solid var(--border); } }
+
+        /* ADDRESSES */
+        .address-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+        .address-card { border: 1px solid var(--border); padding: 1.1rem 1.25rem; }
+        .address-card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+        .address-card-label { font-size: 0.85rem; font-weight: 500; color: var(--black); }
+        .address-default-badge { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--gold); color: white; padding: 0.2rem 0.55rem; }
+        .address-card-body { font-size: 0.78rem; color: var(--gray-mid); line-height: 1.7; margin-bottom: 0.9rem; }
+        .address-card-actions { display: flex; gap: 1.25rem; }
+        .address-action-btn { background: none; border: none; padding: 0; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); cursor: pointer; text-decoration: underline; }
+        .address-action-btn:hover { color: var(--gold-light); }
+        .address-action-danger { color: #b3261e; }
+        .address-action-danger:hover { color: #d0433a; }
+        .address-chip-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.25rem; }
+        .address-chip { background: white; border: 1px solid var(--border); padding: 0.55rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-mid); cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s; }
+        .address-chip:hover { border-color: var(--gold); color: var(--black); }
+        .address-chip.active { border-color: var(--gold); background: var(--gray-pale); color: var(--gold); }
 
         /* ORDER SUCCESS */
         .order-success { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2.5rem; gap: 1.25rem; }
@@ -1581,7 +1697,7 @@ export default function Home() {
                 <h1 className="section-title">Thank You for Your <em>Order</em></h1>
                 <div className="gold-rule" />
                 <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",lineHeight:2,maxWidth:"440px",textAlign:"center"}}>Your order has been received. A Chronovian advisor will contact you within 24 hours to confirm details and arrange secure delivery or in-store collection.</p>
-                <button className="btn-outline" onClick={() => { setOrderPlaced(false); setCart([]); setCheckoutForm({ firstName: "", lastName: "", email: "", phone: "", addressLine1: "", addressLine2: "", city: "", pin: "", state: "Telangana", delivery: "home", payment: "upi" }); goTo("home"); }}>Return Home</button>
+                <button className="btn-outline" onClick={() => { setOrderPlaced(false); setCart([]); setCheckoutForm({ firstName: "", lastName: "", email: "", phone: "", addressLine1: "", addressLine2: "", city: "", pin: "", state: "Telangana", delivery: "home", payment: "upi" }); setSelectedAddressId(null); goTo("home"); }}>Return Home</button>
               </div>
             : <div className="checkout-page">
                 <span className="section-eyebrow">Secure Checkout</span>
@@ -1619,6 +1735,16 @@ export default function Home() {
                     {/* ADDRESS */}
                     <div className="checkout-section">
                       <div className="checkout-section-title">Shipping Address</div>
+                      {user && myAddresses.length > 0 && (
+                        <div className="address-chip-row">
+                          {myAddresses.map(addr => (
+                            <button type="button" key={addr.id} className={`address-chip${selectedAddressId === addr.id ? " active" : ""}`} onClick={() => applyAddressToCheckout(addr)}>
+                              {addr.label}{addr.is_default && " ★"}
+                            </button>
+                          ))}
+                          <button type="button" className={`address-chip${selectedAddressId === null ? " active" : ""}`} onClick={() => { setSelectedAddressId(null); setCheckoutForm(f => ({ ...f, addressLine1: "", addressLine2: "", city: "", state: "Telangana", pin: "" })); }}>+ New Address</button>
+                        </div>
+                      )}
                       <div className="form-group"><label className="form-label">Address Line 1</label><input className="form-input" type="text" placeholder="House / flat / street" required value={checkoutForm.addressLine1} onChange={e => setCheckoutForm(f => ({ ...f, addressLine1: e.target.value }))} /></div>
                       <div className="form-group"><label className="form-label">Address Line 2</label><input className="form-input" type="text" placeholder="Area / locality (optional)" value={checkoutForm.addressLine2} onChange={e => setCheckoutForm(f => ({ ...f, addressLine2: e.target.value }))} /></div>
                       <div className="form-row">
@@ -1706,6 +1832,7 @@ export default function Home() {
               <div className="account-grid">
                 <div className="account-sidebar">
                   <button className={`account-tab${accountTab === "profile" ? " active" : ""}`} onClick={() => setAccountTab("profile")}>Profile</button>
+                  <button className={`account-tab${accountTab === "addresses" ? " active" : ""}`} onClick={() => setAccountTab("addresses")}>My Addresses {myAddresses.length > 0 && `(${myAddresses.length})`}</button>
                   <button className={`account-tab${accountTab === "orders" ? " active" : ""}`} onClick={() => setAccountTab("orders")}>My Orders {myOrders.length > 0 && `(${myOrders.length})`}</button>
                   <button className={`account-tab${accountTab === "bookings" ? " active" : ""}`} onClick={() => setAccountTab("bookings")}>My Bookings {myBookings.length > 0 && `(${myBookings.length})`}</button>
                   <button className="account-tab" onClick={handleSignOut}>Sign Out</button>
@@ -1737,6 +1864,74 @@ export default function Home() {
                         </form>
                       </div>
                     </>
+                  )}
+
+                  {accountTab === "addresses" && (
+                    <div className="checkout-section">
+                      <div className="checkout-section-title" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <span>Saved Addresses</span>
+                        {!showAddressForm && <button className="btn-outline" style={{padding:"0.5rem 1.1rem",fontSize:"0.6rem"}} onClick={() => { resetAddressForm(); setShowAddressForm(true); }}>+ Add Address</button>}
+                      </div>
+
+                      {addressesLoading ? (
+                        <div className="empty-state">Loading your addresses…</div>
+                      ) : (
+                        <>
+                          {myAddresses.length === 0 && !showAddressForm && (
+                            <div className="empty-state"><p>You don't have any saved addresses yet.</p></div>
+                          )}
+                          {myAddresses.length > 0 && (
+                            <div className="address-list">
+                              {myAddresses.map(addr => (
+                                <div className="address-card" key={addr.id}>
+                                  <div className="address-card-header">
+                                    <span className="address-card-label">{addr.label}</span>
+                                    {addr.is_default && <span className="address-default-badge">Default</span>}
+                                  </div>
+                                  <div className="address-card-body">
+                                    {addr.address_line1}{addr.address_line2 ? `, ${addr.address_line2}` : ""}<br />
+                                    {addr.city}, {addr.state} {addr.pin}
+                                  </div>
+                                  <div className="address-card-actions">
+                                    {!addr.is_default && <button className="address-action-btn" onClick={() => handleSetDefaultAddress(addr.id)}>Set as Default</button>}
+                                    <button className="address-action-btn" onClick={() => handleEditAddress(addr)}>Edit</button>
+                                    <button className="address-action-btn address-action-danger" onClick={() => handleDeleteAddress(addr.id)}>Delete</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {showAddressForm && (
+                        <form onSubmit={handleSaveAddress} style={{marginTop:"1.5rem", paddingTop: myAddresses.length > 0 ? "1.5rem" : 0, borderTop: myAddresses.length > 0 ? "1px solid var(--border)" : "none"}}>
+                          <div className="form-group">
+                            <label className="form-label">Label</label>
+                            <select className="form-select" value={addressForm.label} onChange={e => setAddressForm(f => ({ ...f, label: e.target.value }))}>
+                              <option>Home</option><option>Work</option><option>Gift Recipient</option><option>Other</option>
+                            </select>
+                          </div>
+                          <div className="form-group"><label className="form-label">Address Line 1</label><input className="form-input" type="text" placeholder="House / flat / street" required value={addressForm.address_line1} onChange={e => setAddressForm(f => ({ ...f, address_line1: e.target.value }))} /></div>
+                          <div className="form-group"><label className="form-label">Address Line 2</label><input className="form-input" type="text" placeholder="Area / locality (optional)" value={addressForm.address_line2} onChange={e => setAddressForm(f => ({ ...f, address_line2: e.target.value }))} /></div>
+                          <div className="form-row">
+                            <div className="form-group"><label className="form-label">City</label><input className="form-input" type="text" placeholder="City" required value={addressForm.city} onChange={e => setAddressForm(f => ({ ...f, city: e.target.value }))} /></div>
+                            <div className="form-group"><label className="form-label">PIN Code</label><input className="form-input" type="text" placeholder="PIN code" required value={addressForm.pin} onChange={e => setAddressForm(f => ({ ...f, pin: e.target.value }))} /></div>
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">State</label>
+                            <select className="form-select" value={addressForm.state} onChange={e => setAddressForm(f => ({ ...f, state: e.target.value }))}>
+                              <option>Telangana</option><option>Andhra Pradesh</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option><option>Delhi</option><option>Other</option>
+                            </select>
+                          </div>
+                          {addressError && <div className="auth-error">{addressError}</div>}
+                          <div style={{display:"flex",gap:"0.75rem"}}>
+                            <button type="submit" className="btn-gold" disabled={addressSaving}>{addressSaving ? "Saving…" : editingAddressId ? "Update Address" : "Save Address"}</button>
+                            <button type="button" className="btn-outline" onClick={() => { setShowAddressForm(false); resetAddressForm(); }}>Cancel</button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
                   )}
 
                   {accountTab === "orders" && (

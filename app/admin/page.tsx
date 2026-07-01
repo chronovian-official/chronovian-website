@@ -72,7 +72,10 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners" | "homepage">("products");
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [savingCustomerId, setSavingCustomerId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners" | "homepage" | "customers">("products");
   const [banners, setBanners] = useState<Banner[]>([]);
   const [bannerForm, setBannerForm] = useState<Banner>(emptyBanner);
   const [editingBanner, setEditingBanner] = useState<string | null>(null);
@@ -94,7 +97,7 @@ export default function AdminPage() {
   const [lastProduct, setLastProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); }
+    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); fetchCustomers(); }
   }, [authed]);
 
   const showMsg = (text: string, type: "success" | "error" = "success") => {
@@ -120,6 +123,49 @@ export default function AdminPage() {
     const { data } = await sb.from("orders").select("*").order("created_at", { ascending: false });
     setOrders(data || []);
   };
+
+  const fetchCustomers = async () => {
+    const sb = getClient();
+    const { data, error } = await sb.from("profiles").select("*").order("created_at", { ascending: false });
+    if (error) showMsg("Failed to fetch customers: " + error.message, "error");
+    else setCustomers(data || []);
+  };
+
+  const handleToggleVip = async (id: string, current: boolean) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, vip: !current } : c));
+    const sb = getClient();
+    const { error } = await sb.from("profiles").update({ vip: !current }).eq("id", id);
+    if (error) showMsg("Failed to update VIP status: " + error.message, "error");
+  };
+
+  const handleContactChange = async (id: string, value: string) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, preferred_contact: value } : c));
+    setSavingCustomerId(id);
+    const sb = getClient();
+    const { error } = await sb.from("profiles").update({ preferred_contact: value }).eq("id", id);
+    setSavingCustomerId(null);
+    if (error) showMsg("Failed to update preferred contact: " + error.message, "error");
+  };
+
+  const handleNotesChange = (id: string, value: string) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, staff_notes: value } : c));
+  };
+
+  const handleSaveCustomer = async (id: string) => {
+    const c = customers.find(c => c.id === id);
+    if (!c) return;
+    setSavingCustomerId(id);
+    const sb = getClient();
+    const { error } = await sb.from("profiles").update({ staff_notes: c.staff_notes, preferred_contact: c.preferred_contact }).eq("id", id);
+    setSavingCustomerId(null);
+    if (error) showMsg("Failed to save customer notes: " + error.message, "error");
+  };
+
+  const filteredCustomers = customers.filter(c => {
+    const q = customerSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (c.full_name || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q) || (c.phone || "").toLowerCase().includes(q);
+  });
 
   const fetchBanners = async () => {
     const sb = getClient();
@@ -336,14 +382,14 @@ export default function AdminPage() {
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F3F0", fontFamily: "sans-serif" }}>
         <div style={{ background: "white", padding: "3rem", width: "380px", boxShadow: "0 4px 32px rgba(0,0,0,0.08)" }}>
           <h1 style={{ fontFamily: "Georgia,serif", fontSize: "1.5rem", fontWeight: 400, marginBottom: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>Chronovian</h1>
-          <p style={{ fontSize: "0.7rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#B8935A", marginBottom: "2rem" }}>Admin Panel</p>
+          <p style={{ fontSize: "0.7rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9A7340", marginBottom: "2rem" }}>Admin Panel</p>
           <input type="password" placeholder="Enter admin password" value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === "Enter" && (password === ADMIN_PASSWORD ? setAuthed(true) : showMsg("Incorrect password", "error"))}
             style={{ width: "100%", padding: "0.85rem 1rem", border: "1px solid #E5E3E0", fontSize: "0.85rem", marginBottom: "1rem", outline: "none", boxSizing: "border-box", fontFamily: "sans-serif" }}
           />
           <button onClick={() => password === ADMIN_PASSWORD ? setAuthed(true) : showMsg("Incorrect password", "error")}
-            style={{ width: "100%", padding: "0.85rem", background: "#B8935A", color: "white", border: "none", cursor: "pointer", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "sans-serif" }}>
+            style={{ width: "100%", padding: "0.85rem", background: "#9A7340", color: "white", border: "none", cursor: "pointer", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "sans-serif" }}>
             Enter
           </button>
           {msg && <p style={{ color: msg.type === "error" ? "#c0392b" : "#2e7d32", fontSize: "0.75rem", marginTop: "0.75rem" }}>{msg.text}</p>}
@@ -356,32 +402,32 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", background: "#F5F3F0", fontFamily: "sans-serif" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .ai { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; transition: border-color 0.2s; font-weight: 300; font-family: sans-serif; }
-        .ai:focus { border-color: #B8935A; }
+        .ai { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; transition: border-color 0.2s; font-weight: 400; font-family: sans-serif; }
+        .ai:focus { border-color: #9A7340; }
         .as { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; cursor: pointer; font-family: sans-serif; }
         .al { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6B6B6B; display: block; margin-bottom: 0.4rem; }
         .ab { padding: 0.65rem 1.25rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; border: none; cursor: pointer; font-family: sans-serif; transition: all 0.2s; white-space: nowrap; }
-        .ab-gold { background: #B8935A; color: white; } .ab-gold:hover { background: #D4AA78; }
+        .ab-gold { background: #9A7340; color: white; } .ab-gold:hover { background: #B8935A; }
         .ab-black { background: #0A0A0A; color: white; } .ab-black:hover { background: #333; }
         .ab-out { background: none; border: 1px solid #E5E3E0; color: #0A0A0A; } .ab-out:hover { border-color: #0A0A0A; }
         .ab-red { background: none; border: 1px solid #E5E3E0; color: #c0392b; } .ab-red:hover { background: #fff5f5; border-color: #c0392b; }
         .ab-blue { background: none; border: 1px solid #3498db; color: #3498db; } .ab-blue:hover { background: #ebf5fb; }
         .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
         .fg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-        .sd { font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: #B8935A; margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E3E0; }
+        .sd { font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: #9A7340; margin: 1.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #E5E3E0; }
         .pr { background: white; padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 80px 1fr auto; gap: 1.5rem; align-items: center; border-bottom: 1px solid #F0EDE9; }
         .pr:last-child { border-bottom: none; }
         .sb { padding: 0.25rem 0.75rem; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 2px; }
         .sb-av { background: #e8f5e9; color: #2e7d32; } .sb-sold { background: #ffebee; color: #c62828; } .sb-res { background: #fff3e0; color: #e65100; }
         .tab { padding: 0.75rem 1.5rem; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; border: none; cursor: pointer; font-family: sans-serif; background: none; color: #6B6B6B; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab.active { color: #B8935A; border-bottom-color: #B8935A; }
+        .tab.active { color: #9A7340; border-bottom-color: #9A7340; }
         .cb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #0A0A0A; cursor: pointer; }
         .ig { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-top: 1rem; }
         .it { position: relative; aspect-ratio: 1; background: #F5F3F0; overflow: hidden; border: 1px solid #E5E3E0; }
         .it img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .ir { position: absolute; top: 4px; right: 4px; background: white; border: none; width: 22px; height: 22px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.2); border-radius: 50%; }
         .ua { border: 2px dashed #E5E3E0; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: white; }
-        .ua:hover { border-color: #B8935A; background: #fdf9f4; }
+        .ua:hover { border-color: #9A7340; background: #fdf9f4; }
         .msg-success { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #2e7d32; border-radius: 2px; }
         .msg-error { background: #fff5f5; border: 1px solid #ffcdd2; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #c62828; border-radius: 2px; }
         .banner-row { background: white; padding: 1rem 1.25rem; display: grid; grid-template-columns: 28px 140px 1fr auto; gap: 1.25rem; align-items: center; border-bottom: 1px solid #F0EDE9; cursor: grab; transition: opacity 0.2s, background 0.2s; }
@@ -400,7 +446,7 @@ export default function AdminPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <span style={{ fontFamily: "Georgia,serif", fontSize: "1rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>Chronovian Admin</span>
           <div>
-            {(["products", "banners", "homepage", "bookings", "orders"] as const).map(t => (
+            {(["products", "banners", "homepage", "bookings", "orders", "customers"] as const).map(t => (
               <button key={t} className={`tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</button>
             ))}
           </div>
@@ -555,7 +601,7 @@ export default function AdminPage() {
                             : <img src={url} alt={`Product image ${i + 1}`} onError={e => { (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f5f3f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23adadad' font-size='12'%3ENo image%3C/text%3E%3C/svg%3E"; }} />
                           }
                           <button className="ir" onClick={() => removeImage(url)} title="Remove">×</button>
-                          {i === 0 && <span style={{ position: "absolute", bottom: 4, left: 4, background: "#B8935A", color: "white", fontSize: "0.45rem", padding: "2px 6px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Primary</span>}
+                          {i === 0 && <span style={{ position: "absolute", bottom: 4, left: 4, background: "#9A7340", color: "white", fontSize: "0.45rem", padding: "2px 6px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Primary</span>}
                           {isVideo(url) && <span style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.6)", color: "white", fontSize: "0.7rem", padding: "2px 6px" }}>▶</span>}
                         </div>
                       ))}
@@ -585,14 +631,14 @@ export default function AdminPage() {
                       }
                     </div>
                     <div>
-                      <span style={{ fontSize: "0.55rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#B8935A" }}>{p.brand}</span>
+                      <span style={{ fontSize: "0.55rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#9A7340" }}>{p.brand}</span>
                       <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", margin: "0.2rem 0" }}>{p.model}</div>
                       <div style={{ fontSize: "0.65rem", color: "#6B6B6B", marginBottom: "0.4rem" }}>{p.ref} · {p.condition} · {p.year}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
                         <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{fmt(p.price)}</span>
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
-                        {p.featured && <span style={{ fontSize: "0.6rem", color: "#B8935A", textTransform: "uppercase", letterSpacing: "0.1em" }}>★ Featured</span>}
+                        {p.featured && <span style={{ fontSize: "0.6rem", color: "#9A7340", textTransform: "uppercase", letterSpacing: "0.1em" }}>★ Featured</span>}
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>{p.images?.length || 0} photo{(p.images?.length || 0) !== 1 ? "s" : ""}</span>
                       </div>
                     </div>
@@ -730,7 +776,7 @@ export default function AdminPage() {
                     )}
                   </div>
                   <div>
-                    <p style={{ fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#B8935A", marginBottom: "0.5rem" }}>
+                    <p style={{ fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9A7340", marginBottom: "0.5rem" }}>
                       {cat === "watches" ? "Haute Horlogerie" : cat === "jewellery" ? "Fine Jewellery" : "Luxury Accessories"}
                     </p>
                     <p style={{ fontFamily: "Georgia,serif", fontSize: "1rem", marginBottom: "0.75rem" }}>
@@ -769,7 +815,7 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: "2rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #B8935A", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
+            <div style={{ marginTop: "2rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #9A7340", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
               💡 Tip: Use portrait-oriented images (taller than wide) for best results. Minimum recommended size: 800 × 1000px. The client's own product photography works best here.
             </div>
           </div>
@@ -821,6 +867,60 @@ export default function AdminPage() {
                     <div style={{ fontSize: "0.82rem" }}>{fmt(o.total)}</div>
                     <div style={{ fontSize: "0.72rem", color: "#6B6B6B" }}>{new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
                     <span className={`sb ${o.status === "paid" ? "sb-av" : "sb-res"}`}>{o.status}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        )}
+
+        {/* CUSTOMERS TAB */}
+        {tab === "customers" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
+              <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Customers ({customers.length})</h2>
+              <input className="ai" style={{ maxWidth: "280px" }} placeholder="Search name, email, phone…" value={customerSearch} onChange={e => setCustomerSearch(e.target.value)} />
+            </div>
+            <div style={{ background: "white", border: "1px solid #E5E3E0" }}>
+              {filteredCustomers.length === 0
+                ? <div style={{ padding: "3rem", textAlign: "center", color: "#6B6B6B", fontSize: "0.82rem" }}>
+                    {customers.length === 0 ? "No customers yet." : "No customers match your search."}
+                  </div>
+                : filteredCustomers.map(c => (
+                  <div key={c.id} style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #F0EDE9" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr auto", gap: "1.5rem", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", marginBottom: "0.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          {c.full_name || "Unnamed Customer"}
+                          {c.vip && <span style={{ fontSize: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase", background: "#9A7340", color: "white", padding: "2px 7px" }}>VIP</span>}
+                        </div>
+                        <div style={{ fontSize: "0.72rem", color: "#6B6B6B" }}>{c.email}</div>
+                        <div style={{ fontSize: "0.72rem", color: "#6B6B6B" }}>{c.phone || "No phone on file"}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#ADADAD", marginBottom: "0.4rem" }}>Preferred Contact</div>
+                        <select className="as" value={c.preferred_contact || "email"} onChange={e => handleContactChange(c.id, e.target.value)}>
+                          <option value="email">Email</option>
+                          <option value="phone">Phone</option>
+                          <option value="whatsapp">WhatsApp</option>
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
+                        <button className={`ab ${c.vip ? "ab-gold" : "ab-out"}`} onClick={() => handleToggleVip(c.id, c.vip)}>{c.vip ? "★ VIP" : "Mark VIP"}</button>
+                        {c.created_at && <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>Since {new Date(c.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "0.9rem", position: "relative" }}>
+                      <textarea
+                        className="ai"
+                        style={{ minHeight: "48px", fontSize: "0.75rem", resize: "vertical" }}
+                        placeholder="Staff notes — visible to your team only…"
+                        value={c.staff_notes || ""}
+                        onChange={e => handleNotesChange(c.id, e.target.value)}
+                        onBlur={() => handleSaveCustomer(c.id)}
+                      />
+                      {savingCustomerId === c.id && <span style={{ fontSize: "0.6rem", color: "#9A7340", position: "absolute", right: "0.5rem", bottom: "0.5rem" }}>Saving…</span>}
+                    </div>
                   </div>
                 ))
               }
