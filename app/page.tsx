@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, FormEvent } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return _supabase;
 }
 
 type Watch = {
@@ -55,7 +59,23 @@ type HeroBanner = {
 };
 
 type CartItem = { watch: Watch; qty: number };
-type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking";
+type OrderItem = { id: string; brand: string; model: string; ref: string; price: number; qty: number; image: string };
+type Order = {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  items: OrderItem[];
+  total: number;
+  status: string;
+  delivery_method: string;
+  address: string;
+  payment_method: string;
+};
+type MyBooking = { id: string; date: string; time: string; interest: string; notes: string; status: string; name: string; phone: string; email: string };
+type PageType = "home" | "watches" | "jewellery" | "bags" | "accessories" | "sell" | "trade" | "contact" | "wishlist" | "cart" | "checkout" | "product" | "booking" | "account";
 type DropdownItem = { label: string; page?: PageType; href?: string };
 
 const CURRENCY_META: Record<string, { symbol: string; label: string; locale: string; flag: string }> = {
@@ -131,7 +151,200 @@ export default function Home() {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({ INR: 1 });
   const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
   const [ratesUpdatedAt, setRatesUpdatedAt] = useState<string | null>(null);
+  const [user, setUser] = useState<{ id: string; email?: string; user_metadata?: { full_name?: string } } | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authForm, setAuthForm] = useState({ name: "", email: "", password: "" });
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+
+  // Checkout form (now controlled so we can actually save orders)
+  const [checkoutForm, setCheckoutForm] = useState({
+    firstName: "", lastName: "", email: "", phone: "",
+    addressLine1: "", addressLine2: "", city: "", pin: "", state: "Telangana",
+    delivery: "home", payment: "upi",
+  });
+  const [checkoutSaving, setCheckoutSaving] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  // Account page
+  const [accountTab, setAccountTab] = useState<"profile" | "orders" | "bookings">("profile");
+  const [profileForm, setProfileForm] = useState({ full_name: "", phone: "" });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [pwForm, setPwForm] = useState({ password: "", confirm: "" });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMessage, setPwMessage] = useState<string | null>(null);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [myBookings, setMyBookings] = useState<MyBooking[]>([]);
+  const [myBookingsLoading, setMyBookingsLoading] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+
+  // Auth: load current session + subscribe to changes
+  useEffect(() => {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      setAuthLoading(false);
+    });
+    const { data: listener } = sb.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const resetAuthForm = () => { setAuthForm({ name: "", email: "", password: "" }); setAuthError(null); setAuthMessage(null); };
+
+  const handleAuthSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setAuthMessage(null);
+    setAuthSubmitting(true);
+    const sb = getSupabase();
+    try {
+      if (authMode === "signup") {
+        if (!authForm.name.trim()) throw new Error("Please enter your name.");
+        if (authForm.password.length < 6) throw new Error("Password must be at least 6 characters.");
+        const { data, error } = await sb.auth.signUp({
+          email: authForm.email,
+          password: authForm.password,
+          options: { data: { full_name: authForm.name } },
+        });
+        if (error) throw error;
+        if (data.session) {
+          setAuthModalOpen(false);
+          resetAuthForm();
+        } else {
+          setAuthMessage("Check your email to confirm your account before signing in.");
+        }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email: authForm.email, password: authForm.password });
+        if (error) throw error;
+        setAuthModalOpen(false);
+        resetAuthForm();
+      }
+    } catch (err: any) {
+      setAuthError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const sb = getSupabase();
+    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
+  };
+
+  const handleSignOut = async () => {
+    const sb = getSupabase();
+    await sb.auth.signOut();
+    setAccountDropdownOpen(false);
+  };
+
+  // Prefill checkout contact fields from logged-in user
+  useEffect(() => {
+    if (user && page === "checkout") {
+      setCheckoutForm(f => ({
+        ...f,
+        email: f.email || user.email || "",
+        firstName: f.firstName || (user.user_metadata?.full_name || "").split(" ")[0] || "",
+        lastName: f.lastName || (user.user_metadata?.full_name || "").split(" ").slice(1).join(" ") || "",
+      }));
+    }
+  }, [user, page]);
+
+  // Prefill profile form + fetch orders/bookings when opening the account page
+  useEffect(() => {
+    if (!user || page !== "account") return;
+    setProfileForm({ full_name: user.user_metadata?.full_name || "", phone: (user.user_metadata as any)?.phone || "" });
+
+    const sb = getSupabase();
+    setOrdersLoading(true);
+    sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${user.email}`).order("created_at", { ascending: false })
+      .then(({ data, error }) => { if (!error && data) setMyOrders(data as Order[]); setOrdersLoading(false); })
+      .catch(() => setOrdersLoading(false));
+
+    setMyBookingsLoading(true);
+    sb.from("bookings").select("*").eq("email", user.email).order("id", { ascending: false })
+      .then(({ data, error }) => { if (!error && data) setMyBookings(data as MyBooking[]); setMyBookingsLoading(false); })
+      .catch(() => setMyBookingsLoading(false));
+  }, [user, page]);
+
+  const handleUpdateProfile = async (e: FormEvent) => {
+    e.preventDefault();
+    setProfileError(null); setProfileMessage(null); setProfileSaving(true);
+    try {
+      const sb = getSupabase();
+      const { error } = await sb.auth.updateUser({ data: { full_name: profileForm.full_name, phone: profileForm.phone } });
+      if (error) throw error;
+      setProfileMessage("Profile updated.");
+    } catch (err: any) {
+      setProfileError(err.message || "Could not update profile.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setPwError(null); setPwMessage(null);
+    if (pwForm.password.length < 6) { setPwError("Password must be at least 6 characters."); return; }
+    if (pwForm.password !== pwForm.confirm) { setPwError("Passwords do not match."); return; }
+    setPwSaving(true);
+    try {
+      const sb = getSupabase();
+      const { error } = await sb.auth.updateUser({ password: pwForm.password });
+      if (error) throw error;
+      setPwMessage("Password updated.");
+      setPwForm({ password: "", confirm: "" });
+    } catch (err: any) {
+      setPwError(err.message || "Could not update password.");
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setCheckoutError(null);
+    const f = checkoutForm;
+    if (!f.firstName || !f.lastName || !f.email || !f.phone || !f.addressLine1 || !f.city || !f.pin) {
+      setCheckoutError("Please fill in all required fields.");
+      return;
+    }
+    setCheckoutSaving(true);
+    try {
+      const sb = getSupabase();
+      const items: OrderItem[] = cart.map(item => ({
+        id: item.watch.id, brand: item.watch.brand, model: item.watch.model,
+        ref: item.watch.ref, price: item.watch.price, qty: item.qty, image: getImg(item.watch),
+      }));
+      const address = `${f.addressLine1}${f.addressLine2 ? ", " + f.addressLine2 : ""}, ${f.city}, ${f.state} ${f.pin}`;
+      const { error } = await sb.from("orders").insert({
+        user_id: user?.id ?? null,
+        customer_name: `${f.firstName} ${f.lastName}`,
+        customer_email: f.email,
+        customer_phone: f.phone,
+        items,
+        total: cartTotal + 500,
+        status: "Pending",
+        delivery_method: f.delivery,
+        address,
+        payment_method: f.payment,
+      });
+      if (error) throw error;
+      setOrderPlaced(true);
+    } catch (err: any) {
+      setCheckoutError(err.message || "Something went wrong placing your order. Please try again.");
+    } finally {
+      setCheckoutSaving(false);
+    }
+  };
 
   // Fetch cached exchange rates from Supabase
   useEffect(() => {
@@ -457,6 +670,21 @@ export default function Home() {
         .currency-cell-symbol { font-size: 0.65rem; color: var(--gray-light); background: var(--gray-pale); padding: 0.05rem 0.35rem; border-radius: 2px; }
         .currency-updated-note { padding: 1rem 2rem; font-size: 0.65rem; color: var(--gray-light); border-top: 1px solid var(--border); letter-spacing: 0.05em; text-align: center; }
         @media (max-width: 640px) { .currency-grid { grid-template-columns: repeat(2, 1fr); } .currency-modal-header, .currency-modal-body { padding-left: 1.25rem; padding-right: 1.25rem; } }
+        .auth-modal { background: white; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        .google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.7rem; background: white; border: 1px solid var(--border); padding: 0.8rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500; color: var(--black); cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+        .google-btn:hover { border-color: var(--gray-mid); background: var(--gray-pale); }
+        .auth-divider { display: flex; align-items: center; text-align: center; margin: 1.25rem 0; color: var(--gray-light); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
+        .auth-divider::before, .auth-divider::after { content: ""; flex: 1; border-bottom: 1px solid var(--border); }
+        .auth-divider span { padding: 0 0.75rem; }
+        .auth-error { background: #fdecea; color: #b3261e; font-size: 0.72rem; padding: 0.7rem 0.9rem; margin-bottom: 0.9rem; line-height: 1.4; }
+        .auth-message { background: #eefaf0; color: #1e7a34; font-size: 0.72rem; padding: 0.7rem 0.9rem; margin-bottom: 0.9rem; line-height: 1.4; }
+        .auth-toggle { text-align: center; margin-top: 1.25rem; font-size: 0.75rem; color: var(--gray-mid); }
+        .auth-toggle button { background: none; border: none; color: var(--gold); cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.75rem; font-weight: 500; text-decoration: underline; padding: 0; }
+        .account-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 500; font-family: 'Jost', sans-serif; }
+        .account-dropdown { right: 0; left: auto; min-width: 200px; transform: translateY(-6px); }
+        .account-dropdown.open { transform: translateY(0); }
+        .account-dropdown-name { padding: 0.9rem 1.25rem 0.2rem; font-size: 0.8rem; font-weight: 500; color: var(--black); }
+        .account-dropdown-email { padding: 0 1.25rem 0.8rem; font-size: 0.68rem; color: var(--gray-mid); border-bottom: 1px solid var(--border); margin-bottom: 0.4rem; }
 
         /* SEARCH OVERLAY */
         .search-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); backdrop-filter: blur(12px); z-index: 500; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
@@ -666,6 +894,29 @@ export default function Home() {
         .place-order-btn:hover { background: var(--gold-light); }
         .secure-note { font-size: 0.58rem; color: var(--gray-light); text-align: center; margin-top: 0.75rem; letter-spacing: 0.1em; }
 
+        /* ACCOUNT PAGE */
+        .account-page { padding: 4rem 2.5rem; max-width: 1100px; margin: 0 auto; min-height: 60vh; }
+        .account-grid { display: grid; grid-template-columns: 220px 1fr; gap: 2.5rem; align-items: start; }
+        .account-sidebar { display: flex; flex-direction: column; position: sticky; top: 90px; border: 1px solid var(--border); }
+        .account-tab { text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; font-family: 'Jost', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-mid); cursor: pointer; transition: color 0.2s, background 0.2s; }
+        .account-tab:last-child { border-bottom: none; }
+        .account-tab:hover { color: var(--black); background: var(--gray-pale); }
+        .account-tab.active { color: var(--gold); background: var(--gray-pale); border-left: 2px solid var(--gold); padding-left: calc(1.25rem - 2px); }
+        .account-content { display: flex; flex-direction: column; gap: 1.5rem; }
+        .empty-state { padding: 3rem 1rem; text-align: center; color: var(--gray-mid); font-size: 0.82rem; }
+        .order-list { display: flex; flex-direction: column; gap: 1.25rem; }
+        .order-card { border: 1px solid var(--border); }
+        .order-card-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: var(--gray-pale); border-bottom: 1px solid var(--border); }
+        .order-card-id { display: block; font-size: 0.8rem; font-weight: 500; color: var(--black); }
+        .order-card-date { display: block; font-size: 0.68rem; color: var(--gray-mid); margin-top: 0.2rem; }
+        .order-status { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.75rem; background: white; border: 1px solid var(--border); color: var(--gray-mid); }
+        .order-status-pending { color: #b3821e; border-color: #f0dca6; background: #fef8ec; }
+        .order-status-confirmed, .order-status-completed { color: #1e7a34; border-color: #b7e3c2; background: #eefaf0; }
+        .order-status-cancelled { color: #b3261e; border-color: #f3c6c2; background: #fdecea; }
+        .order-card-items { padding: 0.5rem 1.25rem; }
+        .order-card-footer { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--gray-mid); }
+        @media (max-width: 768px) { .account-grid { grid-template-columns: 1fr; } .account-sidebar { position: static; flex-direction: row; flex-wrap: wrap; } .account-tab { flex: 1; text-align: center; border-bottom: 1px solid var(--border); } }
+
         /* ORDER SUCCESS */
         .order-success { min-height: 70vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2.5rem; gap: 1.25rem; }
         .order-success-icon { font-size: 3rem; margin-bottom: 0.5rem; }
@@ -806,6 +1057,51 @@ export default function Home() {
           .cart-drawer { width: 100vw; }
         }
       `}</style>
+
+      {/* AUTH MODAL */}
+      <div className={`currency-modal-overlay${authModalOpen ? " open" : ""}`} onClick={() => setAuthModalOpen(false)}>
+        <div className="auth-modal" onClick={e => e.stopPropagation()}>
+          <div className="currency-modal-header">
+            <span className="currency-modal-title">{authMode === "login" ? "Welcome Back" : "Create Account"}</span>
+            <button className="currency-modal-close" onClick={() => setAuthModalOpen(false)}>×</button>
+          </div>
+          <div className="currency-modal-body">
+            <button type="button" className="google-btn" onClick={handleGoogleSignIn}>
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.9-2.26 5.36-4.78 7.02l7.73 6c4.51-4.18 7.09-10.36 7.09-17.49z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A24 24 0 0 0 0 24c0 3.86.92 7.51 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              Continue with Google
+            </button>
+            <div className="auth-divider"><span>or</span></div>
+            <form onSubmit={handleAuthSubmit}>
+              {authMode === "signup" && (
+                <div className="form-group">
+                  <label className="form-label">Full Name</label>
+                  <input className="form-input" type="text" placeholder="Your name" required value={authForm.name} onChange={e => setAuthForm(f => ({ ...f, name: e.target.value }))} />
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" placeholder="your@email.com" required value={authForm.email} onChange={e => setAuthForm(f => ({ ...f, email: e.target.value }))} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input className="form-input" type="password" placeholder="••••••••" required minLength={6} value={authForm.password} onChange={e => setAuthForm(f => ({ ...f, password: e.target.value }))} />
+              </div>
+              {authError && <div className="auth-error">{authError}</div>}
+              {authMessage && <div className="auth-message">{authMessage}</div>}
+              <button type="submit" className="btn-gold" style={{ width: "100%", marginTop: "0.5rem" }} disabled={authSubmitting}>
+                {authSubmitting ? "Please wait…" : authMode === "login" ? "Sign In" : "Create Account"}
+              </button>
+            </form>
+            <div className="auth-toggle">
+              {authMode === "login" ? (
+                <>Don't have an account? <button type="button" onClick={() => { setAuthMode("signup"); setAuthError(null); setAuthMessage(null); }}>Sign Up</button></>
+              ) : (
+                <>Already have an account? <button type="button" onClick={() => { setAuthMode("login"); setAuthError(null); setAuthMessage(null); }}>Sign In</button></>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* CURRENCY MODAL */}
       <div className={`currency-modal-overlay${currencyDropdownOpen ? " open" : ""}`} onClick={() => setCurrencyDropdownOpen(false)}>
@@ -957,9 +1253,27 @@ export default function Home() {
         <button className="nav-logo" onClick={() => goTo("home")}>Chronovian</button>
 
         <div className="topbar-side right">
-          <button className="nav-icon-btn always-show" title="Sign In / Sign Up" onClick={() => alert("Sign in coming soon!")}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </button>
+          <div className="nav-dropdown-wrap" onMouseEnter={() => user && setAccountDropdownOpen(true)} onMouseLeave={() => setAccountDropdownOpen(false)}>
+            <button
+              className="nav-icon-btn always-show"
+              title={user ? "My Account" : "Sign In / Sign Up"}
+              onClick={() => { if (user) setAccountDropdownOpen(o => !o); else { setAuthMode("login"); resetAuthForm(); setAuthModalOpen(true); } }}
+            >
+              {user ? (
+                <span className="account-avatar">{(user.user_metadata?.full_name || user.email || "?").charAt(0).toUpperCase()}</span>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              )}
+            </button>
+            {user && (
+              <div className={`nav-dropdown account-dropdown${accountDropdownOpen ? " open" : ""}`}>
+                <div className="account-dropdown-name">{user.user_metadata?.full_name || "Welcome"}</div>
+                <div className="account-dropdown-email">{user.email}</div>
+                <button className="nav-dropdown-item" onClick={() => { setAccountDropdownOpen(false); goTo("account"); }}>My Account</button>
+                <button className="nav-dropdown-item" onClick={handleSignOut}>Sign Out</button>
+              </div>
+            )}
+          </div>
           <button className="nav-icon-btn always-show" onClick={() => goTo("wishlist")} title="Wishlist">
             <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
@@ -1034,7 +1348,14 @@ export default function Home() {
         ))}
         <button className="mobile-plain" onClick={() => goTo("contact")}>Contact</button>
         <button className="mobile-plain" onClick={() => goTo("booking")}>Book Appointment</button>
-        <button className="mobile-plain" onClick={() => alert("Sign in coming soon!")}>Sign In / Sign Up</button>
+        {user ? (
+          <>
+            <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("account"); }}>My Account</button>
+            <button className="mobile-plain" onClick={() => { setMenuOpen(false); handleSignOut(); }}>Sign Out</button>
+          </>
+        ) : (
+          <button className="mobile-plain" onClick={() => { setMenuOpen(false); setAuthMode("login"); resetAuthForm(); setAuthModalOpen(true); }}>Sign In / Sign Up</button>
+        )}
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
         <div style={{padding:"1rem 0"}}>
@@ -1248,7 +1569,7 @@ export default function Home() {
                 <h1 className="section-title">Thank You for Your <em>Order</em></h1>
                 <div className="gold-rule" />
                 <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",lineHeight:2,maxWidth:"440px",textAlign:"center"}}>Your order has been received. A Chronovian advisor will contact you within 24 hours to confirm details and arrange secure delivery or in-store collection.</p>
-                <button className="btn-outline" onClick={() => { setOrderPlaced(false); setCart([]); goTo("home"); }}>Return Home</button>
+                <button className="btn-outline" onClick={() => { setOrderPlaced(false); setCart([]); setCheckoutForm({ firstName: "", lastName: "", email: "", phone: "", addressLine1: "", addressLine2: "", city: "", pin: "", state: "Telangana", delivery: "home", payment: "upi" }); goTo("home"); }}>Return Home</button>
               </div>
             : <div className="checkout-page">
                 <span className="section-eyebrow">Secure Checkout</span>
@@ -1260,11 +1581,11 @@ export default function Home() {
                     <div className="checkout-section">
                       <div className="checkout-section-title">Contact Information</div>
                       <div className="form-row">
-                        <div className="form-group"><label className="form-label">First Name</label><input className="form-input" type="text" placeholder="First name" /></div>
-                        <div className="form-group"><label className="form-label">Last Name</label><input className="form-input" type="text" placeholder="Last name" /></div>
+                        <div className="form-group"><label className="form-label">First Name</label><input className="form-input" type="text" placeholder="First name" required value={checkoutForm.firstName} onChange={e => setCheckoutForm(f => ({ ...f, firstName: e.target.value }))} /></div>
+                        <div className="form-group"><label className="form-label">Last Name</label><input className="form-input" type="text" placeholder="Last name" required value={checkoutForm.lastName} onChange={e => setCheckoutForm(f => ({ ...f, lastName: e.target.value }))} /></div>
                       </div>
-                      <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" /></div>
-                      <div className="form-group"><label className="form-label">Phone</label><input className="form-input" type="tel" placeholder="+91 00000 00000" /></div>
+                      <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="your@email.com" required value={checkoutForm.email} onChange={e => setCheckoutForm(f => ({ ...f, email: e.target.value }))} /></div>
+                      <div className="form-group"><label className="form-label">Phone</label><input className="form-input" type="tel" placeholder="+91 00000 00000" required value={checkoutForm.phone} onChange={e => setCheckoutForm(f => ({ ...f, phone: e.target.value }))} /></div>
                     </div>
                     {/* DELIVERY */}
                     <div className="checkout-section">
@@ -1273,8 +1594,8 @@ export default function Home() {
                         { id: "home", name: "Home Delivery", sub: "Insured courier — 3 to 5 business days", price: "₹500" },
                         { id: "store", name: "In-Store Collection", sub: "Hyderabad boutique — by appointment only", price: "Free" },
                       ].map(opt => (
-                        <div className="delivery-option selected" key={opt.id} style={{marginBottom:"0.5rem"}}>
-                          <input type="radio" name="delivery" defaultChecked={opt.id === "home"} />
+                        <div className={`delivery-option${checkoutForm.delivery === opt.id ? " selected" : ""}`} key={opt.id} style={{marginBottom:"0.5rem",cursor:"pointer"}} onClick={() => setCheckoutForm(f => ({ ...f, delivery: opt.id }))}>
+                          <input type="radio" name="delivery" checked={checkoutForm.delivery === opt.id} onChange={() => setCheckoutForm(f => ({ ...f, delivery: opt.id }))} />
                           <div className="delivery-option-info">
                             <div className="delivery-option-name">{opt.name}</div>
                             <div className="delivery-option-sub">{opt.sub}</div>
@@ -1286,13 +1607,17 @@ export default function Home() {
                     {/* ADDRESS */}
                     <div className="checkout-section">
                       <div className="checkout-section-title">Shipping Address</div>
-                      <div className="form-group"><label className="form-label">Address Line 1</label><input className="form-input" type="text" placeholder="House / flat / street" /></div>
-                      <div className="form-group"><label className="form-label">Address Line 2</label><input className="form-input" type="text" placeholder="Area / locality (optional)" /></div>
+                      <div className="form-group"><label className="form-label">Address Line 1</label><input className="form-input" type="text" placeholder="House / flat / street" required value={checkoutForm.addressLine1} onChange={e => setCheckoutForm(f => ({ ...f, addressLine1: e.target.value }))} /></div>
+                      <div className="form-group"><label className="form-label">Address Line 2</label><input className="form-input" type="text" placeholder="Area / locality (optional)" value={checkoutForm.addressLine2} onChange={e => setCheckoutForm(f => ({ ...f, addressLine2: e.target.value }))} /></div>
                       <div className="form-row">
-                        <div className="form-group"><label className="form-label">City</label><input className="form-input" type="text" placeholder="City" /></div>
-                        <div className="form-group"><label className="form-label">PIN Code</label><input className="form-input" type="text" placeholder="PIN code" /></div>
+                        <div className="form-group"><label className="form-label">City</label><input className="form-input" type="text" placeholder="City" required value={checkoutForm.city} onChange={e => setCheckoutForm(f => ({ ...f, city: e.target.value }))} /></div>
+                        <div className="form-group"><label className="form-label">PIN Code</label><input className="form-input" type="text" placeholder="PIN code" required value={checkoutForm.pin} onChange={e => setCheckoutForm(f => ({ ...f, pin: e.target.value }))} /></div>
                       </div>
-                      <div className="form-group"><label className="form-label">State</label><select className="form-select"><option>Telangana</option><option>Andhra Pradesh</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option><option>Delhi</option><option>Other</option></select></div>
+                      <div className="form-group"><label className="form-label">State</label>
+                        <select className="form-select" value={checkoutForm.state} onChange={e => setCheckoutForm(f => ({ ...f, state: e.target.value }))}>
+                          <option>Telangana</option><option>Andhra Pradesh</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option><option>Delhi</option><option>Other</option>
+                        </select>
+                      </div>
                     </div>
                     {/* PAYMENT */}
                     <div className="checkout-section">
@@ -1304,8 +1629,8 @@ export default function Home() {
                           { id: "netbanking", label: "Net Banking / NEFT", badges: [{label:"NEFT",bg:"#eee",color:"#333"}] },
                           { id: "emi", label: "EMI", badges: [{label:"EMI",bg:"#eee",color:"#333"}] },
                         ].map(pm => (
-                          <div className="payment-method" key={pm.id} style={{marginBottom:"0.5rem"}}>
-                            <input type="radio" name="payment" defaultChecked={pm.id === "upi"} />
+                          <div className="payment-method" key={pm.id} style={{marginBottom:"0.5rem",cursor:"pointer"}} onClick={() => setCheckoutForm(f => ({ ...f, payment: pm.id }))}>
+                            <input type="radio" name="payment" checked={checkoutForm.payment === pm.id} onChange={() => setCheckoutForm(f => ({ ...f, payment: pm.id }))} />
                             <span className="payment-method-label">{pm.label}</span>
                             <div className="payment-method-badges">
                               {pm.badges.map(b => <span key={b.label} className="pm-badge" style={{background:b.bg,color:(b as any).color||"white"}}>{b.label}</span>)}
@@ -1340,7 +1665,8 @@ export default function Home() {
                       <span className="summary-total-label">Total</span>
                       <span className="summary-total-value">{fmtPrice(cartTotal + 500)}</span>
                     </div>
-                    <button className="place-order-btn" onClick={() => setOrderPlaced(true)}>Place Order</button>
+                    {checkoutError && <div className="auth-error" style={{marginTop:"1rem"}}>{checkoutError}</div>}
+                    <button className="place-order-btn" onClick={handlePlaceOrder} disabled={checkoutSaving}>{checkoutSaving ? "Placing Order…" : "Place Order"}</button>
                     <p className="secure-note">🔒 SSL Secured · All transactions encrypted</p>
                   </div>
                 </div>
@@ -1349,7 +1675,132 @@ export default function Home() {
         </main>
       )}
 
-      {/* JEWELLERY PAGE */}
+      {/* ACCOUNT PAGE */}
+      {page === "account" && (
+        <main>
+          <div className="account-page">
+            <span className="section-eyebrow">Your Chronovian</span>
+            <h1 className="section-title">My <em>Account</em></h1>
+            <div className="gold-rule" style={{margin:"1.25rem 0 2.5rem"}} />
+
+            {authLoading ? (
+              <div className="empty-state">Loading…</div>
+            ) : !user ? (
+              <div className="empty-state">
+                <p style={{marginBottom:"1.5rem"}}>Please sign in to view your account.</p>
+                <button className="btn-gold" onClick={() => { setAuthMode("login"); resetAuthForm(); setAuthModalOpen(true); }}>Sign In</button>
+              </div>
+            ) : (
+              <div className="account-grid">
+                <div className="account-sidebar">
+                  <button className={`account-tab${accountTab === "profile" ? " active" : ""}`} onClick={() => setAccountTab("profile")}>Profile</button>
+                  <button className={`account-tab${accountTab === "orders" ? " active" : ""}`} onClick={() => setAccountTab("orders")}>My Orders {myOrders.length > 0 && `(${myOrders.length})`}</button>
+                  <button className={`account-tab${accountTab === "bookings" ? " active" : ""}`} onClick={() => setAccountTab("bookings")}>My Bookings {myBookings.length > 0 && `(${myBookings.length})`}</button>
+                  <button className="account-tab" onClick={handleSignOut}>Sign Out</button>
+                </div>
+
+                <div className="account-content">
+                  {accountTab === "profile" && (
+                    <>
+                      <div className="checkout-section">
+                        <div className="checkout-section-title">Profile Details</div>
+                        <form onSubmit={handleUpdateProfile}>
+                          <div className="form-group"><label className="form-label">Full Name</label><input className="form-input" type="text" value={profileForm.full_name} onChange={e => setProfileForm(f => ({ ...f, full_name: e.target.value }))} /></div>
+                          <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={user.email || ""} disabled style={{opacity:0.6,cursor:"not-allowed"}} /></div>
+                          <div className="form-group"><label className="form-label">Phone</label><input className="form-input" type="tel" placeholder="+91 00000 00000" value={profileForm.phone} onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                          {profileError && <div className="auth-error">{profileError}</div>}
+                          {profileMessage && <div className="auth-message">{profileMessage}</div>}
+                          <button type="submit" className="btn-gold" disabled={profileSaving}>{profileSaving ? "Saving…" : "Save Changes"}</button>
+                        </form>
+                      </div>
+
+                      <div className="checkout-section">
+                        <div className="checkout-section-title">Change Password</div>
+                        <form onSubmit={handleChangePassword}>
+                          <div className="form-group"><label className="form-label">New Password</label><input className="form-input" type="password" placeholder="••••••••" minLength={6} value={pwForm.password} onChange={e => setPwForm(f => ({ ...f, password: e.target.value }))} /></div>
+                          <div className="form-group"><label className="form-label">Confirm Password</label><input className="form-input" type="password" placeholder="••••••••" minLength={6} value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} /></div>
+                          {pwError && <div className="auth-error">{pwError}</div>}
+                          {pwMessage && <div className="auth-message">{pwMessage}</div>}
+                          <button type="submit" className="btn-outline" disabled={pwSaving}>{pwSaving ? "Updating…" : "Update Password"}</button>
+                        </form>
+                      </div>
+                    </>
+                  )}
+
+                  {accountTab === "orders" && (
+                    ordersLoading ? <div className="empty-state">Loading your orders…</div>
+                    : myOrders.length === 0 ? (
+                      <div className="empty-state">
+                        <p style={{marginBottom:"1.5rem"}}>You haven't placed any orders yet.</p>
+                        <button className="btn-outline" onClick={() => goTo("watches")}>Browse Watches</button>
+                      </div>
+                    ) : (
+                      <div className="order-list">
+                        {myOrders.map(order => (
+                          <div className="order-card" key={order.id}>
+                            <div className="order-card-header">
+                              <div>
+                                <span className="order-card-id">Order #{order.id.slice(0, 8)}</span>
+                                <span className="order-card-date">{new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</span>
+                              </div>
+                              <span className={`order-status order-status-${order.status.toLowerCase()}`}>{order.status}</span>
+                            </div>
+                            <div className="order-card-items">
+                              {(order.items || []).map((it, idx) => (
+                                <div className="checkout-item-row" key={idx}>
+                                  <img className="checkout-item-img" src={it.image} alt={it.model} />
+                                  <div className="checkout-item-info">
+                                    <span className="checkout-item-brand">{it.brand}</span>
+                                    <span className="checkout-item-model">{it.model}</span>
+                                    <span style={{fontSize:"0.6rem",color:"var(--gray-light)"}}>{it.ref} · Qty {it.qty}</span>
+                                  </div>
+                                  <span className="checkout-item-price">{fmtPrice(it.price)}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="order-card-footer">
+                              <span>{order.delivery_method === "store" ? "In-Store Collection" : "Home Delivery"}</span>
+                              <span className="summary-total-value">{fmtPrice(order.total)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {accountTab === "bookings" && (
+                    myBookingsLoading ? <div className="empty-state">Loading your appointments…</div>
+                    : myBookings.length === 0 ? (
+                      <div className="empty-state">
+                        <p style={{marginBottom:"1.5rem"}}>You don't have any appointments booked yet.</p>
+                        <button className="btn-outline" onClick={() => goTo("booking")}>Book an Appointment</button>
+                      </div>
+                    ) : (
+                      <div className="order-list">
+                        {myBookings.map(b => (
+                          <div className="order-card" key={b.id}>
+                            <div className="order-card-header">
+                              <div>
+                                <span className="order-card-id">{b.date}</span>
+                                <span className="order-card-date">{b.time}</span>
+                              </div>
+                              <span className={`order-status order-status-${(b.status || "pending").toLowerCase()}`}>{b.status || "Pending"}</span>
+                            </div>
+                            <div style={{padding:"1rem 1.25rem",fontSize:"0.78rem",color:"var(--gray-mid)",lineHeight:1.8}}>
+                              <div><strong style={{color:"var(--black)"}}>Interest:</strong> {b.interest}</div>
+                              {b.notes && <div><strong style={{color:"var(--black)"}}>Notes:</strong> {b.notes}</div>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      )}
       {page === "jewellery" && (
         <main>
           <div className="watches-page">
