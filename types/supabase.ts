@@ -8,8 +8,9 @@
 //
 // (Project ref is the subdomain in your Supabase URL, e.g. pgfzikvonzpkuiorypkv)
 //
-// Until then, this file is accurate to what the code actually queries, so it fixes the
-// `never` / `insert()` type errors without needing the CLI.
+// Note: Update types are fully expanded (not Partial<Insert> self-references) on purpose —
+// a self-referential lookup back into the Database type being defined caused `never` type
+// errors on .update() calls in some TypeScript/supabase-js version combinations.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -75,7 +76,35 @@ export type Database = {
           hardware?: string | null;
           size?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
+        Update: {
+          id?: string;
+          created_at?: string;
+          brand?: string;
+          model?: string;
+          ref?: string;
+          category?: string;
+          price?: number;
+          condition?: string;
+          year?: string;
+          box?: boolean;
+          papers?: boolean;
+          description?: string;
+          status?: string;
+          images?: string[];
+          featured?: boolean;
+          sort_order?: number | null;
+          serial_number?: string | null;
+          dial_color?: string | null;
+          case_material?: string | null;
+          bracelet_material?: string | null;
+          case_size?: string | null;
+          movement?: string | null;
+          material?: string | null;
+          gemstone?: string | null;
+          color?: string | null;
+          hardware?: string | null;
+          size?: string | null;
+        };
       };
 
       bookings: {
@@ -103,7 +132,18 @@ export type Database = {
           notes?: string | null;
           status?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>;
+        Update: {
+          id?: string;
+          created_at?: string;
+          name?: string;
+          phone?: string;
+          email?: string;
+          date?: string;
+          time?: string;
+          interest?: string;
+          notes?: string | null;
+          status?: string;
+        };
       };
 
       orders: {
@@ -135,7 +175,20 @@ export type Database = {
           address?: string | null;
           payment_method?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
+        Update: {
+          id?: string;
+          created_at?: string;
+          user_id?: string | null;
+          customer_name?: string | null;
+          customer_email?: string | null;
+          customer_phone?: string | null;
+          items?: Json | null;
+          total?: number | null;
+          status?: string;
+          delivery_method?: string | null;
+          address?: string | null;
+          payment_method?: string | null;
+        };
       };
 
       hero_banners: {
@@ -157,7 +210,15 @@ export type Database = {
           sort_order?: number;
           active?: boolean;
         };
-        Update: Partial<Database["public"]["Tables"]["hero_banners"]["Insert"]>;
+        Update: {
+          id?: string;
+          image_url?: string;
+          headline?: string;
+          subheadline?: string;
+          tagline?: string;
+          sort_order?: number;
+          active?: boolean;
+        };
       };
 
       category_images: {
@@ -171,7 +232,11 @@ export type Database = {
           image_url: string;
           updated_at?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["category_images"]["Insert"]>;
+        Update: {
+          id?: string;
+          image_url?: string;
+          updated_at?: string | null;
+        };
       };
 
       exchange_rates: {
@@ -187,8 +252,14 @@ export type Database = {
           rates: Record<string, number>;
           updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["exchange_rates"]["Insert"]>;
+        Update: {
+          id?: number;
+          base?: string;
+          rates?: Record<string, number>;
+          updated_at?: string;
+        };
       };
+
       addresses: {
         Row: {
           id: string;
@@ -214,7 +285,51 @@ export type Database = {
           is_default?: boolean;
           created_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["addresses"]["Insert"]>;
+        Update: {
+          id?: string;
+          user_id?: string;
+          label?: string;
+          address_line1?: string;
+          address_line2?: string | null;
+          city?: string;
+          state?: string;
+          pin?: string;
+          is_default?: boolean;
+          created_at?: string;
+        };
+      };
+
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          phone: string | null;
+          email: string | null;
+          vip: boolean;
+          staff_notes: string | null;
+          preferred_contact: string;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          vip?: boolean;
+          staff_notes?: string | null;
+          preferred_contact?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          vip?: boolean;
+          staff_notes?: string | null;
+          preferred_contact?: string;
+          created_at?: string;
+        };
       };
     };
     Views: Record<string, never>;
