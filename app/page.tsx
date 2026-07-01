@@ -265,15 +265,26 @@ export default function Home() {
     setProfileForm({ full_name: user.user_metadata?.full_name || "", phone: (user.user_metadata as any)?.phone || "" });
 
     const sb = getSupabase();
-    setOrdersLoading(true);
-    sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${user.email}`).order("created_at", { ascending: false })
-      .then(({ data, error }) => { if (!error && data) setMyOrders(data as Order[]); setOrdersLoading(false); })
-      .catch(() => setOrdersLoading(false));
 
-    setMyBookingsLoading(true);
-    sb.from("bookings").select("*").eq("email", user.email).order("id", { ascending: false })
-      .then(({ data, error }) => { if (!error && data) setMyBookings(data as MyBooking[]); setMyBookingsLoading(false); })
-      .catch(() => setMyBookingsLoading(false));
+    (async () => {
+      setOrdersLoading(true);
+      try {
+        const { data, error } = await sb.from("orders").select("*").or(`user_id.eq.${user.id},customer_email.eq.${user.email}`).order("created_at", { ascending: false });
+        if (!error && data) setMyOrders(data as Order[]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    })();
+
+    (async () => {
+      setMyBookingsLoading(true);
+      try {
+        const { data, error } = await sb.from("bookings").select("*").eq("email", user.email).order("id", { ascending: false });
+        if (!error && data) setMyBookings(data as MyBooking[]);
+      } finally {
+        setMyBookingsLoading(false);
+      }
+    })();
   }, [user, page]);
 
   const handleUpdateProfile = async (e: FormEvent) => {
