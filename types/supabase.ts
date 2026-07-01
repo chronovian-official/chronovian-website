@@ -105,6 +105,7 @@ export type Database = {
           hardware?: string | null;
           size?: string | null;
         };
+        Relationships: [];
       };
 
       bookings: {
@@ -144,6 +145,7 @@ export type Database = {
           notes?: string | null;
           status?: string;
         };
+        Relationships: [];
       };
 
       orders: {
@@ -189,6 +191,7 @@ export type Database = {
           address?: string | null;
           payment_method?: string | null;
         };
+        Relationships: [];
       };
 
       hero_banners: {
@@ -219,6 +222,7 @@ export type Database = {
           sort_order?: number;
           active?: boolean;
         };
+        Relationships: [];
       };
 
       category_images: {
@@ -237,6 +241,7 @@ export type Database = {
           image_url?: string;
           updated_at?: string | null;
         };
+        Relationships: [];
       };
 
       exchange_rates: {
@@ -258,6 +263,7 @@ export type Database = {
           rates?: Record<string, number>;
           updated_at?: string;
         };
+        Relationships: [];
       };
 
       addresses: {
@@ -297,6 +303,7 @@ export type Database = {
           is_default?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
 
       profiles: {
@@ -330,6 +337,7 @@ export type Database = {
           preferred_contact?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
