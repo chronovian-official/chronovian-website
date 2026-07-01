@@ -121,7 +121,7 @@ export default function Home() {
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [heroSlides, setHeroSlides] = useState<HeroBanner[]>(FALLBACK_HERO_SLIDES);
+  const [heroSlides, setHeroSlides] = useState<HeroBanner[]>([]);
   const [catImages, setCatImagesState] = useState<Record<string, string>>({
     watches: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=90",
     jewellery: "https://images.unsplash.com/photo-1573408301185-9519f94816b5?w=800&q=90",
@@ -252,6 +252,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
     return () => clearInterval(id);
   }, [heroSlides.length]);
@@ -335,7 +336,7 @@ export default function Home() {
     { label: "How It Works", page: "trade" as PageType },
   ];
 
-  const WatchCard = ({ w, showEnquire = false }: { w: Watch; showEnquire?: boolean }) => (
+  const WatchCard = ({ w, showEnquire = false, hoverCart = false }: { w: Watch; showEnquire?: boolean; hoverCart?: boolean }) => (
     <div className="watch-card">
       <div className="watch-img-wrap" onClick={() => goTo("product", w)}>
         <img src={getImg(w)} alt={`${w.brand} ${w.model}`} />
@@ -349,7 +350,7 @@ export default function Home() {
       <span className="watch-model" onClick={() => goTo("product", w)} style={{cursor:"pointer"}}>{w.model}</span>
       <span className="watch-ref">{w.ref}</span>
       <span className="watch-price">{fmtPrice(w.price)}</span>
-      <div className="card-actions">
+      <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
         <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>
         {showEnquire && <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>}
       </div>
@@ -540,6 +541,9 @@ export default function Home() {
         .wishlist-btn:hover { transform: scale(1.15); }
         .added-toast { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); color: white; text-align: center; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem; }
         .card-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
+        .card-actions-hover { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease; }
+        .watch-card:hover .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; }
+        @media (hover: none) { .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; } }
         .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
         .btn-cart:hover { background: var(--gold); border-color: var(--gold); }
         .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
@@ -1784,7 +1788,7 @@ export default function Home() {
                       <div className="skeleton skeleton-line" style={{ width: "40%" }} />
                     </div>
                   ))
-                : visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} />)
+                : visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} hoverCart />)
               }
             </div>
             <div style={{display:"flex",justifyContent:"center",gap:"0.5rem",margin:"2rem 0 1rem"}}>
