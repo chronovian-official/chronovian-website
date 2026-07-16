@@ -705,6 +705,7 @@ export default function Home() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --gold: #9A7340; --gold-light: #B8935A;
+          --burgundy: #6E1F2E; --burgundy-light: #8A2E40;
           --black: #0A0A0A; --gray-mid: #6B6B6B; --gray-light: #ADADAD;
           --gray-pale: #F5F3F0; --white: #FFFFFF; --border: rgba(0,0,0,0.09);
         }
@@ -834,7 +835,7 @@ export default function Home() {
         .search-quick-brands { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 2rem; }
         .search-quick-label { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-light); margin-bottom: 0.75rem; display: block; }
         .search-brand-pill { padding: 0.5rem 1.25rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); transition: all 0.2s; }
-        .search-brand-pill:hover { background: var(--black); color: white; border-color: var(--black); }
+        .search-brand-pill:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         @media (max-width: 768px) { .search-results-grid { grid-template-columns: repeat(2, 1fr); } .search-overlay-header { padding: 1.25rem; } .search-body { padding: 1.5rem; } }
         .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .cart-overlay.open { opacity: 1; pointer-events: all; }
@@ -849,14 +850,14 @@ export default function Home() {
         .cart-item-info { flex: 1; min-width: 0; }
         .cart-item-brand { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.2rem; }
         .cart-item-model { font-family: 'Marcellus', serif; font-size: 0.9rem; display: block; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .cart-item-price { font-size: 0.82rem; color: var(--black); font-weight: 400; display: block; margin-bottom: 0.5rem; }
+        .cart-item-price { font-size: 0.82rem; color: var(--black); font-weight: 600; display: block; margin-bottom: 0.5rem; }
         .cart-item-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; padding: 0.3rem 0.65rem; transition: all 0.2s; font-family: 'Jost', sans-serif; }
         .cart-item-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
         .cart-empty { text-align: center; padding: 3rem 0; color: var(--gray-mid); font-size: 0.82rem; }
         .cart-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
         .cart-subtotal { display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
         .cart-subtotal-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
-        .cart-subtotal-value { font-family: 'Marcellus', serif; font-size: 1.1rem; }
+        .cart-subtotal-value { font-family: 'Jost', sans-serif; font-size: 1.1rem; font-weight: 600; }
         .cart-cta { display: flex; flex-direction: column; gap: 0.6rem; }
 
         /* HERO */
@@ -901,7 +902,7 @@ export default function Home() {
         .card-actions-hover { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease; }
         .watch-card:hover .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; }
         @media (hover: none) { .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; } }
-        .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
+        .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
         .btn-cart:hover { background: var(--gold); border-color: var(--gold); }
         .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
         .enquire-btn:hover { border-color: var(--gold); color: var(--gold); }
@@ -912,7 +913,7 @@ export default function Home() {
         .watches-page-header { margin-bottom: 3rem; }
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
         .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
-        .filter-btn.active, .filter-btn:hover { background: var(--black); color: white; border-color: var(--black); }
+        .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
 
         /* PRODUCT PAGE */
@@ -944,13 +945,13 @@ export default function Home() {
         .product-model { font-family: 'Marcellus', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
         .product-ref { font-size: 0.72rem; color: var(--gray-mid); }
         .product-price-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .product-price { font-family: 'Marcellus', serif; font-size: 1.8rem; font-weight: 300; }
+        .product-price { font-family: 'Jost', sans-serif; font-size: 1.8rem; font-weight: 600; }
         .product-price-tax-note { font-size: 0.62rem; color: var(--gray-light); letter-spacing: 0.04em; }
         .product-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-        .btn-contact-us { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
+        .btn-contact-us { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
         .btn-contact-us:hover { background: #222; }
         .btn-buy-online { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: white; color: var(--black); border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; }
-        .btn-buy-online:hover { background: var(--black); color: white; }
+        .btn-buy-online:hover { background: var(--burgundy); color: white; }
         .product-secondary-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
         .btn-addcart-sm { flex: 1; padding: 0.75rem; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; background: none; color: var(--black); border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; }
         .btn-addcart-sm:hover { border-color: var(--gold); color: var(--gold); }
@@ -983,7 +984,7 @@ export default function Home() {
         .cart-page-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0.35rem 0.75rem; transition: all 0.2s; width: fit-content; }
         .cart-page-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
         .cart-page-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-        .cart-page-price { font-family: 'Marcellus', serif; font-size: 1rem; white-space: nowrap; }
+        .cart-page-price { font-family: 'Jost', sans-serif; font-size: 1rem; font-weight: 600; white-space: nowrap; }
         .cart-page-remove-icon { background: none; border: none; cursor: pointer; color: var(--gray-light); padding: 0.4rem; transition: color 0.2s; display: flex; align-items: center; }
         .cart-page-remove-icon:hover { color: #c0392b; }
         .order-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
@@ -991,7 +992,7 @@ export default function Home() {
         .summary-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-mid); margin-bottom: 0.75rem; }
         .summary-total { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; font-weight: 400; }
         .summary-total-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; }
-        .summary-total-value { font-family: 'Marcellus', serif; font-size: 1.2rem; }
+        .summary-total-value { font-family: 'Jost', sans-serif; font-size: 1.2rem; font-weight: 600; }
         .cart-empty-page { text-align: center; padding: 5rem 0; }
         .cart-empty-page p { color: var(--gray-mid); font-size: 0.82rem; margin: 1rem 0 2rem; }
 
@@ -1012,7 +1013,7 @@ export default function Home() {
         .delivery-option-info { flex: 1; }
         .delivery-option-name { font-size: 0.78rem; font-weight: 400; }
         .delivery-option-sub { font-size: 0.65rem; color: var(--gray-mid); margin-top: 0.15rem; }
-        .delivery-option-price { font-size: 0.78rem; font-weight: 400; }
+        .delivery-option-price { font-size: 0.78rem; font-weight: 600; }
         .payment-methods { display: flex; flex-direction: column; gap: 0.75rem; }
         .payment-method { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); cursor: pointer; transition: border-color 0.2s; }
         .payment-method.selected { border-color: var(--gold); background: #fdf9f4; }
@@ -1026,7 +1027,7 @@ export default function Home() {
         .checkout-item-info { flex: 1; }
         .checkout-item-brand { font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; }
         .checkout-item-model { font-family: 'Marcellus', serif; font-size: 0.82rem; display: block; }
-        .checkout-item-price { font-size: 0.75rem; font-weight: 400; white-space: nowrap; }
+        .checkout-item-price { font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .place-order-btn { width: 100%; padding: 1.1rem; font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; background: var(--gold); color: white; border: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: background 0.2s; margin-top: 1.5rem; }
         .place-order-btn:hover { background: var(--gold-light); }
         .secure-note { font-size: 0.58rem; color: var(--gray-light); text-align: center; margin-top: 0.75rem; letter-spacing: 0.1em; }
@@ -1139,7 +1140,7 @@ export default function Home() {
         .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
         .calendar-month { font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 400; }
         .calendar-nav { background: none; border: 1px solid var(--border); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--black); transition: all 0.2s; }
-        .calendar-nav:hover { background: var(--black); color: white; border-color: var(--black); }
+        .calendar-nav:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .calendar-day-name { text-align: center; font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-light); padding: 0.5rem 0; }
         .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; color: var(--black); background: none; font-family: 'Jost', sans-serif; font-weight: 300; }
@@ -1163,7 +1164,7 @@ export default function Home() {
         .booking-success-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 1.5rem; }
         @media (max-width: 768px) { .booking-grid { grid-template-columns: 1fr; gap: 2.5rem; } .time-slots-grid { grid-template-columns: repeat(4, 1fr); } }
         .btn-outline { display: inline-block; border: 1px solid var(--black); color: var(--black); text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.3s; background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; }
-        .btn-outline:hover { background: var(--black); color: white; }
+        .btn-outline:hover { background: var(--burgundy); color: white; }
         .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
         .btn-gold:hover { background: var(--gold-light); }
 
