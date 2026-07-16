@@ -1110,13 +1110,13 @@ export default function Home() {
         .about-body { font-size: 0.88rem; line-height: 2; color: var(--gray-mid); margin: 1.5rem 0 2.5rem; }
 
         /* PILLARS */
-        .pillars { background: #4A1620; padding: 5rem 2.5rem; }
+        .pillars { background: #2A1216; padding: 5rem 2.5rem; }
         .pillars-inner { max-width: 1100px; margin: 0 auto; }
         .pillars-inner .section-title { color: white; }
         .pillars-inner .section-eyebrow { color: #D4AA78; }
         .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.08); margin-top: 3rem; }
-        .pillar { padding: 2.5rem 2rem; background: #4A1620; transition: background 0.3s; }
-        .pillar:hover { background: #5C1C28; }
+        .pillar { padding: 2.5rem 2rem; background: #2A1216; transition: background 0.3s; }
+        .pillar:hover { background: #351A1F; }
         .pillar-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1.25rem; }
         .pillar-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; color: white; margin-bottom: 0.75rem; }
         .pillar-body { font-size: 0.75rem; line-height: 1.9; color: rgba(255,255,255,0.45); }
