@@ -728,6 +728,7 @@ export default function Home() {
 
         /* DROPDOWN */
         .nav-dropdown-wrap { position: relative; display: flex; align-items: center; }
+        .nav-dropdown-wrap::after { content: ""; position: absolute; top: 100%; left: -20px; right: -20px; height: 32px; }
         .nav-dropdown-trigger { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--black); background: none; border: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: color 0.2s; display: flex; align-items: center; gap: 0.3rem; padding: 0; white-space: nowrap; height: 50px; }
         .nav-dropdown-trigger:hover, .nav-dropdown-trigger.open { color: var(--gold); }
         .nav-dropdown-trigger svg { transition: transform 0.25s; }
