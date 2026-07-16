@@ -701,7 +701,7 @@ export default function Home() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@200;300;400;500&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --gold: #9A7340; --gold-light: #B8935A;
@@ -716,7 +716,7 @@ export default function Home() {
         .topbar.scrolled { box-shadow: 0 1px 16px rgba(0,0,0,0.07); }
         .topbar-side { display: flex; align-items: center; gap: 1.4rem; flex: 1; }
         .topbar-side.right { justify-content: flex-end; }
-        .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
+        .nav-logo { font-family: 'Marcellus', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: 0.22em; color: var(--black); text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0; background: none; border: none; }
         .nav-icon-btn { background: none; border: none; cursor: pointer; color: var(--black); font-size: 1rem; display: flex; align-items: center; transition: color 0.2s; text-decoration: none; position: relative; }
         .nav-icon-btn:hover { color: var(--gold); }
         .nav-badge { position: absolute; top: -6px; right: -8px; background: var(--gold); color: white; font-size: 0.45rem; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; }
@@ -748,14 +748,14 @@ export default function Home() {
         .mobile-menu { display: none; position: fixed; inset: 0; top: 72px; background: var(--white); z-index: 150; flex-direction: column; padding: 1.5rem; overflow-y: auto; border-top: 1px solid var(--border); }
         .mobile-menu.open { display: flex; }
         .mobile-section { border-bottom: 1px solid var(--border); }
-        .mobile-section-trigger { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); background: none; border: none; cursor: pointer; width: 100%; }
+        .mobile-section-trigger { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); background: none; border: none; cursor: pointer; width: 100%; }
         .mobile-section-trigger svg { transition: transform 0.25s; }
         .mobile-section-trigger.open svg { transform: rotate(180deg); }
         .mobile-sub { display: none; flex-direction: column; padding-bottom: 0.75rem; }
         .mobile-sub.open { display: flex; }
         .mobile-sub-item { padding: 0.55rem 1rem; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-mid); background: none; border: none; cursor: pointer; text-align: left; font-family: 'Jost', sans-serif; text-decoration: none; transition: color 0.2s; }
         .mobile-sub-item:hover { color: var(--gold); }
-        .mobile-plain { display: block; padding: 1rem 0; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
+        .mobile-plain { display: block; padding: 1rem 0; font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 300; color: var(--black); text-decoration: none; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; width: 100%; transition: color 0.2s; }
         .mobile-plain:hover { color: var(--gold); }
         @media (max-width: 900px) {
           .categorybar { display: none; }
@@ -785,7 +785,7 @@ export default function Home() {
         .currency-modal { background: white; width: 100%; max-width: 760px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(-10px); transition: transform 0.25s; }
         .currency-modal-overlay.open .currency-modal { transform: translateY(0); }
         .currency-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
-        .currency-modal-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; }
+        .currency-modal-title { font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 400; }
         .currency-modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--gray-mid); line-height: 1; padding: 0.25rem; transition: color 0.2s; }
         .currency-modal-close:hover { color: var(--black); }
         .currency-modal-body { padding: 1.5rem 2rem 2rem; }
@@ -821,7 +821,7 @@ export default function Home() {
         .search-overlay-header { padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1.25rem; }
         .search-input-wrap { flex: 1; display: flex; align-items: center; gap: 1rem; }
         .search-input-icon { color: var(--gray-mid); flex-shrink: 0; }
-        .search-input { flex: 1; font-family: 'Playfair Display', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 300; border: none; outline: none; background: none; color: var(--black); }
+        .search-input { flex: 1; font-family: 'Marcellus', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 300; border: none; outline: none; background: none; color: var(--black); }
         .search-input::placeholder { color: var(--gray-light); }
         .search-close { background: none; border: none; cursor: pointer; color: var(--gray-mid); font-size: 1.5rem; line-height: 1; padding: 0.25rem; transition: color 0.2s; flex-shrink: 0; }
         .search-close:hover { color: var(--black); }
@@ -841,14 +841,14 @@ export default function Home() {
         .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 100vw; background: white; z-index: 401; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
         .cart-drawer.open { transform: translateX(0); }
         .cart-drawer-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .cart-drawer-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.08em; }
+        .cart-drawer-title { font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 0.08em; }
         .cart-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--gray-mid); line-height: 1; padding: 0; }
         .cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
         .cart-item { display: flex; gap: 1rem; align-items: flex-start; }
         .cart-item-img { width: 72px; height: 88px; object-fit: cover; background: var(--gray-pale); flex-shrink: 0; }
         .cart-item-info { flex: 1; min-width: 0; }
         .cart-item-brand { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.2rem; }
-        .cart-item-model { font-family: 'Playfair Display', serif; font-size: 0.9rem; display: block; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cart-item-model { font-family: 'Marcellus', serif; font-size: 0.9rem; display: block; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cart-item-price { font-size: 0.82rem; color: var(--black); font-weight: 400; display: block; margin-bottom: 0.5rem; }
         .cart-item-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; padding: 0.3rem 0.65rem; transition: all 0.2s; font-family: 'Jost', sans-serif; }
         .cart-item-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
@@ -856,7 +856,7 @@ export default function Home() {
         .cart-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
         .cart-subtotal { display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
         .cart-subtotal-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
-        .cart-subtotal-value { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+        .cart-subtotal-value { font-family: 'Marcellus', serif; font-size: 1.1rem; }
         .cart-cta { display: flex; flex-direction: column; gap: 0.6rem; }
 
         /* HERO */
@@ -867,7 +867,7 @@ export default function Home() {
         .hero-gradient { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.55) 100%); }
         .hero-content { position: absolute; bottom: 3.5rem; left: 3rem; right: 3rem; color: white; }
         .hero-eyebrow { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 1rem; }
-        .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.4rem; }
+        .hero-title { font-family: 'Marcellus', serif; font-size: clamp(2.8rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.1; margin-bottom: 0.4rem; }
         .hero-title em { font-style: italic; color: #D4AA78; }
         .hero-sub { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-top: 0.75rem; }
         .hero-dots { position: absolute; bottom: 2rem; right: 3rem; display: flex; gap: 0.5rem; }
@@ -877,7 +877,7 @@ export default function Home() {
         /* SECTIONS */
         .section-header { text-align: center; margin-bottom: 3rem; }
         .section-eyebrow { font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; display: block; font-weight: 500; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 300; line-height: 1.25; }
+        .section-title { font-family: 'Marcellus', serif; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 300; line-height: 1.25; }
         .section-title em { font-style: italic; }
         .gold-rule { width: 32px; height: 1px; background: var(--gold); margin: 1.25rem auto 0; }
 
@@ -891,7 +891,7 @@ export default function Home() {
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
         .watch-status.sold { background: var(--black); color: white; }
         .watch-brand { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
-        .watch-model { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
+        .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
         .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; }
@@ -941,10 +941,10 @@ export default function Home() {
         .product-thumb:hover { border-color: var(--gray-light); }
         .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
         .product-brand { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); }
-        .product-model { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
+        .product-model { font-family: 'Marcellus', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
         .product-ref { font-size: 0.72rem; color: var(--gray-mid); }
         .product-price-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .product-price { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 300; }
+        .product-price { font-family: 'Marcellus', serif; font-size: 1.8rem; font-weight: 300; }
         .product-price-tax-note { font-size: 0.62rem; color: var(--gray-light); letter-spacing: 0.04em; }
         .product-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
         .btn-contact-us { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--black); color: white; border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
@@ -983,15 +983,15 @@ export default function Home() {
         .cart-page-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0.35rem 0.75rem; transition: all 0.2s; width: fit-content; }
         .cart-page-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
         .cart-page-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-        .cart-page-price { font-family: 'Playfair Display', serif; font-size: 1rem; white-space: nowrap; }
+        .cart-page-price { font-family: 'Marcellus', serif; font-size: 1rem; white-space: nowrap; }
         .cart-page-remove-icon { background: none; border: none; cursor: pointer; color: var(--gray-light); padding: 0.4rem; transition: color 0.2s; display: flex; align-items: center; }
         .cart-page-remove-icon:hover { color: #c0392b; }
         .order-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
-        .summary-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 1.5rem; }
+        .summary-title { font-family: 'Marcellus', serif; font-size: 1rem; margin-bottom: 1.5rem; }
         .summary-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-mid); margin-bottom: 0.75rem; }
         .summary-total { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; font-weight: 400; }
         .summary-total-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; }
-        .summary-total-value { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+        .summary-total-value { font-family: 'Marcellus', serif; font-size: 1.2rem; }
         .cart-empty-page { text-align: center; padding: 5rem 0; }
         .cart-empty-page p { color: var(--gray-mid); font-size: 0.82rem; margin: 1rem 0 2rem; }
 
@@ -999,7 +999,7 @@ export default function Home() {
         .checkout-page { padding: 4rem 2.5rem; max-width: 1100px; margin: 0 auto; }
         .checkout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 4rem; margin-top: 3rem; }
         .checkout-section { margin-bottom: 2.5rem; }
-        .checkout-section-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+        .checkout-section-title { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
         .form-label { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-mid); }
@@ -1025,7 +1025,7 @@ export default function Home() {
         .checkout-item-img { width: 60px; height: 72px; object-fit: cover; background: white; flex-shrink: 0; }
         .checkout-item-info { flex: 1; }
         .checkout-item-brand { font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; }
-        .checkout-item-model { font-family: 'Playfair Display', serif; font-size: 0.82rem; display: block; }
+        .checkout-item-model { font-family: 'Marcellus', serif; font-size: 0.82rem; display: block; }
         .checkout-item-price { font-size: 0.75rem; font-weight: 400; white-space: nowrap; }
         .place-order-btn { width: 100%; padding: 1.1rem; font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; background: var(--gold); color: white; border: none; cursor: pointer; font-family: 'Jost', sans-serif; transition: background 0.2s; margin-top: 1.5rem; }
         .place-order-btn:hover { background: var(--gold-light); }
@@ -1083,8 +1083,8 @@ export default function Home() {
         .sell-page { padding: 5rem 2.5rem; max-width: 900px; margin: 0 auto; }
         .sell-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin: 3rem 0; }
         .sell-step { text-align: center; padding: 2rem 1.5rem; border: 1px solid var(--border); }
-        .sell-step-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1rem; }
-        .sell-step h3 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; margin-bottom: 0.6rem; }
+        .sell-step-num { font-family: 'Marcellus', serif; font-size: 2.5rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1rem; }
+        .sell-step h3 { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; margin-bottom: 0.6rem; }
         .sell-step p { font-size: 0.75rem; color: var(--gray-mid); line-height: 1.8; }
 
         /* WISHLIST */
@@ -1117,8 +1117,8 @@ export default function Home() {
         .pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.08); margin-top: 3rem; }
         .pillar { padding: 2.5rem 2rem; background: #2A1216; transition: background 0.3s; }
         .pillar:hover { background: #351A1F; }
-        .pillar-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1.25rem; }
-        .pillar-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; color: white; margin-bottom: 0.75rem; }
+        .pillar-num { font-family: 'Marcellus', serif; font-size: 2rem; color: var(--gold); opacity: 0.5; display: block; margin-bottom: 1.25rem; }
+        .pillar-title { font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 400; color: white; margin-bottom: 0.75rem; }
         .pillar-body { font-size: 0.75rem; line-height: 1.9; color: rgba(255,255,255,0.45); }
 
         /* CONTACT */
@@ -1137,7 +1137,7 @@ export default function Home() {
         .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 3.5rem; }
         .calendar-wrap { user-select: none; }
         .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-        .calendar-month { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 400; }
+        .calendar-month { font-family: 'Marcellus', serif; font-size: 1.1rem; font-weight: 400; }
         .calendar-nav { background: none; border: 1px solid var(--border); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--black); transition: all 0.2s; }
         .calendar-nav:hover { background: var(--black); color: white; border-color: var(--black); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
@@ -1158,7 +1158,7 @@ export default function Home() {
         .booking-form { display: flex; flex-direction: column; gap: 1rem; }
         .booking-selected-slot { background: var(--gray-pale); border-left: 3px solid var(--gold); padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; }
         .booking-selected-slot-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.25rem; }
-        .booking-selected-slot-value { font-family: 'Playfair Display', serif; font-size: 0.95rem; }
+        .booking-selected-slot-value { font-family: 'Marcellus', serif; font-size: 0.95rem; }
         .booking-success { text-align: center; padding: 3rem 0; }
         .booking-success-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; font-size: 1.5rem; }
         @media (max-width: 768px) { .booking-grid { grid-template-columns: 1fr; gap: 2.5rem; } .time-slots-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -1171,7 +1171,7 @@ export default function Home() {
         footer { background: var(--gray-pale); border-top: 1px solid var(--border); padding: 5rem 2.5rem 2.5rem; }
         .footer-inner { max-width: 1200px; margin: 0 auto; }
         .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.2em; color: var(--black); text-transform: uppercase; display: block; margin-bottom: 1rem; }
+        .footer-brand { font-family: 'Marcellus', serif; font-size: 1.3rem; letter-spacing: 0.2em; color: var(--black); text-transform: uppercase; display: block; margin-bottom: 1rem; }
         .footer-tagline { font-size: 0.82rem; line-height: 1.9; color: var(--gray-mid); max-width: 240px; }
         .footer-col-title { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--black); margin-bottom: 1.5rem; display: block; font-weight: 600; }
         .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
@@ -2273,7 +2273,7 @@ export default function Home() {
           </div>
           <div className="contact-grid">
             <div>
-              <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>We'd love to hear from you</h3>
+              <h3 style={{fontFamily:"'Marcellus',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>We'd love to hear from you</h3>
               {[
                 { icon: "✉️", label: "Email", content: <a href="mailto:info@chronovian.com">info@chronovian.com</a> },
                 { icon: "💬", label: "WhatsApp", content: <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a> },
@@ -2290,7 +2290,7 @@ export default function Home() {
               ))}
             </div>
             <div>
-              <h3 style={{fontFamily:"'Playfair Display',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
+              <h3 style={{fontFamily:"'Marcellus',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>Send an Enquiry</h3>
               <form className="contact-form" onSubmit={async e => {
                 e.preventDefault();
                 const form = e.target as HTMLFormElement;
