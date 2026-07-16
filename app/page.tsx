@@ -37,6 +37,7 @@ type Watch = {
   movement?: string;
   material?: string;
   gemstone?: string;
+  weight?: string;
   color?: string;
   hardware?: string;
   size?: string;
@@ -955,13 +956,7 @@ export default function Home() {
         .product-wishlist { display: flex; align-items: center; gap: 0.4rem; background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); transition: all 0.2s; padding: 0.75rem 1rem; }
         .product-wishlist:hover { border-color: var(--gold); color: var(--gold); }
         .product-desc { font-size: 0.82rem; line-height: 2; color: var(--gray-mid); }
-        .product-specs-grid { display: flex; flex-wrap: wrap; gap: 1.5rem 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        .product-spec-item { flex: 0 1 170px; display: flex; gap: 0.6rem; align-items: flex-start; }
-        .product-spec-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--gold); margin-top: 1px; }
-        .product-spec-text { display: flex; flex-direction: column; gap: 0.15rem; }
-        .product-spec-text-label { font-size: 0.7rem; font-weight: 400; color: var(--gray-mid); letter-spacing: 0.02em; }
-        .product-spec-text-value { font-size: 0.95rem; color: var(--black); font-weight: 500; }
-        @media (max-width: 600px) { .product-spec-item { flex-basis: 45%; } .product-cta-row { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .product-cta-row { grid-template-columns: 1fr; } }
 
         /* FULL SPECIFICATION */
         .full-spec-section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); }
@@ -1591,63 +1586,61 @@ export default function Home() {
 
                 {selectedWatch.description && <p className="product-desc">{selectedWatch.description}</p>}
 
-                <div className="product-specs-grid">
-                  {[
-                    { label: "Condition", value: selectedWatch.condition, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-                    { label: "Purchase Year", value: selectedWatch.year || "N/A", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-                    { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
-                    { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
-                    { label: "Status", value: selectedWatch.status, icon: "M5 13l4 4L19 7" },
-                    ...(selectedWatch.case_size ? [{ label: "Size", value: selectedWatch.case_size, icon: "M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0-6a10 10 0 100 20 10 10 0 000-20z" }] : []),
-                    ...(selectedWatch.movement ? [{ label: "Movement", value: selectedWatch.movement, icon: "M13 10V3L4 14h7v7l9-11h-7z" }] : []),
-                    ...(selectedWatch.dial_color ? [{ label: "Dial Colour", value: selectedWatch.dial_color, icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2V9a2 2 0 00-2-2h-2.343" }] : []),
-                    ...(selectedWatch.case_material ? [{ label: "Case Material", value: selectedWatch.case_material, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" }] : []),
-                    ...(selectedWatch.bracelet_material ? [{ label: "Bracelet", value: selectedWatch.bracelet_material, icon: "M13 10V3L4 14h7v7l9-11h-7z" }] : []),
-                    ...(selectedWatch.material ? [{ label: "Material", value: selectedWatch.material, icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" }] : []),
-                    ...(selectedWatch.gemstone ? [{ label: "Gemstone", value: selectedWatch.gemstone, icon: "M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0-6a10 10 0 100 20 10 10 0 000-20z" }] : []),
-                    ...(selectedWatch.color ? [{ label: "Colour", value: selectedWatch.color, icon: "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h10a2 2 0 002-2V9a2 2 0 00-2-2h-2.343" }] : []),
-                    ...(selectedWatch.hardware ? [{ label: "Hardware", value: selectedWatch.hardware, icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" }] : []),
-                  ].filter(s => s.value).map(s => (
-                    <div className="product-spec-item" key={s.label}>
-                      <svg className="product-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={s.icon} /></svg>
-                      <div className="product-spec-text">
-                        <span className="product-spec-text-label">{s.label}</span>
-                        <span className="product-spec-text-value">{s.value}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {selectedWatch.category === "watches" && (() => {
+                {(() => {
+                  const cat = selectedWatch.category;
                   const specColumns = [
-                    { title: "Movement", rows: [
-                      { label: "Movement", value: selectedWatch.movement },
-                      { label: "Calibre", value: selectedWatch.calibre },
+                    { title: "Details", rows: [
+                      { label: "Condition", value: selectedWatch.condition },
+                      { label: "Purchase Year", value: selectedWatch.year },
+                      { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included" },
+                      { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
+                      { label: "Status", value: selectedWatch.status },
+                      { label: "Serial Number", value: selectedWatch.serial_number },
                     ]},
-                    { title: "Case", rows: [
-                      { label: "Case Size", value: selectedWatch.case_size },
-                      { label: "Case Thickness", value: selectedWatch.case_thickness },
-                      { label: "Case Shape", value: selectedWatch.case_shape },
-                      { label: "Case Material", value: selectedWatch.case_material },
-                      { label: "Case Back", value: selectedWatch.case_back },
-                      { label: "Glass Material", value: selectedWatch.glass_material },
-                    ]},
-                    { title: "Dial", rows: [
-                      { label: "Dial Colour", value: selectedWatch.dial_color },
-                    ]},
-                    { title: "Strap", rows: [
-                      { label: "Strap Material", value: selectedWatch.bracelet_material },
-                      { label: "Strap Colour", value: selectedWatch.strap_colour },
-                      { label: "Clasp Type", value: selectedWatch.clasp_type },
-                      { label: "Buckle/Clasp Material", value: selectedWatch.buckle_clasp_material },
-                    ]},
-                    { title: "Other", rows: [
-                      { label: "Precious Stone", value: selectedWatch.gemstone },
-                      { label: "Gender", value: selectedWatch.gender },
-                      { label: "Water Resistance (M)", value: selectedWatch.water_resistance },
-                      { label: "Warranty Period", value: selectedWatch.warranty_period, link: selectedWatch.warranty_register_url },
-                      { label: "Country Of Origin", value: selectedWatch.country_of_origin },
-                    ]},
+                    ...(cat === "watches" ? [
+                      { title: "Movement", rows: [
+                        { label: "Movement", value: selectedWatch.movement },
+                        { label: "Calibre", value: selectedWatch.calibre },
+                      ]},
+                      { title: "Case", rows: [
+                        { label: "Case Size", value: selectedWatch.case_size },
+                        { label: "Case Thickness", value: selectedWatch.case_thickness },
+                        { label: "Case Shape", value: selectedWatch.case_shape },
+                        { label: "Case Material", value: selectedWatch.case_material },
+                        { label: "Case Back", value: selectedWatch.case_back },
+                        { label: "Glass Material", value: selectedWatch.glass_material },
+                      ]},
+                      { title: "Dial", rows: [
+                        { label: "Dial Colour", value: selectedWatch.dial_color },
+                      ]},
+                      { title: "Strap", rows: [
+                        { label: "Strap Material", value: selectedWatch.bracelet_material },
+                        { label: "Strap Colour", value: selectedWatch.strap_colour },
+                        { label: "Clasp Type", value: selectedWatch.clasp_type },
+                        { label: "Buckle/Clasp Material", value: selectedWatch.buckle_clasp_material },
+                      ]},
+                      { title: "Other", rows: [
+                        { label: "Precious Stone", value: selectedWatch.gemstone },
+                        { label: "Gender", value: selectedWatch.gender },
+                        { label: "Water Resistance (M)", value: selectedWatch.water_resistance },
+                        { label: "Warranty Period", value: selectedWatch.warranty_period, link: selectedWatch.warranty_register_url },
+                        { label: "Country Of Origin", value: selectedWatch.country_of_origin },
+                      ]},
+                    ] : []),
+                    ...(cat === "jewellery" ? [
+                      { title: "Jewellery", rows: [
+                        { label: "Material", value: selectedWatch.material },
+                        { label: "Gemstone", value: selectedWatch.gemstone },
+                        { label: "Weight", value: selectedWatch.weight },
+                      ]},
+                    ] : []),
+                    ...(cat === "bags" ? [
+                      { title: "Bag", rows: [
+                        { label: "Colour", value: selectedWatch.color },
+                        { label: "Hardware", value: selectedWatch.hardware },
+                        { label: "Size", value: selectedWatch.size },
+                      ]},
+                    ] : []),
                   ].map(col => ({ ...col, rows: col.rows.filter(r => r.value) })).filter(col => col.rows.length > 0);
 
                   const topRow = [

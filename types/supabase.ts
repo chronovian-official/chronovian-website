@@ -43,6 +43,7 @@ export type Database = {
           movement: string | null;
           material: string | null;
           gemstone: string | null;
+          weight: string | null;
           color: string | null;
           hardware: string | null;
           size: string | null;
@@ -87,6 +88,7 @@ export type Database = {
           movement?: string | null;
           material?: string | null;
           gemstone?: string | null;
+          weight?: string | null;
           color?: string | null;
           hardware?: string | null;
           size?: string | null;
@@ -131,6 +133,7 @@ export type Database = {
           movement?: string | null;
           material?: string | null;
           gemstone?: string | null;
+          weight?: string | null;
           color?: string | null;
           hardware?: string | null;
           size?: string | null;
