@@ -919,7 +919,7 @@ export default function Home() {
         .product-breadcrumb button { background: none; border: none; cursor: pointer; color: var(--gray-light); font-family: 'Jost', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; padding: 0; }
         .product-breadcrumb button:hover { color: var(--gold); }
         .product-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 5rem; align-items: start; }
-        .product-gallery { display: flex; flex-direction: row; gap: 1rem; width: 100%; }
+        .product-gallery { display: flex; flex-direction: row; gap: 1rem; width: 100%; position: sticky; top: 90px; align-self: start; }
         .product-img-main { flex: 1; min-width: 0; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
         .product-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
         .product-img-main video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1207,7 +1207,7 @@ export default function Home() {
           .mobile-menu { top: 64px; }
           .sell-steps { grid-template-columns: 1fr; }
           .product-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-          .product-gallery { flex-direction: column-reverse; }
+          .product-gallery { flex-direction: column-reverse; position: static; }
           .product-thumbs { flex-direction: row; gap: 0.4rem; max-height: none; overflow-x: auto; overflow-y: hidden; }
           .cart-page-grid { grid-template-columns: 1fr; }
           .checkout-grid { grid-template-columns: 1fr; }
