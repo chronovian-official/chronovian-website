@@ -949,7 +949,7 @@ export default function Home() {
         .product-price-tax-note { font-size: 0.62rem; color: var(--gray-light); letter-spacing: 0.04em; }
         .product-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
         .btn-contact-us { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; text-decoration: none; display: block; }
-        .btn-contact-us:hover { background: #222; }
+        .btn-contact-us:hover { background: var(--burgundy-light); }
         .btn-buy-online { padding: 1rem; font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; background: white; color: var(--black); border: 1px solid var(--black); cursor: pointer; font-family: 'Jost', sans-serif; transition: all 0.2s; text-align: center; }
         .btn-buy-online:hover { background: var(--burgundy); color: white; }
         .product-secondary-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
