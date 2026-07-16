@@ -38,6 +38,21 @@ type Product = {
   size: string;
   serial_number: string;
   featured: boolean;
+  collection: string;
+  series: string;
+  calibre: string;
+  case_thickness: string;
+  case_shape: string;
+  case_back: string;
+  glass_material: string;
+  strap_colour: string;
+  clasp_type: string;
+  buckle_clasp_material: string;
+  gender: string;
+  water_resistance: string;
+  warranty_period: string;
+  warranty_register_url: string;
+  country_of_origin: string;
 };
 
 const emptyProduct: Product = {
@@ -48,6 +63,10 @@ const emptyProduct: Product = {
   material: "", gemstone: "", weight: "",
   color: "", hardware: "", size: "",
   serial_number: "", featured: false,
+  collection: "", series: "", calibre: "", case_thickness: "", case_shape: "",
+  case_back: "", glass_material: "", strap_colour: "", clasp_type: "",
+  buckle_clasp_material: "", gender: "", water_resistance: "",
+  warranty_period: "", warranty_register_url: "", country_of_origin: "",
 };
 
 type Banner = {
@@ -543,6 +562,11 @@ export default function AdminPage() {
                   <>
                     <p className="sd">Watch Details</p>
                     <div className="fg3">
+                      <div><label className="al">Collection</label><input className="ai" value={form.collection} onChange={e => setForm(f => ({ ...f, collection: e.target.value }))} placeholder="e.g. Big Bang" /></div>
+                      <div><label className="al">Series</label><input className="ai" value={form.series} onChange={e => setForm(f => ({ ...f, series: e.target.value }))} placeholder="e.g. N/A" /></div>
+                      <div><label className="al">Calibre</label><input className="ai" value={form.calibre} onChange={e => setForm(f => ({ ...f, calibre: e.target.value }))} placeholder="e.g. HUB9015" /></div>
+                    </div>
+                    <div className="fg3">
                       <div><label className="al">Dial Colour</label><input className="ai" value={form.dial_color} onChange={e => setForm(f => ({ ...f, dial_color: e.target.value }))} placeholder="e.g. Black" /></div>
                       <div><label className="al">Case Material</label><input className="ai" value={form.case_material} onChange={e => setForm(f => ({ ...f, case_material: e.target.value }))} placeholder="e.g. Stainless Steel" /></div>
                       <div><label className="al">Bracelet</label><input className="ai" value={form.bracelet_material} onChange={e => setForm(f => ({ ...f, bracelet_material: e.target.value }))} placeholder="e.g. Oyster" /></div>
@@ -550,6 +574,33 @@ export default function AdminPage() {
                     <div className="fg">
                       <div><label className="al">Case Size</label><input className="ai" value={form.case_size} onChange={e => setForm(f => ({ ...f, case_size: e.target.value }))} placeholder="e.g. 41mm" /></div>
                       <div><label className="al">Movement</label><input className="ai" value={form.movement} onChange={e => setForm(f => ({ ...f, movement: e.target.value }))} placeholder="e.g. Automatic Cal. 3235" /></div>
+                    </div>
+                    <div className="fg3">
+                      <div><label className="al">Case Thickness</label><input className="ai" value={form.case_thickness} onChange={e => setForm(f => ({ ...f, case_thickness: e.target.value }))} placeholder="e.g. 15.80 mm" /></div>
+                      <div><label className="al">Case Shape</label><input className="ai" value={form.case_shape} onChange={e => setForm(f => ({ ...f, case_shape: e.target.value }))} placeholder="e.g. Round" /></div>
+                      <div><label className="al">Case Back</label><input className="ai" value={form.case_back} onChange={e => setForm(f => ({ ...f, case_back: e.target.value }))} placeholder="e.g. See-through Case Back" /></div>
+                    </div>
+                    <div className="fg3">
+                      <div><label className="al">Glass Material</label><input className="ai" value={form.glass_material} onChange={e => setForm(f => ({ ...f, glass_material: e.target.value }))} placeholder="e.g. Sapphire Crystal" /></div>
+                      <div><label className="al">Strap Colour</label><input className="ai" value={form.strap_colour} onChange={e => setForm(f => ({ ...f, strap_colour: e.target.value }))} placeholder="e.g. Black" /></div>
+                      <div><label className="al">Clasp Type</label><input className="ai" value={form.clasp_type} onChange={e => setForm(f => ({ ...f, clasp_type: e.target.value }))} placeholder="e.g. Folding Clasp" /></div>
+                    </div>
+                    <div className="fg3">
+                      <div><label className="al">Buckle/Clasp Material</label><input className="ai" value={form.buckle_clasp_material} onChange={e => setForm(f => ({ ...f, buckle_clasp_material: e.target.value }))} placeholder="e.g. Deployant Buckle" /></div>
+                      <div><label className="al">Precious Stone</label><input className="ai" value={form.gemstone} onChange={e => setForm(f => ({ ...f, gemstone: e.target.value }))} placeholder="e.g. Diamond" /></div>
+                      <div><label className="al">Gender</label>
+                        <select className="ai" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}>
+                          <option value="">Select</option><option>Men</option><option>Women</option><option>Unisex</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="fg3">
+                      <div><label className="al">Water Resistance (M)</label><input className="ai" value={form.water_resistance} onChange={e => setForm(f => ({ ...f, water_resistance: e.target.value }))} placeholder="e.g. 30" /></div>
+                      <div><label className="al">Warranty Period</label><input className="ai" value={form.warranty_period} onChange={e => setForm(f => ({ ...f, warranty_period: e.target.value }))} placeholder="e.g. 5 years warranty, extendable to 10 years." /></div>
+                      <div><label className="al">Country Of Origin</label><input className="ai" value={form.country_of_origin} onChange={e => setForm(f => ({ ...f, country_of_origin: e.target.value }))} placeholder="e.g. Switzerland" /></div>
+                    </div>
+                    <div className="fg">
+                      <div><label className="al">Warranty Register URL</label><input className="ai" value={form.warranty_register_url} onChange={e => setForm(f => ({ ...f, warranty_register_url: e.target.value }))} placeholder="e.g. https://brand.com/warranty-register" /></div>
                     </div>
                   </>
                 )}

@@ -41,6 +41,21 @@ type Watch = {
   hardware?: string;
   size?: string;
   serial_number?: string;
+  collection?: string;
+  series?: string;
+  calibre?: string;
+  case_thickness?: string;
+  case_shape?: string;
+  case_back?: string;
+  glass_material?: string;
+  strap_colour?: string;
+  clasp_type?: string;
+  buckle_clasp_material?: string;
+  gender?: string;
+  water_resistance?: string;
+  warranty_period?: string;
+  warranty_register_url?: string;
+  country_of_origin?: string;
 };
 
 // Fallback placeholder image
@@ -310,6 +325,7 @@ export default function Home() {
 
   const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setProfileError(null); setProfileMessage(null); setProfileSaving(true);
     try {
       const sb = getSupabase();
@@ -946,6 +962,20 @@ export default function Home() {
         .product-spec-text-label { font-size: 0.7rem; font-weight: 400; color: var(--gray-mid); letter-spacing: 0.02em; }
         .product-spec-text-value { font-size: 0.95rem; color: var(--black); font-weight: 500; }
         @media (max-width: 600px) { .product-specs-grid { grid-template-columns: repeat(2, 1fr); } .product-cta-row { grid-template-columns: 1fr; } }
+
+        /* FULL SPECIFICATION */
+        .full-spec-section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+        .full-spec-eyebrow { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.5rem; }
+        .full-spec-top-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .full-spec-top-item { display: flex; flex-direction: column; gap: 0.3rem; }
+        .full-spec-columns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem 2rem; }
+        .full-spec-col-title { display: block; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); font-weight: 500; padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
+        .full-spec-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.1rem; }
+        .full-spec-label { font-size: 0.68rem; color: var(--gray-light); }
+        .full-spec-value { font-size: 0.8rem; color: var(--black); font-weight: 500; }
+        .full-spec-link { font-size: 0.7rem; color: var(--gold); text-decoration: underline; }
+        @media (max-width: 900px) { .full-spec-columns { grid-template-columns: repeat(2, 1fr); } .full-spec-top-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .full-spec-columns { grid-template-columns: 1fr; } .full-spec-top-row { grid-template-columns: 1fr; } }
 
         /* CART PAGE */
         .cart-page { padding: 4rem 2.5rem; max-width: 1200px; margin: 0 auto; min-height: 60vh; }
@@ -1587,6 +1617,82 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+
+                {selectedWatch.category === "watches" && (() => {
+                  const specColumns = [
+                    { title: "Movement", rows: [
+                      { label: "Movement", value: selectedWatch.movement },
+                      { label: "Calibre", value: selectedWatch.calibre },
+                    ]},
+                    { title: "Case", rows: [
+                      { label: "Case Size", value: selectedWatch.case_size },
+                      { label: "Case Thickness", value: selectedWatch.case_thickness },
+                      { label: "Case Shape", value: selectedWatch.case_shape },
+                      { label: "Case Material", value: selectedWatch.case_material },
+                      { label: "Case Back", value: selectedWatch.case_back },
+                      { label: "Glass Material", value: selectedWatch.glass_material },
+                    ]},
+                    { title: "Dial", rows: [
+                      { label: "Dial Colour", value: selectedWatch.dial_color },
+                    ]},
+                    { title: "Strap", rows: [
+                      { label: "Strap Material", value: selectedWatch.bracelet_material },
+                      { label: "Strap Colour", value: selectedWatch.strap_colour },
+                      { label: "Clasp Type", value: selectedWatch.clasp_type },
+                      { label: "Buckle/Clasp Material", value: selectedWatch.buckle_clasp_material },
+                    ]},
+                    { title: "Other", rows: [
+                      { label: "Precious Stone", value: selectedWatch.gemstone },
+                      { label: "Gender", value: selectedWatch.gender },
+                      { label: "Water Resistance (M)", value: selectedWatch.water_resistance },
+                      { label: "Warranty Period", value: selectedWatch.warranty_period, link: selectedWatch.warranty_register_url },
+                      { label: "Country Of Origin", value: selectedWatch.country_of_origin },
+                    ]},
+                  ].map(col => ({ ...col, rows: col.rows.filter(r => r.value) })).filter(col => col.rows.length > 0);
+
+                  const topRow = [
+                    { label: "Brand", value: selectedWatch.brand },
+                    { label: "Collection", value: selectedWatch.collection },
+                    { label: "Series", value: selectedWatch.series },
+                    { label: "Model No", value: selectedWatch.ref },
+                  ].filter(r => r.value);
+
+                  if (specColumns.length === 0 && topRow.length === 0) return null;
+
+                  return (
+                    <div className="full-spec-section">
+                      <span className="full-spec-eyebrow">Full Specification</span>
+                      {topRow.length > 0 && (
+                        <div className="full-spec-top-row">
+                          {topRow.map(r => (
+                            <div key={r.label} className="full-spec-top-item">
+                              <span className="full-spec-label">{r.label}</span>
+                              <span className="full-spec-value">{r.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {specColumns.length > 0 && (
+                        <div className="full-spec-columns">
+                          {specColumns.map(col => (
+                            <div className="full-spec-col" key={col.title}>
+                              <span className="full-spec-col-title">{col.title}</span>
+                              {col.rows.map(r => (
+                                <div className="full-spec-row" key={r.label}>
+                                  <span className="full-spec-label">{r.label}</span>
+                                  <span className="full-spec-value">
+                                    {r.value}
+                                    {(r as any).link && <><br /><a href={(r as any).link} target="_blank" rel="noopener noreferrer" className="full-spec-link">Register here</a></>}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
