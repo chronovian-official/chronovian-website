@@ -996,6 +996,7 @@ export default function Home() {
         /* FULL SPECIFICATION */
         .full-spec-section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); }
         .similar-products-section { margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border); }
+        .you-may-like-title { font-family: 'Jost', sans-serif; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); margin-bottom: 2rem; }
         .similar-products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
         @media (max-width: 768px) { .similar-products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
         .full-spec-eyebrow { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.5rem; }
@@ -1753,7 +1754,7 @@ export default function Home() {
               return (
                 <div className="similar-products-section">
                   <span className="section-eyebrow">More From {selectedWatch.brand}</span>
-                  <h2 className="section-title" style={{marginBottom:"2rem"}}>You May Also <em>Like</em></h2>
+                  <h2 className="you-may-like-title">You May Also Like</h2>
                   <div className="similar-products-grid">
                     {similar.map(w => <WatchCard key={w.id} w={w} />)}
                   </div>
