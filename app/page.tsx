@@ -805,11 +805,16 @@ export default function Home() {
         .currency-modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 600; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; overflow-y: auto; }
 
         /* IMAGE ZOOM MODAL */
-        .zoom-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.92); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 4vh 2rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; cursor: zoom-out; }
+        .zoom-overlay { position: fixed; inset: 0; background: #0A0A0A; z-index: 700; display: flex; align-items: center; justify-content: center; padding: 4vh 2rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; cursor: zoom-out; }
         .zoom-overlay.open { opacity: 1; pointer-events: auto; }
         .zoom-img { max-width: 100%; max-height: 92vh; object-fit: contain; cursor: default; }
         .zoom-close { position: fixed; top: 1.5rem; right: 2rem; background: none; border: none; color: white; font-size: 2.5rem; line-height: 1; cursor: pointer; z-index: 701; }
-        @media (max-width: 600px) { .zoom-overlay { padding: 2vh 1rem; } .zoom-close { top: 1rem; right: 1rem; font-size: 2rem; } }
+        .zoom-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 701; }
+        .zoom-nav:hover { background: rgba(255,255,255,0.2); }
+        .zoom-nav-prev { left: 2rem; }
+        .zoom-nav-next { right: 2rem; }
+        .zoom-counter { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.7rem; letter-spacing: 0.1em; z-index: 701; }
+        @media (max-width: 600px) { .zoom-overlay { padding: 2vh 1rem; } .zoom-close { top: 1rem; right: 1rem; font-size: 2rem; } .zoom-nav { width: 38px; height: 38px; font-size: 1.2rem; } .zoom-nav-prev { left: 0.75rem; } .zoom-nav-next { right: 0.75rem; } }
         .currency-modal-overlay.open { opacity: 1; pointer-events: all; }
         .currency-modal { background: white; width: 100%; max-width: 760px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(-10px); transition: transform 0.25s; }
         .currency-modal-overlay.open .currency-modal { transform: translateY(0); }
@@ -996,7 +1001,7 @@ export default function Home() {
         .full-spec-eyebrow { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.5rem; }
         .full-spec-top-row { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
         .full-spec-top-item { flex: 0 1 160px; display: flex; flex-direction: column; gap: 0.3rem; }
-        .full-spec-columns { display: flex; flex-wrap: wrap; gap: 1.5rem 1.75rem; }
+        .full-spec-columns { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.5rem 1.75rem; }
         .full-spec-col { flex: 0 1 190px; }
         .full-spec-col-title { display: block; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); font-weight: 500; padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
         .full-spec-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.85rem; }
@@ -1245,17 +1250,25 @@ export default function Home() {
       `}</style>
 
       {/* IMAGE ZOOM MODAL */}
-      {selectedWatch && (
-        <div className={`zoom-overlay${zoomOpen ? " open" : ""}`} onClick={() => setZoomOpen(false)}>
-          <button className="zoom-close" onClick={() => setZoomOpen(false)}>×</button>
-          <img
-            src={selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch)}
-            alt={selectedWatch.model}
-            className="zoom-img"
-            onClick={e => e.stopPropagation()}
-          />
-        </div>
-      )}
+      {selectedWatch && (() => {
+        const zoomMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
+        return (
+          <div className={`zoom-overlay${zoomOpen ? " open" : ""}`} onClick={() => setZoomOpen(false)}>
+            <button className="zoom-close" onClick={() => setZoomOpen(false)}>×</button>
+            {isVideo(zoomMedia)
+              ? <video src={zoomMedia} controls autoPlay muted playsInline className="zoom-img" onClick={e => e.stopPropagation()} />
+              : <img src={zoomMedia} alt={selectedWatch.model} className="zoom-img" onClick={e => e.stopPropagation()} />
+            }
+            {selectedWatch.images?.length > 1 && (
+              <>
+                <button className="zoom-nav zoom-nav-prev" onClick={e => { e.stopPropagation(); setActiveImgIdx(i => (i - 1 + selectedWatch.images.length) % selectedWatch.images.length); }}>‹</button>
+                <button className="zoom-nav zoom-nav-next" onClick={e => { e.stopPropagation(); setActiveImgIdx(i => (i + 1) % selectedWatch.images.length); }}>›</button>
+                <span className="zoom-counter">{activeImgIdx + 1} / {selectedWatch.images.length}</span>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* AUTH MODAL */}
       <div className={`currency-modal-overlay${authModalOpen ? " open" : ""}`} onClick={() => setAuthModalOpen(false)}>
@@ -1740,7 +1753,7 @@ export default function Home() {
               return (
                 <div className="similar-products-section">
                   <span className="section-eyebrow">More From {selectedWatch.brand}</span>
-                  <h2 className="section-title" style={{marginBottom:"2rem"}}>Similar <em>Products</em></h2>
+                  <h2 className="section-title" style={{marginBottom:"2rem"}}>You May Also <em>Like</em></h2>
                   <div className="similar-products-grid">
                     {similar.map(w => <WatchCard key={w.id} w={w} />)}
                   </div>
