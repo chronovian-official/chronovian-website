@@ -1002,14 +1002,15 @@ export default function Home() {
         .full-spec-eyebrow { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.5rem; }
         .full-spec-top-row { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
         .full-spec-top-item { flex: 0 1 160px; display: flex; flex-direction: column; gap: 0.3rem; }
-        .full-spec-columns { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.5rem 1.75rem; }
-        .full-spec-col { flex: 0 1 190px; }
+        .full-spec-columns { display: flex; align-items: flex-start; gap: 3rem; }
+        .full-spec-col-stack { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.75rem; }
+        .full-spec-col { }
         .full-spec-col-title { display: block; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); font-weight: 500; padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
         .full-spec-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.85rem; }
         .full-spec-label { font-size: 0.68rem; color: var(--gray-light); }
         .full-spec-value { font-size: 0.8rem; color: var(--black); font-weight: 500; }
         .full-spec-link { font-size: 0.7rem; color: var(--gold); text-decoration: underline; }
-        @media (max-width: 600px) { .full-spec-top-item { flex-basis: 45%; } .full-spec-col { flex-basis: 100%; } }
+        @media (max-width: 600px) { .full-spec-top-item { flex-basis: 45%; } .full-spec-columns { flex-direction: column; gap: 1.75rem; } }
 
         /* CART PAGE */
         .cart-page { padding: 4rem 2.5rem; max-width: 1200px; margin: 0 auto; min-height: 60vh; }
@@ -1724,24 +1725,40 @@ export default function Home() {
                           ))}
                         </div>
                       )}
-                      {specColumns.length > 0 && (
-                        <div className="full-spec-columns">
-                          {specColumns.map(col => (
-                            <div className="full-spec-col" key={col.title}>
-                              <span className="full-spec-col-title">{col.title}</span>
-                              {col.rows.map(r => (
-                                <div className="full-spec-row" key={r.label}>
-                                  <span className="full-spec-label">{r.label}</span>
-                                  <span className="full-spec-value">
-                                    {r.value}
-                                    {(r as any).link && <><br /><a href={(r as any).link} target="_blank" rel="noopener noreferrer" className="full-spec-link">Register here</a></>}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {specColumns.length > 0 && (() => {
+                        // Distribute groups into 2 independent vertical stacks, balanced by row count,
+                        // so a short group (e.g. Movement) never gets stretched to match a taller
+                        // neighbour (e.g. Details) — each stack simply ends at its own natural height.
+                        const stacks: (typeof specColumns)[] = [[], []];
+                        const stackWeights = [0, 0];
+                        specColumns.forEach(col => {
+                          const target = stackWeights[0] <= stackWeights[1] ? 0 : 1;
+                          stacks[target].push(col);
+                          stackWeights[target] += col.rows.length + 1;
+                        });
+                        return (
+                          <div className="full-spec-columns">
+                            {stacks.filter(s => s.length > 0).map((stack, si) => (
+                              <div className="full-spec-col-stack" key={si}>
+                                {stack.map(col => (
+                                  <div className="full-spec-col" key={col.title}>
+                                    <span className="full-spec-col-title">{col.title}</span>
+                                    {col.rows.map(r => (
+                                      <div className="full-spec-row" key={r.label}>
+                                        <span className="full-spec-label">{r.label}</span>
+                                        <span className="full-spec-value">
+                                          {r.value}
+                                          {(r as any).link && <><br /><a href={(r as any).link} target="_blank" rel="noopener noreferrer" className="full-spec-link">Register here</a></>}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })()}
