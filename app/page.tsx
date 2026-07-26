@@ -157,6 +157,7 @@ export default function Home() {
   const [addedId, setAddedId] = useState<string | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [activeImgIdx, setActiveImgIdx] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [heroSlides, setHeroSlides] = useState<HeroBanner[]>([]);
@@ -552,6 +553,21 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // If the URL has ?product=<id>, open that product directly (used when a product is opened in a new tab)
+  useEffect(() => {
+    if (allWatches.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("product");
+    if (productId) {
+      const found = allWatches.find(w => w.id === productId);
+      if (found) {
+        setSelectedWatch(found);
+        setActiveImgIdx(0);
+        setPage("product");
+      }
+    }
+  }, [allWatches]);
+
   // Fetch hero banners from Supabase
   useEffect(() => {
     const fetchBanners = async () => {
@@ -631,6 +647,11 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const openProductInNewTab = (w: Watch) => {
+    const url = `${window.location.origin}${window.location.pathname}?product=${w.id}`;
+    window.open(url, "_blank");
+  };
+
   const toggleWishlist = (id: string) =>
     setWishlist(prev => prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id]);
 
@@ -679,7 +700,7 @@ export default function Home() {
 
   const WatchCard = ({ w, showEnquire = false, hoverCart = false }: { w: Watch; showEnquire?: boolean; hoverCart?: boolean }) => (
     <div className="watch-card">
-      <div className="watch-img-wrap" onClick={() => goTo("product", w)}>
+      <div className="watch-img-wrap" onClick={() => openProductInNewTab(w)}>
         <img src={getImg(w)} alt={`${w.brand} ${w.model}`} />
         <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
         <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
@@ -688,7 +709,7 @@ export default function Home() {
         {addedId === w.id && <div className="added-toast">Added to cart ✓</div>}
       </div>
       <span className="watch-brand">{w.brand}</span>
-      <span className="watch-model" onClick={() => goTo("product", w)} style={{cursor:"pointer"}}>{w.model}</span>
+      <span className="watch-model" onClick={() => openProductInNewTab(w)} style={{cursor:"pointer"}}>{w.model}</span>
       <span className="watch-ref">{w.ref}</span>
       <span className="watch-price">{fmtPrice(w.price)}</span>
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
@@ -782,6 +803,13 @@ export default function Home() {
         .currency-trigger svg { transition: transform 0.25s; flex-shrink: 0; }
         .currency-trigger.open svg { transform: rotate(180deg); }
         .currency-modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 600; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; overflow-y: auto; }
+
+        /* IMAGE ZOOM MODAL */
+        .zoom-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.92); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 4vh 2rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; cursor: zoom-out; }
+        .zoom-overlay.open { opacity: 1; pointer-events: auto; }
+        .zoom-img { max-width: 100%; max-height: 92vh; object-fit: contain; cursor: default; }
+        .zoom-close { position: fixed; top: 1.5rem; right: 2rem; background: none; border: none; color: white; font-size: 2.5rem; line-height: 1; cursor: pointer; z-index: 701; }
+        @media (max-width: 600px) { .zoom-overlay { padding: 2vh 1rem; } .zoom-close { top: 1rem; right: 1rem; font-size: 2rem; } }
         .currency-modal-overlay.open { opacity: 1; pointer-events: all; }
         .currency-modal { background: white; width: 100%; max-width: 760px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(-10px); transition: transform 0.25s; }
         .currency-modal-overlay.open .currency-modal { transform: translateY(0); }
@@ -962,13 +990,16 @@ export default function Home() {
 
         /* FULL SPECIFICATION */
         .full-spec-section { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+        .similar-products-section { margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border); }
+        .similar-products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
+        @media (max-width: 768px) { .similar-products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
         .full-spec-eyebrow { display: block; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.5rem; }
-        .full-spec-top-row { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+        .full-spec-top-row { display: flex; flex-wrap: wrap; gap: 1.25rem 2rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
         .full-spec-top-item { flex: 0 1 160px; display: flex; flex-direction: column; gap: 0.3rem; }
-        .full-spec-columns { display: flex; flex-wrap: wrap; gap: 2rem 2.5rem; }
+        .full-spec-columns { display: flex; flex-wrap: wrap; gap: 1.5rem 1.75rem; }
         .full-spec-col { flex: 0 1 190px; }
         .full-spec-col-title { display: block; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--black); font-weight: 500; padding-bottom: 0.6rem; margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
-        .full-spec-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.1rem; }
+        .full-spec-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.85rem; }
         .full-spec-label { font-size: 0.68rem; color: var(--gray-light); }
         .full-spec-value { font-size: 0.8rem; color: var(--black); font-weight: 500; }
         .full-spec-link { font-size: 0.7rem; color: var(--gold); text-decoration: underline; }
@@ -1213,6 +1244,19 @@ export default function Home() {
         }
       `}</style>
 
+      {/* IMAGE ZOOM MODAL */}
+      {selectedWatch && (
+        <div className={`zoom-overlay${zoomOpen ? " open" : ""}`} onClick={() => setZoomOpen(false)}>
+          <button className="zoom-close" onClick={() => setZoomOpen(false)}>×</button>
+          <img
+            src={selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch)}
+            alt={selectedWatch.model}
+            className="zoom-img"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       {/* AUTH MODAL */}
       <div className={`currency-modal-overlay${authModalOpen ? " open" : ""}`} onClick={() => setAuthModalOpen(false)}>
         <div className="auth-modal" onClick={e => e.stopPropagation()}>
@@ -1323,7 +1367,7 @@ export default function Home() {
               <div className="search-results-grid">
                 {searchResults.map(w => (
                   <div className="watch-card" key={w.id}>
-                    <div className="watch-img-wrap" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }}>
+                    <div className="watch-img-wrap" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }}>
                       <img src={getImg(w)} alt={w.model} />
                       <span className="watch-status">{w.status}</span>
                       <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
@@ -1331,7 +1375,7 @@ export default function Home() {
                       </button>
                     </div>
                     <span className="watch-brand">{w.brand}</span>
-                    <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); goTo("product", w); }} style={{cursor:"pointer"}}>{w.model}</span>
+                    <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }} style={{cursor:"pointer"}}>{w.model}</span>
                     <span className="watch-ref">{w.ref}</span>
                     <span className="watch-price">{fmtPrice(w.price)}</span>
                     <div className="card-actions">
@@ -1553,7 +1597,7 @@ export default function Home() {
                     const currentMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
                     return isVideo(currentMedia)
                       ? <video key={currentMedia} src={currentMedia} controls autoPlay muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}} />
-                      : <img src={currentMedia} alt={`${selectedWatch.model} ${activeImgIdx + 1}`} />;
+                      : <img src={currentMedia} alt={`${selectedWatch.model} ${activeImgIdx + 1}`} onClick={() => setZoomOpen(true)} />;
                   })()}
                   {selectedWatch.images?.length > 1 && (
                     <>
@@ -1597,7 +1641,6 @@ export default function Home() {
                       { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included" },
                       { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
                       { label: "Status", value: selectedWatch.status },
-                      { label: "Serial Number", value: selectedWatch.serial_number },
                     ]},
                     ...(cat === "watches" ? [
                       { title: "Movement", rows: [
@@ -1690,6 +1733,20 @@ export default function Home() {
                 })()}
               </div>
             </div>
+
+            {(() => {
+              const similar = allWatches.filter(w => w.brand === selectedWatch.brand && w.id !== selectedWatch.id).slice(0, 4);
+              if (similar.length === 0) return null;
+              return (
+                <div className="similar-products-section">
+                  <span className="section-eyebrow">More From {selectedWatch.brand}</span>
+                  <h2 className="section-title" style={{marginBottom:"2rem"}}>Similar <em>Products</em></h2>
+                  <div className="similar-products-grid">
+                    {similar.map(w => <WatchCard key={w.id} w={w} />)}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </main>
       )}
