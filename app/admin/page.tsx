@@ -94,7 +94,7 @@ export default function AdminPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [savingCustomerId, setSavingCustomerId] = useState<string | null>(null);
-  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners" | "homepage" | "customers">("products");
+  const [tab, setTab] = useState<"products" | "bookings" | "orders" | "banners" | "categories" | "customers">("products");
   const [banners, setBanners] = useState<Banner[]>([]);
   const [bannerForm, setBannerForm] = useState<Banner>(emptyBanner);
   const [editingBanner, setEditingBanner] = useState<string | null>(null);
@@ -465,7 +465,7 @@ export default function AdminPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <span style={{ fontFamily: "Georgia,serif", fontSize: "1rem", letterSpacing: "0.15em", textTransform: "uppercase" }}>Chronovian Admin</span>
           <div>
-            {(["products", "banners", "homepage", "bookings", "orders", "customers"] as const).map(t => (
+            {(["products", "banners", "categories", "bookings", "orders", "customers"] as const).map(t => (
               <button key={t} className={`tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</button>
             ))}
           </div>
@@ -802,7 +802,7 @@ export default function AdminPage() {
         )}
 
         {/* HOMEPAGE TAB */}
-        {tab === "homepage" && (
+        {tab === "categories" && (
           <div>
             <div style={{ marginBottom: "2rem" }}>
               <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Homepage Category Images</h2>
