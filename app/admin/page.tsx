@@ -398,9 +398,9 @@ export default function AdminPage() {
 
   if (!authed) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F3F0", fontFamily: "sans-serif" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F3F0", fontFamily: "sans-serif", color: "#1A1A1A" }}>
         <div style={{ background: "white", padding: "3rem", width: "380px", boxShadow: "0 4px 32px rgba(0,0,0,0.08)" }}>
-          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "1.5rem", fontWeight: 400, marginBottom: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>Chronovian</h1>
+          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "1.5rem", fontWeight: 400, marginBottom: "0.5rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#6E1F2E" }}>Chronovian</h1>
           <p style={{ fontSize: "0.7rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#9A7340", marginBottom: "2rem" }}>Admin Panel</p>
           <input type="password" placeholder="Enter admin password" value={password}
             onChange={e => setPassword(e.target.value)}
@@ -408,7 +408,7 @@ export default function AdminPage() {
             style={{ width: "100%", padding: "0.85rem 1rem", border: "1px solid #E5E3E0", fontSize: "0.85rem", marginBottom: "1rem", outline: "none", boxSizing: "border-box", fontFamily: "sans-serif" }}
           />
           <button onClick={() => password === ADMIN_PASSWORD ? setAuthed(true) : showMsg("Incorrect password", "error")}
-            style={{ width: "100%", padding: "0.85rem", background: "#9A7340", color: "white", border: "none", cursor: "pointer", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "sans-serif" }}>
+            style={{ width: "100%", padding: "0.85rem", background: "#6E1F2E", color: "white", border: "none", cursor: "pointer", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "sans-serif" }}>
             Enter
           </button>
           {msg && <p style={{ color: msg.type === "error" ? "#c0392b" : "#2e7d32", fontSize: "0.75rem", marginTop: "0.75rem" }}>{msg.text}</p>}
@@ -418,15 +418,15 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F3F0", fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#F5F3F0", fontFamily: "sans-serif", color: "#1A1A1A" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .ai { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; transition: border-color 0.2s; font-weight: 400; font-family: sans-serif; }
+        .ai { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; transition: border-color 0.2s; font-weight: 400; font-family: sans-serif; color: #1A1A1A; }
         .ai:focus { border-color: #9A7340; }
-        .as { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; cursor: pointer; font-family: sans-serif; }
+        .as { width: 100%; padding: 0.75rem 1rem; border: 1px solid #E5E3E0; background: white; font-size: 0.82rem; outline: none; cursor: pointer; font-family: sans-serif; color: #1A1A1A; }
         .al { font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6B6B6B; display: block; margin-bottom: 0.4rem; }
         .ab { padding: 0.65rem 1.25rem; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; border: none; cursor: pointer; font-family: sans-serif; transition: all 0.2s; white-space: nowrap; }
-        .ab-gold { background: #9A7340; color: white; } .ab-gold:hover { background: #B8935A; }
+        .ab-gold { background: #6E1F2E; color: white; } .ab-gold:hover { background: #8A2E40; }
         .ab-black { background: #0A0A0A; color: white; } .ab-black:hover { background: #333; }
         .ab-out { background: none; border: 1px solid #E5E3E0; color: #0A0A0A; } .ab-out:hover { border-color: #0A0A0A; }
         .ab-red { background: none; border: 1px solid #E5E3E0; color: #c0392b; } .ab-red:hover { background: #fff5f5; border-color: #c0392b; }
