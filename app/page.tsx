@@ -1216,7 +1216,7 @@ export default function Home() {
         .filters-switch-wrap { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; user-select: none; }
         .filters-switch-label { font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); }
         .filters-switch { position: relative; width: 38px; height: 21px; background: var(--border); border-radius: 11px; transition: background 0.2s; flex-shrink: 0; }
-        .filters-switch.on { background: var(--gold); }
+        .filters-switch.on { background: var(--burgundy); }
         .filters-switch-knob { position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         .filters-switch.on .filters-switch-knob { transform: translateX(17px); }
         .sort-dropdown-wrap { position: relative; }
@@ -1265,7 +1265,7 @@ export default function Home() {
         @media (max-width: 600px) { .listing-toolbar { flex-direction: row; justify-content: space-between; } .sort-menu { left: 0; right: auto; width: 100%; } }
         .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
-        .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
+        .watches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem; align-items: start; }
 
         /* PRODUCT PAGE */
         .product-page { padding: 3rem 2.5rem; max-width: 1200px; margin: 0 auto; }
@@ -2551,7 +2551,7 @@ export default function Home() {
           <div className="watches-page">
             <div className="watches-page-header">
               <span className="section-eyebrow">Fine Jewellery</span>
-              <h1 className="section-title">Jewellery <em>Collection</em></h1>
+              <h1 className="section-title">Jewellery</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
             <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
@@ -2591,7 +2591,7 @@ export default function Home() {
           <div className="watches-page">
             <div className="watches-page-header">
               <span className="section-eyebrow">Luxury Bags</span>
-              <h1 className="section-title">Bags <em>Collection</em></h1>
+              <h1 className="section-title">Bags</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
             <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
@@ -2631,7 +2631,7 @@ export default function Home() {
           <div className="watches-page">
             <div className="watches-page-header">
               <span className="section-eyebrow">Luxury Accessories</span>
-              <h1 className="section-title">Accessories <em>Collection</em></h1>
+              <h1 className="section-title">Accessories</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
             <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
