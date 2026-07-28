@@ -195,7 +195,7 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [page, setPage] = useState<PageType>("home");
   const [filterBrand, setFilterBrand] = useState("All");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [expandedFacet, setExpandedFacet] = useState<string | null>(null);
   const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
   const [priceMin, setPriceMin] = useState("");
@@ -792,11 +792,13 @@ export default function Home() {
     return sortWatchList(list);
   };
 
-  const renderMobileFiltersToggle = () => (
-    <button className="filters-toggle-btn" onClick={() => setFiltersOpen(true)}>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 6h16M8 12h8M11 18h2" /></svg>
-      Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-    </button>
+  const renderFiltersToggle = () => (
+    <label className="filters-switch-wrap" onClick={() => setFiltersOpen(o => !o)}>
+      <span className="filters-switch-label">Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</span>
+      <span className={`filters-switch${filtersOpen ? " on" : ""}`}>
+        <span className="filters-switch-knob" />
+      </span>
+    </label>
   );
 
   const renderSortControl = () => (
@@ -822,8 +824,8 @@ export default function Home() {
     const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
     return (
       <>
-        {filtersOpen && <div className="filters-sidebar-overlay" onClick={() => setFiltersOpen(false)} />}
-        <aside className={`filters-sidebar${filtersOpen ? " mobile-open" : ""}`}>
+        <div className="filters-sidebar-overlay" onClick={() => setFiltersOpen(false)} />
+        <aside className="filters-sidebar">
         <div className="filters-sidebar-header">
           <span className="filters-sidebar-title">Filters</span>
           <button className="filters-sidebar-close" onClick={() => setFiltersOpen(false)}>×</button>
@@ -1207,11 +1209,16 @@ export default function Home() {
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
 
         /* LISTING LAYOUT WITH FILTER SIDEBAR */
-        .listing-layout { display: grid; grid-template-columns: 260px 1fr; gap: 3rem; margin-top: 2rem; align-items: start; }
+        .listing-layout { display: grid; grid-template-columns: 260px 1fr; gap: 3rem; margin-top: 2rem; align-items: start; transition: grid-template-columns 0.2s; }
+        .listing-layout.filters-collapsed { grid-template-columns: 1fr; }
         .listing-main { min-width: 0; }
-        .listing-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
-        .filters-toggle-btn { display: none; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--black); padding: 0.6rem 1.1rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.2s; }
-        .filters-toggle-btn:hover { background: var(--black); color: white; }
+        .listing-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+        .filters-switch-wrap { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; user-select: none; }
+        .filters-switch-label { font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); }
+        .filters-switch { position: relative; width: 38px; height: 21px; background: var(--border); border-radius: 11px; transition: background 0.2s; flex-shrink: 0; }
+        .filters-switch.on { background: var(--gold); }
+        .filters-switch-knob { position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .filters-switch.on .filters-switch-knob { transform: translateX(17px); }
         .sort-dropdown-wrap { position: relative; }
         .sort-trigger { background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-mid); cursor: pointer; padding: 0; }
         .sort-trigger strong { color: var(--black); font-weight: 500; }
@@ -1222,7 +1229,7 @@ export default function Home() {
         .sort-option:hover { background: var(--gray-pale); color: var(--black); }
         .sort-option.active { color: var(--gold); font-weight: 500; }
 
-        /* FILTER SIDEBAR (persistent on desktop, drawer on mobile) */
+        /* FILTER SIDEBAR (persistent on desktop when on, drawer on mobile) */
         .filters-sidebar { position: sticky; top: 90px; align-self: start; }
         .filters-sidebar-header { display: none; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
         .filters-sidebar-title { font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -1250,10 +1257,9 @@ export default function Home() {
 
         @media (max-width: 900px) {
           .listing-layout { grid-template-columns: 1fr; }
-          .filters-toggle-btn { display: flex; }
+          .listing-layout.filters-collapsed { grid-template-columns: 1fr; }
           .filters-sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 400; }
-          .filters-sidebar { display: none; }
-          .filters-sidebar.mobile-open { display: block; position: fixed; top: 0; left: 0; bottom: 0; width: 85%; max-width: 340px; background: white; z-index: 401; padding: 1.75rem; overflow-y: auto; }
+          .filters-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 85%; max-width: 340px; background: white; z-index: 401; padding: 1.75rem; overflow-y: auto; }
           .filters-sidebar-header { display: flex; }
         }
         @media (max-width: 600px) { .listing-toolbar { flex-direction: row; justify-content: space-between; } .sort-menu { left: 0; right: auto; width: 100%; } }
@@ -2130,11 +2136,11 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="listing-layout">
-              {renderFilterSidebar("watches")}
+            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
+              {filtersOpen && renderFilterSidebar("watches")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderMobileFiltersToggle()}
+                  {renderFiltersToggle()}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2548,11 +2554,11 @@ export default function Home() {
               <h1 className="section-title">Jewellery <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className="listing-layout">
-              {renderFilterSidebar("jewellery")}
+            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
+              {filtersOpen && renderFilterSidebar("jewellery")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderMobileFiltersToggle()}
+                  {renderFiltersToggle()}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2588,11 +2594,11 @@ export default function Home() {
               <h1 className="section-title">Bags <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className="listing-layout">
-              {renderFilterSidebar("bags")}
+            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
+              {filtersOpen && renderFilterSidebar("bags")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderMobileFiltersToggle()}
+                  {renderFiltersToggle()}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2628,11 +2634,11 @@ export default function Home() {
               <h1 className="section-title">Accessories <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className="listing-layout">
-              {renderFilterSidebar("accessories")}
+            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
+              {filtersOpen && renderFilterSidebar("accessories")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderMobileFiltersToggle()}
+                  {renderFiltersToggle()}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
