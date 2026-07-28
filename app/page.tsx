@@ -195,7 +195,7 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [page, setPage] = useState<PageType>("home");
   const [filterBrand, setFilterBrand] = useState("All");
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filtersOpenMap, setFiltersOpenMap] = useState<Record<string, boolean>>({ watches: true, jewellery: true, bags: true, accessories: true });
   const [expandedFacet, setExpandedFacet] = useState<string | null>(null);
   const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
   const [priceMin, setPriceMin] = useState("");
@@ -722,6 +722,10 @@ export default function Home() {
   };
 
   // Reset filter selections whenever the category changes, so selections don't leak between categories
+  const isFiltersOpen = (category: string) => filtersOpenMap[category] ?? true;
+  const toggleFiltersOpen = (category: string) => setFiltersOpenMap(prev => ({ ...prev, [category]: !(prev[category] ?? true) }));
+  const closeFilters = (category: string) => setFiltersOpenMap(prev => ({ ...prev, [category]: false }));
+
   const prevCategoryRef = useRef<string | null>(null);
   useEffect(() => {
     const isListingPage = ["watches", "jewellery", "bags", "accessories"].includes(page);
@@ -796,10 +800,10 @@ export default function Home() {
     return sortWatchList(list);
   };
 
-  const renderFiltersToggle = () => (
-    <label className="filters-switch-wrap" onClick={() => setFiltersOpen(o => !o)}>
+  const renderFiltersToggle = (category: string) => (
+    <label className="filters-switch-wrap" onClick={() => toggleFiltersOpen(category)}>
       <span className="filters-switch-label">Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</span>
-      <span className={`filters-switch${filtersOpen ? " on" : ""}`}>
+      <span className={`filters-switch${isFiltersOpen(category) ? " on" : ""}`}>
         <span className="filters-switch-knob" />
       </span>
     </label>
@@ -828,11 +832,11 @@ export default function Home() {
     const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
     return (
       <>
-        <div className="filters-sidebar-overlay" onClick={() => setFiltersOpen(false)} />
+        <div className="filters-sidebar-overlay" onClick={() => closeFilters(category)} />
         <aside className="filters-sidebar">
         <div className="filters-sidebar-header">
           <span className="filters-sidebar-title">Filters</span>
-          <button className="filters-sidebar-close" onClick={() => setFiltersOpen(false)}>×</button>
+          <button className="filters-sidebar-close" onClick={() => closeFilters(category)}>×</button>
         </div>
         {activeFilterCount > 0 && <button className="filters-clear-btn" onClick={clearAllFilters}>Clear All Filters ({activeFilterCount})</button>}
         <div className="facet-accordion">
@@ -2140,11 +2144,11 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
-              {filtersOpen && renderFilterSidebar("watches")}
+            <div className={`listing-layout${isFiltersOpen("watches") ? "" : " filters-collapsed"}`}>
+              {isFiltersOpen("watches") && renderFilterSidebar("watches")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderFiltersToggle()}
+                  {renderFiltersToggle("watches")}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2558,11 +2562,11 @@ export default function Home() {
               <h1 className="section-title">Jewellery</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
-              {filtersOpen && renderFilterSidebar("jewellery")}
+            <div className={`listing-layout${isFiltersOpen("jewellery") ? "" : " filters-collapsed"}`}>
+              {isFiltersOpen("jewellery") && renderFilterSidebar("jewellery")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderFiltersToggle()}
+                  {renderFiltersToggle("jewellery")}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2598,11 +2602,11 @@ export default function Home() {
               <h1 className="section-title">Bags</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
-              {filtersOpen && renderFilterSidebar("bags")}
+            <div className={`listing-layout${isFiltersOpen("bags") ? "" : " filters-collapsed"}`}>
+              {isFiltersOpen("bags") && renderFilterSidebar("bags")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderFiltersToggle()}
+                  {renderFiltersToggle("bags")}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
@@ -2638,11 +2642,11 @@ export default function Home() {
               <h1 className="section-title">Accessories</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
             </div>
-            <div className={`listing-layout${filtersOpen ? "" : " filters-collapsed"}`}>
-              {filtersOpen && renderFilterSidebar("accessories")}
+            <div className={`listing-layout${isFiltersOpen("accessories") ? "" : " filters-collapsed"}`}>
+              {isFiltersOpen("accessories") && renderFilterSidebar("accessories")}
               <div className="listing-main">
                 <div className="listing-toolbar">
-                  {renderFiltersToggle()}
+                  {renderFiltersToggle("accessories")}
                   {renderSortControl()}
                 </div>
                 <div className="watches-grid">
