@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, FormEvent } from "react";
+import { useEffect, useState, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
@@ -200,6 +200,9 @@ export default function Home() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [magnifyActive, setMagnifyActive] = useState(false);
+  const [magnifyPos, setMagnifyPos] = useState({ x: 50, y: 50 });
+  useEffect(() => { if (!zoomOpen) setMagnifyActive(false); }, [zoomOpen]);
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [heroSlides, setHeroSlides] = useState<HeroBanner[]>([]);
@@ -985,7 +988,10 @@ export default function Home() {
         /* IMAGE ZOOM MODAL */
         .zoom-overlay { position: fixed; inset: 0; background: #0A0A0A; z-index: 700; display: flex; align-items: center; justify-content: center; padding: 4vh 2rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; cursor: zoom-out; }
         .zoom-overlay.open { opacity: 1; pointer-events: auto; }
-        .zoom-img { max-width: 100%; max-height: 92vh; object-fit: contain; cursor: default; }
+        .zoom-img { max-width: 100%; max-height: 92vh; object-fit: contain; cursor: default; display: block; }
+        .zoom-img-wrap { position: relative; max-width: 100%; max-height: 92vh; cursor: zoom-in; }
+        .zoom-img-wrap .zoom-img { max-height: 92vh; }
+        .zoom-magnifier { position: absolute; inset: 0; background-repeat: no-repeat; background-size: 220%; pointer-events: none; }
         .zoom-close { position: fixed; top: 1.5rem; right: 2rem; background: none; border: none; color: white; font-size: 2.5rem; line-height: 1; cursor: pointer; z-index: 701; }
         .zoom-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 701; }
         .zoom-nav:hover { background: rgba(255,255,255,0.2); }
@@ -1477,17 +1483,39 @@ export default function Home() {
       {/* IMAGE ZOOM MODAL */}
       {selectedWatch && (() => {
         const zoomMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
+        const handleMagnifyMove = (e: ReactMouseEvent<HTMLDivElement>) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          setMagnifyPos({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
+        };
         return (
           <div className={`zoom-overlay${zoomOpen ? " open" : ""}`} onClick={() => setZoomOpen(false)}>
             <button className="zoom-close" onClick={() => setZoomOpen(false)}>×</button>
             {isVideo(zoomMedia)
               ? <video src={zoomMedia} controls autoPlay muted playsInline className="zoom-img" onClick={e => e.stopPropagation()} />
-              : <img src={zoomMedia} alt={selectedWatch.model} className="zoom-img" onClick={e => e.stopPropagation()} />
+              : (
+                <div
+                  className="zoom-img-wrap"
+                  onClick={e => e.stopPropagation()}
+                  onMouseMove={handleMagnifyMove}
+                  onMouseEnter={() => setMagnifyActive(true)}
+                  onMouseLeave={() => setMagnifyActive(false)}
+                >
+                  <img src={zoomMedia} alt={selectedWatch.model} className="zoom-img" />
+                  {magnifyActive && (
+                    <div
+                      className="zoom-magnifier"
+                      style={{ backgroundImage: `url(${zoomMedia})`, backgroundPosition: `${magnifyPos.x}% ${magnifyPos.y}%` }}
+                    />
+                  )}
+                </div>
+              )
             }
             {selectedWatch.images?.length > 1 && (
               <>
-                <button className="zoom-nav zoom-nav-prev" onClick={e => { e.stopPropagation(); setActiveImgIdx(i => (i - 1 + selectedWatch.images.length) % selectedWatch.images.length); }}>‹</button>
-                <button className="zoom-nav zoom-nav-next" onClick={e => { e.stopPropagation(); setActiveImgIdx(i => (i + 1) % selectedWatch.images.length); }}>›</button>
+                <button className="zoom-nav zoom-nav-prev" onClick={e => { e.stopPropagation(); setMagnifyActive(false); setActiveImgIdx(i => (i - 1 + selectedWatch.images.length) % selectedWatch.images.length); }}>‹</button>
+                <button className="zoom-nav zoom-nav-next" onClick={e => { e.stopPropagation(); setMagnifyActive(false); setActiveImgIdx(i => (i + 1) % selectedWatch.images.length); }}>›</button>
                 <span className="zoom-counter">{activeImgIdx + 1} / {selectedWatch.images.length}</span>
               </>
             )}
