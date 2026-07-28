@@ -679,9 +679,11 @@ export default function Home() {
   }, []);
   useEffect(() => {
     if (heroSlides.length === 0) return;
-    const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), 5000);
+    const currentIsVideo = isVideo(heroSlides[slide]?.image_url || "");
+    const duration = currentIsVideo ? 9000 : 5000;
+    const id = setInterval(() => setSlide(s => (s + 1) % heroSlides.length), duration);
     return () => clearInterval(id);
-  }, [heroSlides.length]);
+  }, [heroSlides.length, slide]);
   useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen || searchOpen) ? "hidden" : ""; }, [menuOpen, cartOpen, searchOpen]);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -1167,7 +1169,7 @@ export default function Home() {
         .hero { position: relative; height: 60vh; min-height: 420px; max-height: 620px; overflow: hidden; background: #111; }
         .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
         .hero-slide.active { opacity: 1; }
-        .hero-slide img { width: 100%; height: 100%; object-fit: cover; opacity: 0.72; }
+        .hero-slide img, .hero-slide video { width: 100%; height: 100%; object-fit: cover; opacity: 0.72; }
         .hero-gradient { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.55) 100%); }
         .hero-content { position: absolute; bottom: 3.5rem; left: 3rem; right: 3rem; color: white; }
         .hero-eyebrow { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 1rem; }
@@ -2988,7 +2990,10 @@ export default function Home() {
           <section className="hero">
             {heroSlides.map((s, i) => (
               <div key={s.id} className={`hero-slide${slide === i ? " active" : ""}`}>
-                <img src={s.image_url} alt={s.headline} />
+                {isVideo(s.image_url)
+                  ? <video src={s.image_url} autoPlay muted loop playsInline />
+                  : <img src={s.image_url} alt={s.headline} />
+                }
               </div>
             ))}
             <div className="hero-gradient" />

@@ -725,23 +725,25 @@ export default function AdminPage() {
               <div style={{ background: "white", padding: "2rem", marginBottom: "2rem", border: "1px solid #E5E3E0" }}>
                 <h3 style={{ fontFamily: "Georgia,serif", fontSize: "1.1rem", fontWeight: 400, marginBottom: "1.5rem" }}>{editingBanner ? "Edit Banner Slide" : "Add New Banner Slide"}</h3>
 
-                <p className="sd">Banner Image</p>
+                <p className="sd">Banner Media</p>
                 <div className="ua" onClick={() => bannerFileRef.current?.click()}>
-                  <input ref={bannerFileRef} type="file" accept="image/*" style={{ display: "none" }}
+                  <input ref={bannerFileRef} type="file" accept="image/*,video/*" style={{ display: "none" }}
                     onChange={e => { if (e.target.files && e.target.files.length > 0) handleBannerImageUpload(e.target.files); }} />
                   {bannerUploading
-                    ? <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>⏳ Uploading image...</p>
+                    ? <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>⏳ Uploading...</p>
                     : bannerForm.image_url
-                      ? <img src={bannerForm.image_url} alt="Banner preview" style={{ maxWidth: "100%", maxHeight: "220px", objectFit: "contain" }} />
+                      ? (isVideo(bannerForm.image_url)
+                          ? <video src={bannerForm.image_url} muted style={{ maxWidth: "100%", maxHeight: "220px", objectFit: "contain" }} />
+                          : <img src={bannerForm.image_url} alt="Banner preview" style={{ maxWidth: "100%", maxHeight: "220px", objectFit: "contain" }} />)
                       : <div>
                           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🖼️</p>
-                          <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>Click to upload a banner image</p>
-                          <p style={{ fontSize: "0.65rem", color: "#ADADAD", marginTop: "0.25rem" }}>Recommended: wide landscape image, 1600px+ width</p>
+                          <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>Click to upload a banner image or video</p>
+                          <p style={{ fontSize: "0.65rem", color: "#ADADAD", marginTop: "0.25rem" }}>Image: wide landscape, 1600px+ width. Video: short clip (5–10s), no audio needed — it will autoplay muted and loop.</p>
                         </div>
                   }
                 </div>
                 {bannerForm.image_url && (
-                  <button className="ab ab-out" style={{ marginTop: "0.75rem" }} onClick={() => setBannerForm(f => ({ ...f, image_url: "" }))}>Remove Image</button>
+                  <button className="ab ab-out" style={{ marginTop: "0.75rem" }} onClick={() => setBannerForm(f => ({ ...f, image_url: "" }))}>Remove {isVideo(bannerForm.image_url) ? "Video" : "Image"}</button>
                 )}
 
                 <p className="sd">Text Overlay</p>
