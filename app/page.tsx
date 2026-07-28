@@ -721,15 +721,19 @@ export default function Home() {
     window.open(url, "_blank");
   };
 
-  // Reset filters whenever leaving a listing page, so selections don't leak between categories
+  // Reset filter selections whenever the category changes, so selections don't leak between categories
+  const prevCategoryRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!["watches", "jewellery", "bags", "accessories"].includes(page)) {
-      setActiveFacets({});
-      setPriceMin("");
-      setPriceMax("");
-      setSortBy("featured");
-      setFiltersOpen(false);
-      setExpandedFacet(null);
+    const isListingPage = ["watches", "jewellery", "bags", "accessories"].includes(page);
+    if (isListingPage) {
+      if (prevCategoryRef.current !== null && prevCategoryRef.current !== page) {
+        setActiveFacets({});
+        setPriceMin("");
+        setPriceMax("");
+        setSortBy("featured");
+        setExpandedFacet(null);
+      }
+      prevCategoryRef.current = page;
     }
   }, [page]);
 
