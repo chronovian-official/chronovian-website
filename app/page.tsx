@@ -57,6 +57,41 @@ type Watch = {
   warranty_period?: string;
   warranty_register_url?: string;
   country_of_origin?: string;
+  created_at?: string;
+};
+
+const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
+  watches: [
+    { key: "dial_color", label: "Dial Colour" },
+    { key: "case_size", label: "Case Size" },
+    { key: "case_material", label: "Case Material" },
+    { key: "bracelet_material", label: "Strap Material" },
+    { key: "movement", label: "Movement" },
+    { key: "gender", label: "Gender" },
+    { key: "case_shape", label: "Case Shape" },
+    { key: "collection", label: "Collection" },
+  ],
+  jewellery: [
+    { key: "brand", label: "Brand" },
+    { key: "material", label: "Material" },
+    { key: "gemstone", label: "Gemstone" },
+  ],
+  bags: [
+    { key: "brand", label: "Brand" },
+    { key: "color", label: "Colour" },
+    { key: "hardware", label: "Hardware" },
+    { key: "size", label: "Size" },
+  ],
+  accessories: [
+    { key: "brand", label: "Brand" },
+  ],
+};
+
+const SORT_LABELS: Record<string, string> = {
+  featured: "Bestseller",
+  "price-desc": "Price – High to Low",
+  "price-asc": "Price – Low to High",
+  new: "New Arrivals",
 };
 
 // Fallback placeholder image
@@ -136,6 +171,13 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [page, setPage] = useState<PageType>("home");
   const [filterBrand, setFilterBrand] = useState("All");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expandedFacet, setExpandedFacet] = useState<string | null>(null);
+  const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [sortBy, setSortBy] = useState<"featured" | "price-desc" | "price-asc" | "new">("featured");
+  const [sortOpen, setSortOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -652,6 +694,135 @@ export default function Home() {
     window.open(url, "_blank");
   };
 
+  // Reset filters whenever leaving a listing page, so selections don't leak between categories
+  useEffect(() => {
+    if (!["watches", "jewellery", "bags", "accessories"].includes(page)) {
+      setActiveFacets({});
+      setPriceMin("");
+      setPriceMax("");
+      setSortBy("featured");
+      setFiltersOpen(false);
+      setExpandedFacet(null);
+    }
+  }, [page]);
+
+  const getFacetOptions = (categoryWatches: Watch[], key: string): string[] => {
+    const values = categoryWatches.map(w => (w as any)[key]).filter((v): v is string => !!v && v.trim() !== "");
+    return Array.from(new Set(values)).sort();
+  };
+
+  const toggleFacetValue = (key: string, value: string) => {
+    setActiveFacets(prev => {
+      const current = prev[key] || [];
+      const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
+      const updated = { ...prev, [key]: next };
+      if (next.length === 0) delete updated[key];
+      return updated;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setActiveFacets({});
+    setPriceMin("");
+    setPriceMax("");
+  };
+
+  const activeFilterCount = Object.values(activeFacets).reduce((n, arr) => n + arr.length, 0) + (priceMin ? 1 : 0) + (priceMax ? 1 : 0);
+
+  const matchesFacets = (w: Watch) =>
+    Object.entries(activeFacets).every(([key, values]) => !values.length || values.includes((w as any)[key]));
+
+  const inPriceRange = (w: Watch) => {
+    const min = priceMin ? parseInt(priceMin) : -Infinity;
+    const max = priceMax ? parseInt(priceMax) : Infinity;
+    return w.price >= min && w.price <= max;
+  };
+
+  const sortWatchList = (list: Watch[]) => {
+    const arr = [...list];
+    if (sortBy === "price-desc") arr.sort((a, b) => b.price - a.price);
+    else if (sortBy === "price-asc") arr.sort((a, b) => a.price - b.price);
+    else if (sortBy === "new") arr.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    else arr.sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+    return arr;
+  };
+
+  const getCategoryList = (category: string, applyBrandPill: boolean) => {
+    let list = allWatches.filter(w => w.category === category);
+    if (applyBrandPill && filterBrand !== "All") list = list.filter(w => w.brand === filterBrand);
+    list = list.filter(w => matchesFacets(w) && inPriceRange(w));
+    return sortWatchList(list);
+  };
+
+  const renderFiltersBar = (category: string) => {
+    const facets = CATEGORY_FACETS[category] || [];
+    const baseList = allWatches.filter(w => w.category === category);
+    return (
+      <>
+        <div className="filters-sort-row">
+          <button className="filters-toggle-btn" onClick={() => setFiltersOpen(o => !o)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 6h16M8 12h8M11 18h2" /></svg>
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+          </button>
+          <div className="sort-dropdown-wrap">
+            <button className="sort-trigger" onClick={() => setSortOpen(o => !o)}>
+              Sort By: <strong>{SORT_LABELS[sortBy]}</strong> <span className="sort-caret">⌄</span>
+            </button>
+            {sortOpen && (
+              <div className="sort-menu">
+                {(["featured", "price-desc", "price-asc", "new"] as const).map(opt => (
+                  <button key={opt} className={`sort-option${sortBy === opt ? " active" : ""}`} onClick={() => { setSortBy(opt); setSortOpen(false); }}>{SORT_LABELS[opt]}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {filtersOpen && (
+          <div className="filters-panel">
+            {activeFilterCount > 0 && <button className="filters-clear-btn" onClick={clearAllFilters}>Clear All Filters</button>}
+            <div className="facet-accordion">
+              <div className="facet-item">
+                <button className="facet-header" onClick={() => setExpandedFacet(f => f === "price" ? null : "price")}>
+                  <span>Price</span><span className="facet-toggle-icon">{expandedFacet === "price" ? "−" : "+"}</span>
+                </button>
+                {expandedFacet === "price" && (
+                  <div className="facet-body">
+                    <div className="price-range-inputs">
+                      <input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} />
+                      <span>–</span>
+                      <input type="number" placeholder="Max" value={priceMax} onChange={e => setPriceMax(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              {facets.map(f => {
+                const options = getFacetOptions(baseList, f.key);
+                if (options.length === 0) return null;
+                return (
+                  <div className="facet-item" key={f.key}>
+                    <button className="facet-header" onClick={() => setExpandedFacet(cur => cur === f.key ? null : f.key)}>
+                      <span>{f.label}</span><span className="facet-toggle-icon">{expandedFacet === f.key ? "−" : "+"}</span>
+                    </button>
+                    {expandedFacet === f.key && (
+                      <div className="facet-body">
+                        {options.map(opt => (
+                          <label key={opt} className="facet-checkbox">
+                            <input type="checkbox" checked={(activeFacets[f.key] || []).includes(opt)} onChange={() => toggleFacetValue(f.key, opt)} />
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const toggleWishlist = (id: string) =>
     setWishlist(prev => prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id]);
 
@@ -671,7 +842,7 @@ export default function Home() {
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const brands = ["All", ...Array.from(new Set(allWatches.map(w => w.brand))).sort()];
-  const filteredWatches = filterBrand === "All" ? allWatches.filter(w => w.category === "watches") : allWatches.filter(w => w.brand === filterBrand && w.category === "watches");
+  const filteredWatches = getCategoryList("watches", true);
   const searchResults = searchQuery.trim().length > 1
     ? allWatches.filter(w =>
         `${w.brand} ${w.model} ${w.ref} ${w.condition}`.toLowerCase().includes(searchQuery.toLowerCase())
@@ -945,6 +1116,34 @@ export default function Home() {
         .watches-page { padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .watches-page-header { margin-bottom: 3rem; }
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+
+        /* FILTERS & SORT */
+        .filters-sort-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
+        .filters-toggle-btn { display: flex; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--black); padding: 0.6rem 1.1rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.2s; }
+        .filters-toggle-btn:hover { background: var(--black); color: white; }
+        .sort-dropdown-wrap { position: relative; }
+        .sort-trigger { background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-mid); cursor: pointer; padding: 0; }
+        .sort-trigger strong { color: var(--black); font-weight: 500; }
+        .sort-caret { font-size: 0.9rem; margin-left: 0.2rem; }
+        .sort-menu { position: absolute; top: calc(100% + 0.75rem); right: 0; background: white; border: 1px solid var(--border); border-top: 2px solid var(--gold); min-width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 50; }
+        .sort-option { display: block; width: 100%; text-align: left; padding: 0.85rem 1.25rem; background: none; border: none; border-bottom: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 0.72rem; color: var(--gray-mid); cursor: pointer; transition: background 0.15s, color 0.15s; }
+        .sort-option:last-child { border-bottom: none; }
+        .sort-option:hover { background: var(--gray-pale); color: var(--black); }
+        .sort-option.active { color: var(--gold); font-weight: 500; }
+        .filters-panel { margin-top: 1.5rem; padding: 1.75rem; background: var(--gray-pale); }
+        .filters-clear-btn { background: none; border: none; color: var(--burgundy); font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 1.25rem; }
+        .facet-accordion { display: flex; flex-direction: column; }
+        .facet-item { border-bottom: 1px solid var(--border); }
+        .facet-item:first-child { border-top: 1px solid var(--border); }
+        .facet-header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: none; padding: 1rem 0.25rem; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--black); cursor: pointer; text-align: left; }
+        .facet-toggle-icon { color: var(--gray-mid); font-size: 1rem; }
+        .facet-body { padding: 0 0.25rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .facet-checkbox { display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: var(--gray-mid); cursor: pointer; }
+        .facet-checkbox input { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; }
+        .price-range-inputs { display: flex; align-items: center; gap: 0.75rem; }
+        .price-range-inputs input { width: 100px; padding: 0.6rem 0.75rem; border: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 0.78rem; background: white; }
+        .price-range-inputs span { color: var(--gray-light); }
+        @media (max-width: 600px) { .filters-sort-row { flex-direction: column; align-items: stretch; } .sort-menu { left: 0; right: auto; width: 100%; } }
         .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
@@ -1795,6 +1994,7 @@ export default function Home() {
                   <button key={b} className={`filter-btn${filterBrand === b ? " active" : ""}`} onClick={() => setFilterBrand(b)}>{b}</button>
                 ))}
               </div>
+              {renderFiltersBar("watches")}
             </div>
             <div className="watches-grid">
               {productsLoading
@@ -2204,6 +2404,7 @@ export default function Home() {
               <span className="section-eyebrow">Fine Jewellery</span>
               <h1 className="section-title">Jewellery <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+              {renderFiltersBar("jewellery")}
             </div>
             <div className="watches-grid">
               {productsLoading
@@ -2214,13 +2415,13 @@ export default function Home() {
                       <div className="skeleton skeleton-line" style={{ width: "80%" }} />
                     </div>
                   ))
-                : allWatches.filter(w => w.category === "jewellery").length === 0
+                : getCategoryList("jewellery", false).length === 0
                   ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">Coming Soon</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our jewellery collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Our jewellery collection is being curated. Contact us to enquire about specific pieces." : "No pieces match your current filters."}</p>
                       <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
                     </div>
-                  : allWatches.filter(w => w.category === "jewellery").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  : getCategoryList("jewellery", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
               }
             </div>
           </div>
@@ -2235,6 +2436,7 @@ export default function Home() {
               <span className="section-eyebrow">Luxury Bags</span>
               <h1 className="section-title">Bags <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+              {renderFiltersBar("bags")}
             </div>
             <div className="watches-grid">
               {productsLoading
@@ -2245,13 +2447,13 @@ export default function Home() {
                       <div className="skeleton skeleton-line" style={{ width: "80%" }} />
                     </div>
                   ))
-                : allWatches.filter(w => w.category === "bags").length === 0
+                : getCategoryList("bags", false).length === 0
                   ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">Coming Soon</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our bags collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "bags").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "bags").length === 0 ? "Our bags collection is being curated. Contact us to enquire about specific pieces." : "No bags match your current filters."}</p>
                       <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
                     </div>
-                  : allWatches.filter(w => w.category === "bags").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  : getCategoryList("bags", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
               }
             </div>
           </div>
@@ -2266,6 +2468,7 @@ export default function Home() {
               <span className="section-eyebrow">Luxury Accessories</span>
               <h1 className="section-title">Accessories <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
+              {renderFiltersBar("accessories")}
             </div>
             <div className="watches-grid">
               {productsLoading
@@ -2276,13 +2479,13 @@ export default function Home() {
                       <div className="skeleton skeleton-line" style={{ width: "80%" }} />
                     </div>
                   ))
-                : allWatches.filter(w => w.category === "accessories").length === 0
+                : getCategoryList("accessories", false).length === 0
                   ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">Coming Soon</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>Our accessories collection is being curated. Contact us to enquire about specific pieces.</p>
+                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "accessories").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "accessories").length === 0 ? "Our accessories collection is being curated. Contact us to enquire about specific pieces." : "No accessories match your current filters."}</p>
                       <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
                     </div>
-                  : allWatches.filter(w => w.category === "accessories").map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  : getCategoryList("accessories", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
               }
             </div>
           </div>
