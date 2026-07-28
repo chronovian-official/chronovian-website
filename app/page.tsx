@@ -754,71 +754,78 @@ export default function Home() {
     return sortWatchList(list);
   };
 
-  const renderFiltersBar = (category: string) => {
+  const renderMobileFiltersToggle = () => (
+    <button className="filters-toggle-btn" onClick={() => setFiltersOpen(true)}>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 6h16M8 12h8M11 18h2" /></svg>
+      Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+    </button>
+  );
+
+  const renderSortControl = () => (
+    <div className="sort-dropdown-wrap">
+      <button className="sort-trigger" onClick={() => setSortOpen(o => !o)}>
+        Sort By: <strong>{SORT_LABELS[sortBy]}</strong> <span className="sort-caret">⌄</span>
+      </button>
+      {sortOpen && (
+        <div className="sort-menu">
+          {(["featured", "price-desc", "price-asc", "new"] as const).map(opt => (
+            <button key={opt} className={`sort-option${sortBy === opt ? " active" : ""}`} onClick={() => { setSortBy(opt); setSortOpen(false); }}>{SORT_LABELS[opt]}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderFilterSidebar = (category: string) => {
     const facets = CATEGORY_FACETS[category] || [];
     const baseList = allWatches.filter(w => w.category === category);
     return (
       <>
-        <div className="filters-sort-row">
-          <button className="filters-toggle-btn" onClick={() => setFiltersOpen(o => !o)}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 6h16M8 12h8M11 18h2" /></svg>
-            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-          </button>
-          <div className="sort-dropdown-wrap">
-            <button className="sort-trigger" onClick={() => setSortOpen(o => !o)}>
-              Sort By: <strong>{SORT_LABELS[sortBy]}</strong> <span className="sort-caret">⌄</span>
+        {filtersOpen && <div className="filters-sidebar-overlay" onClick={() => setFiltersOpen(false)} />}
+        <aside className={`filters-sidebar${filtersOpen ? " mobile-open" : ""}`}>
+        <div className="filters-sidebar-header">
+          <span className="filters-sidebar-title">Filters</span>
+          <button className="filters-sidebar-close" onClick={() => setFiltersOpen(false)}>×</button>
+        </div>
+        {activeFilterCount > 0 && <button className="filters-clear-btn" onClick={clearAllFilters}>Clear All Filters ({activeFilterCount})</button>}
+        <div className="facet-accordion">
+          <div className="facet-item">
+            <button className="facet-header" onClick={() => setExpandedFacet(f => f === "price" ? null : "price")}>
+              <span>Price</span><span className="facet-toggle-icon">{expandedFacet === "price" ? "−" : "+"}</span>
             </button>
-            {sortOpen && (
-              <div className="sort-menu">
-                {(["featured", "price-desc", "price-asc", "new"] as const).map(opt => (
-                  <button key={opt} className={`sort-option${sortBy === opt ? " active" : ""}`} onClick={() => { setSortBy(opt); setSortOpen(false); }}>{SORT_LABELS[opt]}</button>
-                ))}
+            {expandedFacet === "price" && (
+              <div className="facet-body">
+                <div className="price-range-inputs">
+                  <input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} />
+                  <span>–</span>
+                  <input type="number" placeholder="Max" value={priceMax} onChange={e => setPriceMax(e.target.value)} />
+                </div>
               </div>
             )}
           </div>
-        </div>
-        {filtersOpen && (
-          <div className="filters-panel">
-            {activeFilterCount > 0 && <button className="filters-clear-btn" onClick={clearAllFilters}>Clear All Filters</button>}
-            <div className="facet-accordion">
-              <div className="facet-item">
-                <button className="facet-header" onClick={() => setExpandedFacet(f => f === "price" ? null : "price")}>
-                  <span>Price</span><span className="facet-toggle-icon">{expandedFacet === "price" ? "−" : "+"}</span>
+          {facets.map(f => {
+            const options = getFacetOptions(baseList, f.key);
+            if (options.length === 0) return null;
+            return (
+              <div className="facet-item" key={f.key}>
+                <button className="facet-header" onClick={() => setExpandedFacet(cur => cur === f.key ? null : f.key)}>
+                  <span>{f.label}</span><span className="facet-toggle-icon">{expandedFacet === f.key ? "−" : "+"}</span>
                 </button>
-                {expandedFacet === "price" && (
+                {expandedFacet === f.key && (
                   <div className="facet-body">
-                    <div className="price-range-inputs">
-                      <input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} />
-                      <span>–</span>
-                      <input type="number" placeholder="Max" value={priceMax} onChange={e => setPriceMax(e.target.value)} />
-                    </div>
+                    {options.map(opt => (
+                      <label key={opt} className="facet-checkbox">
+                        <input type="checkbox" checked={(activeFacets[f.key] || []).includes(opt)} onChange={() => toggleFacetValue(f.key, opt)} />
+                        <span>{opt}</span>
+                      </label>
+                    ))}
                   </div>
                 )}
               </div>
-              {facets.map(f => {
-                const options = getFacetOptions(baseList, f.key);
-                if (options.length === 0) return null;
-                return (
-                  <div className="facet-item" key={f.key}>
-                    <button className="facet-header" onClick={() => setExpandedFacet(cur => cur === f.key ? null : f.key)}>
-                      <span>{f.label}</span><span className="facet-toggle-icon">{expandedFacet === f.key ? "−" : "+"}</span>
-                    </button>
-                    {expandedFacet === f.key && (
-                      <div className="facet-body">
-                        {options.map(opt => (
-                          <label key={opt} className="facet-checkbox">
-                            <input type="checkbox" checked={(activeFacets[f.key] || []).includes(opt)} onChange={() => toggleFacetValue(f.key, opt)} />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+            );
+          })}
+        </div>
+      </aside>
       </>
     );
   };
@@ -1117,9 +1124,11 @@ export default function Home() {
         .watches-page-header { margin-bottom: 3rem; }
         .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
 
-        /* FILTERS & SORT */
-        .filters-sort-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
-        .filters-toggle-btn { display: flex; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--black); padding: 0.6rem 1.1rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.2s; }
+        /* LISTING LAYOUT WITH FILTER SIDEBAR */
+        .listing-layout { display: grid; grid-template-columns: 260px 1fr; gap: 3rem; margin-top: 2rem; align-items: start; }
+        .listing-main { min-width: 0; }
+        .listing-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+        .filters-toggle-btn { display: none; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--black); padding: 0.6rem 1.1rem; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.2s; }
         .filters-toggle-btn:hover { background: var(--black); color: white; }
         .sort-dropdown-wrap { position: relative; }
         .sort-trigger { background: none; border: none; font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-mid); cursor: pointer; padding: 0; }
@@ -1130,8 +1139,14 @@ export default function Home() {
         .sort-option:last-child { border-bottom: none; }
         .sort-option:hover { background: var(--gray-pale); color: var(--black); }
         .sort-option.active { color: var(--gold); font-weight: 500; }
-        .filters-panel { margin-top: 1.5rem; padding: 1.75rem; background: var(--gray-pale); }
-        .filters-clear-btn { background: none; border: none; color: var(--burgundy); font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 1.25rem; }
+
+        /* FILTER SIDEBAR (persistent on desktop, drawer on mobile) */
+        .filters-sidebar { position: sticky; top: 90px; align-self: start; }
+        .filters-sidebar-header { display: none; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .filters-sidebar-title { font-family: 'Jost', sans-serif; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+        .filters-sidebar-close { background: none; border: none; font-size: 1.8rem; line-height: 1; cursor: pointer; color: var(--black); }
+        .filters-sidebar-overlay { display: none; }
+        .filters-clear-btn { display: block; background: none; border: none; color: var(--burgundy); font-family: 'Jost', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: underline; cursor: pointer; padding: 0; margin-bottom: 1.25rem; }
         .facet-accordion { display: flex; flex-direction: column; }
         .facet-item { border-bottom: 1px solid var(--border); }
         .facet-item:first-child { border-top: 1px solid var(--border); }
@@ -1143,7 +1158,16 @@ export default function Home() {
         .price-range-inputs { display: flex; align-items: center; gap: 0.75rem; }
         .price-range-inputs input { width: 100px; padding: 0.6rem 0.75rem; border: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 0.78rem; background: white; }
         .price-range-inputs span { color: var(--gray-light); }
-        @media (max-width: 600px) { .filters-sort-row { flex-direction: column; align-items: stretch; } .sort-menu { left: 0; right: auto; width: 100%; } }
+
+        @media (max-width: 900px) {
+          .listing-layout { grid-template-columns: 1fr; }
+          .filters-toggle-btn { display: flex; }
+          .filters-sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 400; }
+          .filters-sidebar { display: none; }
+          .filters-sidebar.mobile-open { display: block; position: fixed; top: 0; left: 0; bottom: 0; width: 85%; max-width: 340px; background: white; z-index: 401; padding: 1.75rem; overflow-y: auto; }
+          .filters-sidebar-header { display: flex; }
+        }
+        @media (max-width: 600px) { .listing-toolbar { flex-direction: row; justify-content: space-between; } .sort-menu { left: 0; right: auto; width: 100%; } }
         .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         .watches-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; align-items: start; }
@@ -1994,24 +2018,32 @@ export default function Home() {
                   <button key={b} className={`filter-btn${filterBrand === b ? " active" : ""}`} onClick={() => setFilterBrand(b)}>{b}</button>
                 ))}
               </div>
-              {renderFiltersBar("watches")}
             </div>
-            <div className="watches-grid">
-              {productsLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <div className="skeleton-card" key={i}>
-                      <div className="skeleton skeleton-img" />
-                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "40%" }} />
-                    </div>
-                  ))
-                : filteredWatches.length === 0
-                  ? <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem 0", color: "var(--gray-mid)", fontSize: "0.82rem" }}>
-                      No watches available in this category yet.
-                    </div>
-                  : filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)
-              }
+            <div className="listing-layout">
+              {renderFilterSidebar("watches")}
+              <div className="listing-main">
+                <div className="listing-toolbar">
+                  {renderMobileFiltersToggle()}
+                  {renderSortControl()}
+                </div>
+                <div className="watches-grid">
+                  {productsLoading
+                    ? Array.from({ length: 8 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+                        </div>
+                      ))
+                    : filteredWatches.length === 0
+                      ? <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem 0", color: "var(--gray-mid)", fontSize: "0.82rem" }}>
+                          No watches available in this category yet.
+                        </div>
+                      : filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  }
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -2404,25 +2436,33 @@ export default function Home() {
               <span className="section-eyebrow">Fine Jewellery</span>
               <h1 className="section-title">Jewellery <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
-              {renderFiltersBar("jewellery")}
             </div>
-            <div className="watches-grid">
-              {productsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div className="skeleton-card" key={i}>
-                      <div className="skeleton skeleton-img" />
-                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                    </div>
-                  ))
-                : getCategoryList("jewellery", false).length === 0
-                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Our jewellery collection is being curated. Contact us to enquire about specific pieces." : "No pieces match your current filters."}</p>
-                      <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                    </div>
-                  : getCategoryList("jewellery", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-              }
+            <div className="listing-layout">
+              {renderFilterSidebar("jewellery")}
+              <div className="listing-main">
+                <div className="listing-toolbar">
+                  {renderMobileFiltersToggle()}
+                  {renderSortControl()}
+                </div>
+                <div className="watches-grid">
+                  {productsLoading
+                    ? Array.from({ length: 4 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                        </div>
+                      ))
+                    : getCategoryList("jewellery", false).length === 0
+                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Our jewellery collection is being curated. Contact us to enquire about specific pieces." : "No pieces match your current filters."}</p>
+                          <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                        </div>
+                      : getCategoryList("jewellery", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  }
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -2436,25 +2476,33 @@ export default function Home() {
               <span className="section-eyebrow">Luxury Bags</span>
               <h1 className="section-title">Bags <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
-              {renderFiltersBar("bags")}
             </div>
-            <div className="watches-grid">
-              {productsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div className="skeleton-card" key={i}>
-                      <div className="skeleton skeleton-img" />
-                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                    </div>
-                  ))
-                : getCategoryList("bags", false).length === 0
-                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "bags").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "bags").length === 0 ? "Our bags collection is being curated. Contact us to enquire about specific pieces." : "No bags match your current filters."}</p>
-                      <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                    </div>
-                  : getCategoryList("bags", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-              }
+            <div className="listing-layout">
+              {renderFilterSidebar("bags")}
+              <div className="listing-main">
+                <div className="listing-toolbar">
+                  {renderMobileFiltersToggle()}
+                  {renderSortControl()}
+                </div>
+                <div className="watches-grid">
+                  {productsLoading
+                    ? Array.from({ length: 4 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                        </div>
+                      ))
+                    : getCategoryList("bags", false).length === 0
+                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "bags").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "bags").length === 0 ? "Our bags collection is being curated. Contact us to enquire about specific pieces." : "No bags match your current filters."}</p>
+                          <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                        </div>
+                      : getCategoryList("bags", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  }
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -2468,25 +2516,33 @@ export default function Home() {
               <span className="section-eyebrow">Luxury Accessories</span>
               <h1 className="section-title">Accessories <em>Collection</em></h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
-              {renderFiltersBar("accessories")}
             </div>
-            <div className="watches-grid">
-              {productsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div className="skeleton-card" key={i}>
-                      <div className="skeleton skeleton-img" />
-                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                    </div>
-                  ))
-                : getCategoryList("accessories", false).length === 0
-                  ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                      <span className="section-eyebrow">{allWatches.filter(w => w.category === "accessories").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                      <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "accessories").length === 0 ? "Our accessories collection is being curated. Contact us to enquire about specific pieces." : "No accessories match your current filters."}</p>
-                      <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                    </div>
-                  : getCategoryList("accessories", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-              }
+            <div className="listing-layout">
+              {renderFilterSidebar("accessories")}
+              <div className="listing-main">
+                <div className="listing-toolbar">
+                  {renderMobileFiltersToggle()}
+                  {renderSortControl()}
+                </div>
+                <div className="watches-grid">
+                  {productsLoading
+                    ? Array.from({ length: 4 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                        </div>
+                      ))
+                    : getCategoryList("accessories", false).length === 0
+                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "accessories").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "accessories").length === 0 ? "Our accessories collection is being curated. Contact us to enquire about specific pieces." : "No accessories match your current filters."}</p>
+                          <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                        </div>
+                      : getCategoryList("accessories", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                  }
+                </div>
+              </div>
             </div>
           </div>
         </main>
