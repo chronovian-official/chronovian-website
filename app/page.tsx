@@ -94,6 +94,30 @@ const SORT_LABELS: Record<string, string> = {
   new: "New Arrivals",
 };
 
+const PRICE_BUCKETS = [
+  { label: "Under ₹1 Lakh", min: 0, max: 99999 },
+  { label: "₹1L – ₹5L", min: 100000, max: 499999 },
+  { label: "₹5L – ₹10L", min: 500000, max: 999999 },
+  { label: "₹10L – ₹20L", min: 1000000, max: 1999999 },
+  { label: "₹20L – ₹50L", min: 2000000, max: 4999999 },
+  { label: "₹50L and Above", min: 5000000, max: Infinity },
+];
+
+const CASE_SIZE_BUCKETS = [
+  { label: "Under 26mm", min: 0, max: 25.99 },
+  { label: "26mm – 30mm", min: 26, max: 30.99 },
+  { label: "31mm – 35mm", min: 31, max: 35.99 },
+  { label: "36mm – 40mm", min: 36, max: 40.99 },
+  { label: "41mm – 45mm", min: 41, max: 45.99 },
+  { label: "46mm and Above", min: 46, max: Infinity },
+];
+
+const parseSizeMM = (val?: string): number | null => {
+  if (!val) return null;
+  const match = val.match(/(\d+(\.\d+)?)/);
+  return match ? parseFloat(match[1]) : null;
+};
+
 // Fallback placeholder image
 const placeholder = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85";
 
@@ -733,7 +757,18 @@ export default function Home() {
   const activeFilterCount = Object.values(activeFacets).reduce((n, arr) => n + arr.length, 0) + (priceMin ? 1 : 0) + (priceMax ? 1 : 0);
 
   const matchesFacets = (w: Watch) =>
-    Object.entries(activeFacets).every(([key, values]) => !values.length || values.includes((w as any)[key]));
+    Object.entries(activeFacets).every(([key, values]) => {
+      if (!values.length) return true;
+      if (key === "case_size_bucket") {
+        const mm = parseSizeMM(w.case_size);
+        if (mm === null) return false;
+        return values.some(label => {
+          const bucket = CASE_SIZE_BUCKETS.find(b => b.label === label);
+          return bucket && mm >= bucket.min && mm <= bucket.max;
+        });
+      }
+      return values.includes((w as any)[key]);
+    });
 
   const inPriceRange = (w: Watch) => {
     const min = priceMin ? parseInt(priceMin) : -Infinity;
@@ -782,6 +817,9 @@ export default function Home() {
   const renderFilterSidebar = (category: string) => {
     const facets = CATEGORY_FACETS[category] || [];
     const baseList = allWatches.filter(w => w.category === category);
+    const categoryPrices = baseList.map(w => w.price).filter(p => typeof p === "number" && !isNaN(p));
+    const priceBoundMin = categoryPrices.length ? Math.min(...categoryPrices) : 0;
+    const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
     return (
       <>
         {filtersOpen && <div className="filters-sidebar-overlay" onClick={() => setFiltersOpen(false)} />}
@@ -798,15 +836,53 @@ export default function Home() {
             </button>
             {expandedFacet === "price" && (
               <div className="facet-body">
+                <div className="price-slider-wrap">
+                  <input type="range" min={priceBoundMin} max={priceBoundMax} value={priceMin || priceBoundMin} onChange={e => setPriceMin(e.target.value)} className="price-slider" />
+                  <input type="range" min={priceBoundMin} max={priceBoundMax} value={priceMax || priceBoundMax} onChange={e => setPriceMax(e.target.value)} className="price-slider" />
+                </div>
                 <div className="price-range-inputs">
                   <input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} />
                   <span>–</span>
                   <input type="number" placeholder="Max" value={priceMax} onChange={e => setPriceMax(e.target.value)} />
                 </div>
+                <div className="price-bucket-list">
+                  {PRICE_BUCKETS.map(b => (
+                    <label key={b.label} className="facet-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={priceMin === String(b.min) && priceMax === String(b.max === Infinity ? priceBoundMax : b.max)}
+                        onChange={() => { setPriceMin(String(b.min)); setPriceMax(String(b.max === Infinity ? priceBoundMax : b.max)); }}
+                      />
+                      <span>{b.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
           </div>
           {facets.map(f => {
+            if (f.key === "case_size") {
+              const relevantSizes = baseList.map(w => parseSizeMM(w.case_size)).filter((v): v is number => v !== null);
+              const bucketsWithData = CASE_SIZE_BUCKETS.filter(b => relevantSizes.some(mm => mm >= b.min && mm <= b.max));
+              if (bucketsWithData.length === 0) return null;
+              return (
+                <div className="facet-item" key={f.key}>
+                  <button className="facet-header" onClick={() => setExpandedFacet(cur => cur === f.key ? null : f.key)}>
+                    <span>{f.label}</span><span className="facet-toggle-icon">{expandedFacet === f.key ? "−" : "+"}</span>
+                  </button>
+                  {expandedFacet === f.key && (
+                    <div className="facet-body">
+                      {bucketsWithData.map(b => (
+                        <label key={b.label} className="facet-checkbox">
+                          <input type="checkbox" checked={(activeFacets["case_size_bucket"] || []).includes(b.label)} onChange={() => toggleFacetValue("case_size_bucket", b.label)} />
+                          <span>{b.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
             const options = getFacetOptions(baseList, f.key);
             if (options.length === 0) return null;
             return (
@@ -1161,9 +1237,16 @@ export default function Home() {
         .facet-body { padding: 0 0.25rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
         .facet-checkbox { display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: var(--gray-mid); cursor: pointer; }
         .facet-checkbox input { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; }
-        .price-range-inputs { display: flex; align-items: center; gap: 0.75rem; }
+        .price-range-inputs { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
         .price-range-inputs input { width: 100px; padding: 0.6rem 0.75rem; border: 1px solid var(--border); font-family: 'Jost', sans-serif; font-size: 0.78rem; background: white; }
         .price-range-inputs span { color: var(--gray-light); }
+        .price-slider-wrap { position: relative; height: 28px; margin-bottom: 0.5rem; }
+        .price-slider { position: absolute; top: 10px; left: 0; width: 100%; -webkit-appearance: none; appearance: none; background: none; pointer-events: none; height: 8px; margin: 0; }
+        .price-slider::-webkit-slider-runnable-track { height: 2px; background: var(--border); }
+        .price-slider::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; margin-top: -7px; border: 2px solid white; box-shadow: 0 0 0 1px var(--gold); }
+        .price-slider::-moz-range-track { height: 2px; background: var(--border); }
+        .price-slider::-moz-range-thumb { pointer-events: auto; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px var(--gold); }
+        .price-bucket-list { display: flex; flex-direction: column; gap: 0.7rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
 
         @media (max-width: 900px) {
           .listing-layout { grid-template-columns: 1fr; }
