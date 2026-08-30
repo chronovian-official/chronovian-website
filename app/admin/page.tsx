@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import * as XLSX from "xlsx";
 
 function getClient(): SupabaseClient {
   return createClient(
@@ -69,6 +70,65 @@ const emptyProduct: Product = {
   warranty_period: "", warranty_register_url: "", country_of_origin: "",
 };
 
+// Excel column definitions — order here is the order columns appear in the spreadsheet.
+// "id" must stay first and must never be manually edited by whoever fills in the sheet:
+// blank id = new product on import, an id matching an existing product = update that product.
+type ExcelCol = { key: string; label: string; kind?: "bool" | "images" | "number" };
+const EXCEL_COLUMNS: ExcelCol[] = [
+  { key: "id", label: "ID (leave blank for new product — do not edit)" },
+  { key: "brand", label: "Brand" },
+  { key: "model", label: "Model" },
+  { key: "ref", label: "Reference / Model No" },
+  { key: "category", label: "Category (watches/jewellery/bags/accessories)" },
+  { key: "subcategory", label: "Subcategory" },
+  { key: "price", label: "Price (INR)", kind: "number" },
+  { key: "condition", label: "Condition" },
+  { key: "year", label: "Purchase Year" },
+  { key: "box", label: "Box Included (Yes/No)", kind: "bool" },
+  { key: "papers", label: "Papers Included (Yes/No)", kind: "bool" },
+  { key: "status", label: "Status (available/sold/reserved)" },
+  { key: "featured", label: "Featured on Homepage (Yes/No)", kind: "bool" },
+  { key: "images", label: "Image URLs (separate multiple with |)", kind: "images" },
+  { key: "description", label: "Description" },
+  { key: "collection", label: "Collection" },
+  { key: "series", label: "Series" },
+  { key: "movement", label: "Movement" },
+  { key: "calibre", label: "Calibre" },
+  { key: "case_size", label: "Case Size" },
+  { key: "case_thickness", label: "Case Thickness" },
+  { key: "case_shape", label: "Case Shape" },
+  { key: "case_material", label: "Case Material" },
+  { key: "case_back", label: "Case Back" },
+  { key: "glass_material", label: "Glass Material" },
+  { key: "dial_color", label: "Dial Colour" },
+  { key: "bracelet_material", label: "Strap Material" },
+  { key: "strap_colour", label: "Strap Colour" },
+  { key: "clasp_type", label: "Clasp Type" },
+  { key: "buckle_clasp_material", label: "Buckle/Clasp Material" },
+  { key: "gemstone", label: "Precious Stone / Gemstone" },
+  { key: "gender", label: "Gender" },
+  { key: "water_resistance", label: "Water Resistance (M)" },
+  { key: "warranty_period", label: "Warranty Period" },
+  { key: "warranty_register_url", label: "Warranty Register URL" },
+  { key: "country_of_origin", label: "Country of Origin" },
+  { key: "material", label: "Material (Jewellery)" },
+  { key: "weight", label: "Weight (Jewellery)" },
+  { key: "color", label: "Colour (Bags)" },
+  { key: "hardware", label: "Hardware (Bags)" },
+  { key: "size", label: "Size (Bags)" },
+  { key: "serial_number", label: "Serial Number" },
+];
+
+const parseBoolCell = (v: any): boolean => {
+  if (typeof v === "boolean") return v;
+  const s = String(v ?? "").trim().toLowerCase();
+  return s === "yes" || s === "true" || s === "1";
+};
+const formatBoolCell = (v: boolean) => (v ? "Yes" : "No");
+const parseImagesCell = (v: any): string[] =>
+  String(v ?? "").split("|").map(s => s.trim()).filter(Boolean);
+const formatImagesCell = (v: string[]) => (v || []).join(" | ");
+
 type Banner = {
   id?: string;
   image_url: string;
@@ -114,6 +174,10 @@ export default function AdminPage() {
   const [msg, setMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [lastProduct, setLastProduct] = useState<Product | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
+  const [exporting, setExporting] = useState(false);
+  const [importPreview, setImportPreview] = useState<{ rows: any[]; newCount: number; updateCount: number; skipped: number } | null>(null);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); fetchCustomers(); }
@@ -379,6 +443,91 @@ export default function AdminPage() {
     showMsg("Copied from last entry — update the unique details and save.");
   };
 
+  const handleExportExcel = () => {
+    setExporting(true);
+    try {
+      const rows = products.map(p => {
+        const row: Record<string, any> = {};
+        EXCEL_COLUMNS.forEach(col => {
+          const raw = (p as any)[col.key];
+          if (col.kind === "bool") row[col.label] = formatBoolCell(!!raw);
+          else if (col.kind === "images") row[col.label] = formatImagesCell(raw);
+          else row[col.label] = raw ?? "";
+        });
+        return row;
+      });
+      const ws = XLSX.utils.json_to_sheet(rows, { header: EXCEL_COLUMNS.map(c => c.label) });
+      ws["!cols"] = EXCEL_COLUMNS.map(c => ({ wch: Math.max(18, c.label.length * 0.9) }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Products");
+      const dateStr = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `chronovian-products-${dateStr}.xlsx`);
+      showMsg(`Exported ${products.length} product${products.length === 1 ? "" : "s"} to Excel.`);
+    } catch (err: any) {
+      showMsg("Export failed: " + err.message, "error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportFileSelect = async (file: File) => {
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows: Record<string, any>[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      const labelToKey: Record<string, string> = {};
+      EXCEL_COLUMNS.forEach(c => { labelToKey[c.label] = c.key; });
+
+      const existingIds = new Set(products.map(p => p.id));
+      let newCount = 0, updateCount = 0, skipped = 0;
+      const parsedRows: any[] = [];
+
+      rawRows.forEach(raw => {
+        const row: Record<string, any> = {};
+        EXCEL_COLUMNS.forEach(col => {
+          const cell = raw[col.label];
+          if (col.kind === "bool") row[col.key] = parseBoolCell(cell);
+          else if (col.kind === "images") row[col.key] = parseImagesCell(cell);
+          else if (col.kind === "number") row[col.key] = Number(cell) || 0;
+          else row[col.key] = String(cell ?? "").trim();
+        });
+
+        // Required fields — skip rows missing the essentials rather than importing broken data
+        if (!row.brand || !row.model || !row.category) { skipped++; return; }
+
+        // Only treat as an update if the id actually matches an existing product;
+        // otherwise strip it so Supabase generates a fresh id (avoids id typos colliding with the wrong row)
+        if (row.id && existingIds.has(row.id)) updateCount++;
+        else { delete row.id; newCount++; }
+
+        parsedRows.push(row);
+      });
+
+      setImportPreview({ rows: parsedRows, newCount, updateCount, skipped });
+    } catch (err: any) {
+      showMsg("Could not read that file: " + err.message, "error");
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!importPreview) return;
+    setImporting(true);
+    try {
+      const sb = getClient();
+      const { error } = await sb.from("products").upsert(importPreview.rows, { onConflict: "id" });
+      if (error) throw error;
+      showMsg(`Import complete — ${importPreview.newCount} added, ${importPreview.updateCount} updated.`);
+      setImportPreview(null);
+      fetchProducts();
+    } catch (err: any) {
+      showMsg("Import failed: " + err.message, "error");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this product? This cannot be undone.")) return;
     const sb = getClient();
@@ -486,7 +635,11 @@ export default function AdminPage() {
                   {products.length} total · {products.filter(p => p.status === "available").length} available · {products.filter(p => p.status === "sold").length} sold
                 </p>
               </div>
-              <div style={{ display: "flex", gap: "0.75rem" }}>
+              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                <input ref={importFileRef} type="file" accept=".xlsx,.xls" style={{ display: "none" }}
+                  onChange={e => { if (e.target.files?.[0]) handleImportFileSelect(e.target.files[0]); e.target.value = ""; }} />
+                <button className="ab ab-out" onClick={() => importFileRef.current?.click()}>Import from Excel</button>
+                <button className="ab ab-out" onClick={handleExportExcel} disabled={exporting}>{exporting ? "Exporting…" : "Export to Excel"}</button>
                 {lastProduct && !showForm && (
                   <button className="ab ab-blue" onClick={handleCopyFromLast}>Copy from Last Entry</button>
                 )}
@@ -978,6 +1131,32 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* IMPORT PREVIEW MODAL */}
+      {importPreview && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(10,10,10,0.6)", zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ background: "white", maxWidth: "560px", width: "100%", maxHeight: "85vh", overflowY: "auto", padding: "2rem" }}>
+            <h3 style={{ fontFamily: "Georgia,serif", fontSize: "1.2rem", fontWeight: 400, marginBottom: "1rem" }}>Confirm Import</h3>
+            <p style={{ fontSize: "0.85rem", lineHeight: 1.8, marginBottom: "1.5rem" }}>
+              <strong style={{ color: "#6E1F2E" }}>{importPreview.newCount}</strong> new product{importPreview.newCount === 1 ? "" : "s"} will be created,{" "}
+              <strong style={{ color: "#6E1F2E" }}>{importPreview.updateCount}</strong> existing product{importPreview.updateCount === 1 ? "" : "s"} will be updated.
+              {importPreview.skipped > 0 && <><br /><span style={{ color: "#B3261E" }}>{importPreview.skipped} row{importPreview.skipped === 1 ? "" : "s"} skipped — missing Brand, Model, or Category.</span></>}
+            </p>
+            <div style={{ border: "1px solid #E5E3E0", maxHeight: "280px", overflowY: "auto", marginBottom: "1.5rem" }}>
+              {importPreview.rows.map((r, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "0.6rem 0.9rem", borderBottom: i < importPreview.rows.length - 1 ? "1px solid #F0EDE9" : "none", fontSize: "0.78rem" }}>
+                  <span>{r.brand} {r.model} {r.ref ? `(${r.ref})` : ""}</span>
+                  <span style={{ color: r.id ? "#6B6B6B" : "#6E1F2E", fontWeight: 500, fontSize: "0.65rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>{r.id ? "Update" : "New"}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button className="ab ab-gold" onClick={handleConfirmImport} disabled={importing || importPreview.rows.length === 0}>{importing ? "Importing…" : `Confirm Import (${importPreview.rows.length})`}</button>
+              <button className="ab ab-out" onClick={() => setImportPreview(null)} disabled={importing}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
