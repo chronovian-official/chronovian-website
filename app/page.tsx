@@ -998,7 +998,7 @@ export default function Home() {
       <div className="watch-img-wrap" onClick={() => openProductInNewTab(w)}>
         <img src={getImg(w)} alt={`${w.brand} ${w.model}`} />
         <span className={`watch-status${w.status === "Sold" ? " sold" : ""}`}>{w.status}</span>
-        <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
+        <button className={`wishlist-btn${wishlist.includes(w.id) ? " active" : ""}`} onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
           {wishlist.includes(w.id) ? "♥" : "♡"}
         </button>
         {addedId === w.id && <div className="added-toast">Added to cart ✓</div>}
@@ -1220,14 +1220,15 @@ export default function Home() {
         .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; cursor: pointer; }
         .watch-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
-        .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
+        .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: var(--burgundy); color: white; }
         .watch-status.sold { background: var(--black); color: white; }
         .watch-brand { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
         .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
-        .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; }
+        .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; color: var(--black); }
         .wishlist-btn:hover { transform: scale(1.15); }
+        .wishlist-btn.active { color: var(--burgundy); }
         .added-toast { position: absolute; bottom: 0; left: 0; right: 0; background: var(--gold); color: white; text-align: center; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.5rem; }
         .card-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
         .card-actions-hover { opacity: 0; max-height: 0; overflow: hidden; margin-top: 0; transition: opacity 0.25s ease, max-height 0.25s ease, margin-top 0.25s ease; }
@@ -1235,7 +1236,8 @@ export default function Home() {
         @media (hover: none) { .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; } }
         .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
         .btn-cart:hover { background: var(--burgundy-light); border-color: var(--burgundy-light); }
-        .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--border); color: var(--black); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
+        .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--burgundy); color: var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
+        .enquire-btn:hover { background: var(--burgundy); color: white; }
         .enquire-btn:hover { border-color: var(--gold); color: var(--gold); }
         .featured-footer { text-align: center; margin-top: 3rem; }
 
@@ -1769,7 +1771,7 @@ export default function Home() {
                     <div className="watch-img-wrap" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }}>
                       <img src={getImg(w)} alt={w.model} />
                       <span className="watch-status">{w.status}</span>
-                      <button className="wishlist-btn" onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
+                      <button className={`wishlist-btn${wishlist.includes(w.id) ? " active" : ""}`} onClick={e => { e.stopPropagation(); toggleWishlist(w.id); }}>
                         {wishlist.includes(w.id) ? "♥" : "♡"}
                       </button>
                     </div>
