@@ -740,7 +740,7 @@ export default function AdminPage() {
                   <div>
                     <label className="al">Condition</label>
                     <select className="as" value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                      <option>New</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
+                      <option>New</option><option>Mint</option><option>Mint-Unworn</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
                     </select>
                   </div>
                   <div><label className="al">Year</label><input className="ai" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="e.g. 2022" /></div>
