@@ -177,6 +177,11 @@ export default function AdminPage() {
   const importFileRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
   const [importPreview, setImportPreview] = useState<{ rows: any[]; newCount: number; updateCount: number; skipped: number } | null>(null);
+  const bulkUploadFileRef = useRef<HTMLInputElement>(null);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkUploadedUrls, setBulkUploadedUrls] = useState<{ name: string; url: string }[]>([]);
+  const [bulkCopiedAll, setBulkCopiedAll] = useState(false);
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
@@ -396,6 +401,37 @@ export default function AdminPage() {
     setForm(f => ({ ...f, images: f.images.filter(i => i !== url) }));
   };
 
+  const handleBulkImageUpload = async (files: FileList) => {
+    setBulkUploading(true);
+    const sb = getClient();
+    const results: { name: string; url: string }[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await sb.storage.from("product-images").upload(fileName, file, { cacheControl: "3600", upsert: false });
+      if (error) {
+        showMsg(`Upload failed for ${file.name}: ${error.message}`, "error");
+      } else {
+        const { data: { publicUrl } } = sb.storage.from("product-images").getPublicUrl(fileName);
+        results.push({ name: file.name, url: publicUrl });
+      }
+    }
+    if (results.length > 0) {
+      setBulkUploadedUrls(prev => [...prev, ...results]);
+      showMsg(`${results.length} image${results.length > 1 ? "s" : ""} uploaded.`);
+    }
+    setBulkUploading(false);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSave = async () => {
     if (!form.brand || !form.model || !form.price) {
       showMsg("Brand, model and price are required.", "error");
@@ -516,8 +552,18 @@ export default function AdminPage() {
     setImporting(true);
     try {
       const sb = getClient();
-      const { error } = await sb.from("products").upsert(importPreview.rows, { onConflict: "id" });
-      if (error) throw error;
+      const toInsert = importPreview.rows.filter(r => !r.id);
+      const toUpdate = importPreview.rows.filter(r => !!r.id);
+
+      if (toInsert.length > 0) {
+        const { error } = await sb.from("products").insert(toInsert);
+        if (error) throw new Error("Adding new products failed: " + error.message);
+      }
+      if (toUpdate.length > 0) {
+        const { error } = await sb.from("products").upsert(toUpdate, { onConflict: "id" });
+        if (error) throw new Error("Updating existing products failed: " + error.message);
+      }
+
       showMsg(`Import complete — ${importPreview.newCount} added, ${importPreview.updateCount} updated.`);
       setImportPreview(null);
       fetchProducts();
@@ -638,6 +684,7 @@ export default function AdminPage() {
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <input ref={importFileRef} type="file" accept=".xlsx,.xls" style={{ display: "none" }}
                   onChange={e => { if (e.target.files?.[0]) handleImportFileSelect(e.target.files[0]); e.target.value = ""; }} />
+                <button className="ab ab-out" onClick={() => setBulkUploadOpen(true)}>Bulk Upload Images</button>
                 <button className="ab ab-out" onClick={() => importFileRef.current?.click()}>Import from Excel</button>
                 <button className="ab ab-out" onClick={handleExportExcel} disabled={exporting}>{exporting ? "Exporting…" : "Export to Excel"}</button>
                 {lastProduct && !showForm && (
@@ -1131,6 +1178,72 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* BULK IMAGE UPLOAD MODAL */}
+      {bulkUploadOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(10,10,10,0.6)", zIndex: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ background: "white", maxWidth: "620px", width: "100%", maxHeight: "85vh", overflowY: "auto", padding: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+              <h3 style={{ fontFamily: "Georgia,serif", fontSize: "1.2rem", fontWeight: 400 }}>Bulk Upload Images</h3>
+              <button onClick={() => { setBulkUploadOpen(false); setBulkUploadedUrls([]); }} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ fontSize: "0.78rem", color: "#6B6B6B", marginBottom: "1.5rem", lineHeight: 1.7 }}>
+              Select photos from your computer — they'll upload to storage and you'll get back ready-to-paste URLs for the Excel import's Image URLs column.
+            </p>
+
+            <input ref={bulkUploadFileRef} type="file" multiple accept="image/*" style={{ display: "none" }}
+              onChange={e => { if (e.target.files && e.target.files.length > 0) handleBulkImageUpload(e.target.files); e.target.value = ""; }} />
+            <div className="ua" onClick={() => bulkUploadFileRef.current?.click()} style={{ marginBottom: "1.5rem" }}>
+              {bulkUploading
+                ? <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>⏳ Uploading...</p>
+                : <div>
+                    <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🖼️</p>
+                    <p style={{ fontSize: "0.82rem", color: "#6B6B6B" }}>Click to select one or more images</p>
+                  </div>
+              }
+            </div>
+
+            {bulkUploadedUrls.length > 0 && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                  <span style={{ fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6B6B" }}>{bulkUploadedUrls.length} Uploaded</span>
+                  <button
+                    className="ab ab-gold"
+                    style={{ padding: "0.5rem 1rem", fontSize: "0.65rem" }}
+                    onClick={async () => {
+                      const joined = bulkUploadedUrls.map(u => u.url).join(" | ");
+                      const ok = await copyToClipboard(joined);
+                      if (ok) { setBulkCopiedAll(true); setTimeout(() => setBulkCopiedAll(false), 2000); showMsg("Copied — paste into one Image URLs cell in Excel."); }
+                      else showMsg("Couldn't copy automatically — select and copy the URLs manually below.", "error");
+                    }}
+                  >
+                    {bulkCopiedAll ? "Copied ✓" : "Copy All (for one product)"}
+                  </button>
+                </div>
+                <div style={{ border: "1px solid #E5E3E0" }}>
+                  {bulkUploadedUrls.map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.6rem 0.9rem", borderBottom: i < bulkUploadedUrls.length - 1 ? "1px solid #F0EDE9" : "none" }}>
+                      <img src={item.url} alt={item.name} style={{ width: "36px", height: "36px", objectFit: "cover", flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.72rem", color: "#6B6B6B", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</span>
+                      <button
+                        className="ab ab-out"
+                        style={{ padding: "0.4rem 0.8rem", fontSize: "0.6rem", flexShrink: 0 }}
+                        onClick={async () => { const ok = await copyToClipboard(item.url); showMsg(ok ? "URL copied." : "Couldn't copy — copy it manually.", ok ? "success" : "error"); }}
+                      >
+                        Copy URL
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize: "0.65rem", color: "#ADADAD", marginTop: "0.75rem", lineHeight: 1.6 }}>
+                  Uploading photos for one product? Select them all together, then use "Copy All" — it joins every URL with the same "|" separator the Excel import expects for one cell. Uploading for different products separately? Use each row's individual "Copy URL" instead.
+                </p>
+                <button className="ab ab-out" style={{ marginTop: "1rem" }} onClick={() => setBulkUploadedUrls([])}>Clear List</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* IMPORT PREVIEW MODAL */}
       {importPreview && (
