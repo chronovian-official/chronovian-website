@@ -196,6 +196,8 @@ export default function Home() {
   const [page, setPage] = useState<PageType>("home");
   const [filterBrand, setFilterBrand] = useState("All");
   const [filtersOpenMap, setFiltersOpenMap] = useState<Record<string, boolean>>({ watches: true, jewellery: true, bags: true, accessories: true });
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 9;
   const [expandedFacet, setExpandedFacet] = useState<string | null>(null);
   const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
   const [priceMin, setPriceMin] = useState("");
@@ -741,7 +743,11 @@ export default function Home() {
       }
       prevCategoryRef.current = page;
     }
+    setCurrentPage(1);
   }, [page]);
+
+  // Reset to page 1 whenever filters or sort change, so you never land on an empty page
+  useEffect(() => { setCurrentPage(1); }, [activeFacets, priceMin, priceMax, sortBy]);
 
   const getFacetOptions = (categoryWatches: Watch[], key: string): string[] => {
     const values = categoryWatches.map(w => (w as any)[key]).filter((v): v is string => !!v && v.trim() !== "");
@@ -800,6 +806,26 @@ export default function Home() {
     if (applyBrandPill && filterBrand !== "All") list = list.filter(w => w.brand === filterBrand);
     list = list.filter(w => matchesFacets(w) && inPriceRange(w));
     return sortWatchList(list);
+  };
+
+  const renderPagination = (totalItems: number) => {
+    const totalPages = Math.ceil(totalItems / PRODUCTS_PER_PAGE);
+    if (totalPages <= 1) return null;
+    const pages: (number | "...")[] = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) pages.push(i);
+      else if (pages[pages.length - 1] !== "...") pages.push("...");
+    }
+    return (
+      <div className="pagination">
+        <button className="pagination-arrow" disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}>‹</button>
+        {pages.map((p, i) => p === "..."
+          ? <span key={`ellipsis-${i}`} className="pagination-ellipsis">…</span>
+          : <button key={p} className={`pagination-num${currentPage === p ? " active" : ""}`} onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}>{p}</button>
+        )}
+        <button className="pagination-arrow" disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}>›</button>
+      </div>
+    );
   };
 
   const renderFiltersToggle = (category: string) => (
@@ -1151,7 +1177,7 @@ export default function Home() {
         .cart-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: var(--gray-mid); line-height: 1; padding: 0; }
         .cart-items { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
         .cart-item { display: flex; gap: 1rem; align-items: flex-start; }
-        .cart-item-img { width: 72px; height: 88px; object-fit: contain; background: var(--gray-pale); flex-shrink: 0; padding: 0.3rem; box-sizing: border-box; }
+        .cart-item-img { width: 72px; height: 88px; object-fit: cover; background: var(--gray-pale); flex-shrink: 0; }
         .cart-item-info { flex: 1; min-width: 0; }
         .cart-item-brand { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 0.2rem; }
         .cart-item-model { font-family: 'Marcellus', serif; font-size: 0.9rem; display: block; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1191,8 +1217,8 @@ export default function Home() {
         .featured { padding: 5rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .featured-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; align-items: start; }
         .watch-card { cursor: default; display: flex; flex-direction: column; height: 100%; }
-        .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; cursor: pointer; padding: 1rem; box-sizing: border-box; }
-        .watch-img-wrap img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.6s ease; }
+        .watch-img-wrap { position: relative; overflow: hidden; background: var(--gray-pale); aspect-ratio: 3/4; margin-bottom: 1rem; cursor: pointer; }
+        .watch-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: white; color: var(--black); }
         .watch-status.sold { background: var(--black); color: white; }
@@ -1275,7 +1301,15 @@ export default function Home() {
         @media (max-width: 600px) { .listing-toolbar { flex-direction: row; justify-content: space-between; } .sort-menu { left: 0; right: auto; width: 100%; } }
         .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
         .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
-        .watches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem; align-items: start; }
+        .watches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; align-items: start; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 3rem; }
+        .pagination-arrow { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); color: var(--black); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }
+        .pagination-arrow:hover:not(:disabled) { background: var(--burgundy); color: white; border-color: var(--burgundy); }
+        .pagination-arrow:disabled { opacity: 0.3; cursor: default; }
+        .pagination-num { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid transparent; color: var(--gray-mid); font-family: 'Jost', sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+        .pagination-num:hover { color: var(--black); }
+        .pagination-num.active { background: var(--burgundy); color: white; }
+        .pagination-ellipsis { color: var(--gray-light); padding: 0 0.25rem; }
 
         /* PRODUCT PAGE */
         .product-page { padding: 3rem 2.5rem; max-width: 1200px; margin: 0 auto; }
@@ -1284,9 +1318,9 @@ export default function Home() {
         .product-breadcrumb button:hover { color: var(--gold); }
         .product-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 5rem; align-items: start; }
         .product-gallery { display: flex; flex-direction: row; gap: 1rem; width: 100%; position: sticky; top: 90px; align-self: start; }
-        .product-img-main { flex: 1; min-width: 0; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; padding: 2rem; box-sizing: border-box; }
-        .product-img-main img { width: 100%; height: 100%; object-fit: contain; display: block; transition: transform 0.4s ease; }
-        .product-img-main video { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .product-img-main { flex: 1; min-width: 0; aspect-ratio: 3/4; background: var(--gray-pale); overflow: hidden; position: relative; cursor: zoom-in; }
+        .product-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+        .product-img-main video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .product-img-main:hover img { transform: scale(1.03); }
         .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: white; border: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; z-index: 2; }
         .gallery-nav:hover { background: var(--gold); color: white; }
@@ -1297,8 +1331,8 @@ export default function Home() {
         .product-thumbs::-webkit-scrollbar { width: 2px; }
         .product-thumbs::-webkit-scrollbar-track { background: var(--gray-pale); }
         .product-thumbs::-webkit-scrollbar-thumb { background: var(--gold); }
-        .product-thumb { width: 64px; height: 72px; flex-shrink: 0; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: var(--gray-pale); padding: 0.3rem; box-sizing: border-box; }
-        .product-thumb img { width: 100%; height: 100%; object-fit: contain; }
+        .product-thumb { width: 64px; height: 72px; flex-shrink: 0; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; background: var(--gray-pale); }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .product-thumb.active { border-color: var(--gold); }
         .product-thumb:hover { border-color: var(--gray-light); }
         .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
@@ -1345,7 +1379,7 @@ export default function Home() {
         .cart-page-grid { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; margin-top: 3rem; }
         .cart-page-items { display: flex; flex-direction: column; gap: 0; }
         .cart-page-item { display: grid; grid-template-columns: 100px 1fr auto; gap: 1.5rem; align-items: center; padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
-        .cart-page-img { aspect-ratio: 3/4; object-fit: contain; background: var(--gray-pale); width: 100%; padding: 0.75rem; box-sizing: border-box; }
+        .cart-page-img { aspect-ratio: 3/4; object-fit: cover; background: var(--gray-pale); width: 100%; }
         .cart-page-info { display: flex; flex-direction: column; gap: 0.4rem; }
         .cart-page-remove { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-mid); background: none; border: 1px solid var(--border); cursor: pointer; font-family: 'Jost', sans-serif; margin-top: 0.5rem; padding: 0.35rem 0.75rem; transition: all 0.2s; width: fit-content; }
         .cart-page-remove:hover { color: #c0392b; border-color: #c0392b; background: #fff5f5; }
@@ -1389,7 +1423,7 @@ export default function Home() {
         .pm-badge { padding: 0.15rem 0.5rem; border-radius: 3px; font-size: 0.5rem; font-weight: 500; }
         .checkout-summary { background: var(--gray-pale); padding: 2rem; height: fit-content; position: sticky; top: 80px; }
         .checkout-item-row { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem 0; border-bottom: 1px solid var(--border); }
-        .checkout-item-img { width: 60px; height: 72px; object-fit: contain; background: var(--gray-pale); flex-shrink: 0; padding: 0.25rem; box-sizing: border-box; }
+        .checkout-item-img { width: 60px; height: 72px; object-fit: cover; background: white; flex-shrink: 0; }
         .checkout-item-info { flex: 1; }
         .checkout-item-brand { font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); display: block; }
         .checkout-item-model { font-family: 'Marcellus', serif; font-size: 0.82rem; display: block; }
@@ -2155,7 +2189,7 @@ export default function Home() {
                 </div>
                 <div className="watches-grid">
                   {productsLoading
-                    ? Array.from({ length: 8 }).map((_, i) => (
+                    ? Array.from({ length: 9 }).map((_, i) => (
                         <div className="skeleton-card" key={i}>
                           <div className="skeleton skeleton-img" />
                           <div className="skeleton skeleton-line" style={{ width: "60%" }} />
@@ -2167,9 +2201,10 @@ export default function Home() {
                       ? <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem 0", color: "var(--gray-mid)", fontSize: "0.82rem" }}>
                           No watches available in this category yet.
                         </div>
-                      : filteredWatches.map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                      : filteredWatches.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map(w => <WatchCard key={w.id} w={w} showEnquire />)
                   }
                 </div>
+                {!productsLoading && renderPagination(filteredWatches.length)}
               </div>
             </div>
           </div>
@@ -2571,24 +2606,32 @@ export default function Home() {
                   {renderFiltersToggle("jewellery")}
                   {renderSortControl()}
                 </div>
-                <div className="watches-grid">
-                  {productsLoading
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <div className="skeleton-card" key={i}>
-                          <div className="skeleton skeleton-img" />
-                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                        </div>
-                      ))
-                    : getCategoryList("jewellery", false).length === 0
-                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Our jewellery collection is being curated. Contact us to enquire about specific pieces." : "No pieces match your current filters."}</p>
-                          <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                        </div>
-                      : getCategoryList("jewellery", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-                  }
-                </div>
+                {(() => {
+                  const jewelleryList = getCategoryList("jewellery", false);
+                  return (
+                    <>
+                      <div className="watches-grid">
+                        {productsLoading
+                          ? Array.from({ length: 9 }).map((_, i) => (
+                              <div className="skeleton-card" key={i}>
+                                <div className="skeleton skeleton-img" />
+                                <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                                <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                              </div>
+                            ))
+                          : jewelleryList.length === 0
+                            ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                                <span className="section-eyebrow">{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                                <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "jewellery").length === 0 ? "Our jewellery collection is being curated. Contact us to enquire about specific pieces." : "No pieces match your current filters."}</p>
+                                <a href="mailto:enquiries@chronovian.com?subject=Jewellery Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                              </div>
+                            : jewelleryList.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                        }
+                      </div>
+                      {!productsLoading && renderPagination(jewelleryList.length)}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -2611,24 +2654,32 @@ export default function Home() {
                   {renderFiltersToggle("bags")}
                   {renderSortControl()}
                 </div>
-                <div className="watches-grid">
-                  {productsLoading
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <div className="skeleton-card" key={i}>
-                          <div className="skeleton skeleton-img" />
-                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                        </div>
-                      ))
-                    : getCategoryList("bags", false).length === 0
-                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "bags").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "bags").length === 0 ? "Our bags collection is being curated. Contact us to enquire about specific pieces." : "No bags match your current filters."}</p>
-                          <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                        </div>
-                      : getCategoryList("bags", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-                  }
-                </div>
+                {(() => {
+                  const bagsList = getCategoryList("bags", false);
+                  return (
+                    <>
+                      <div className="watches-grid">
+                        {productsLoading
+                          ? Array.from({ length: 9 }).map((_, i) => (
+                              <div className="skeleton-card" key={i}>
+                                <div className="skeleton skeleton-img" />
+                                <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                                <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                              </div>
+                            ))
+                          : bagsList.length === 0
+                            ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                                <span className="section-eyebrow">{allWatches.filter(w => w.category === "bags").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                                <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "bags").length === 0 ? "Our bags collection is being curated. Contact us to enquire about specific pieces." : "No bags match your current filters."}</p>
+                                <a href="mailto:enquiries@chronovian.com?subject=Bags Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                              </div>
+                            : bagsList.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                        }
+                      </div>
+                      {!productsLoading && renderPagination(bagsList.length)}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -2651,24 +2702,32 @@ export default function Home() {
                   {renderFiltersToggle("accessories")}
                   {renderSortControl()}
                 </div>
-                <div className="watches-grid">
-                  {productsLoading
-                    ? Array.from({ length: 4 }).map((_, i) => (
-                        <div className="skeleton-card" key={i}>
-                          <div className="skeleton skeleton-img" />
-                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                        </div>
-                      ))
-                    : getCategoryList("accessories", false).length === 0
-                      ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
-                          <span className="section-eyebrow">{allWatches.filter(w => w.category === "accessories").length === 0 ? "Coming Soon" : "No Matches"}</span>
-                          <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "accessories").length === 0 ? "Our accessories collection is being curated. Contact us to enquire about specific pieces." : "No accessories match your current filters."}</p>
-                          <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
-                        </div>
-                      : getCategoryList("accessories", false).map(w => <WatchCard key={w.id} w={w} showEnquire />)
-                  }
-                </div>
+                {(() => {
+                  const accessoriesList = getCategoryList("accessories", false);
+                  return (
+                    <>
+                      <div className="watches-grid">
+                        {productsLoading
+                          ? Array.from({ length: 9 }).map((_, i) => (
+                              <div className="skeleton-card" key={i}>
+                                <div className="skeleton skeleton-img" />
+                                <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                                <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                              </div>
+                            ))
+                          : accessoriesList.length === 0
+                            ? <div style={{gridColumn:"1/-1",textAlign:"center",padding:"4rem 0"}}>
+                                <span className="section-eyebrow">{allWatches.filter(w => w.category === "accessories").length === 0 ? "Coming Soon" : "No Matches"}</span>
+                                <p style={{fontSize:"0.82rem",color:"var(--gray-mid)",marginTop:"1rem",lineHeight:1.9}}>{allWatches.filter(w => w.category === "accessories").length === 0 ? "Our accessories collection is being curated. Contact us to enquire about specific pieces." : "No accessories match your current filters."}</p>
+                                <a href="mailto:enquiries@chronovian.com?subject=Accessories Enquiry" className="btn-gold" style={{display:"inline-block",marginTop:"1.5rem"}}>Enquire Now</a>
+                              </div>
+                            : accessoriesList.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE).map(w => <WatchCard key={w.id} w={w} showEnquire />)
+                        }
+                      </div>
+                      {!productsLoading && renderPagination(accessoriesList.length)}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
