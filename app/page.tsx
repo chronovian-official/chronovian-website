@@ -1348,8 +1348,8 @@ export default function Home() {
         .product-thumb.active { border-color: var(--gold); }
         .product-thumb:hover { border-color: var(--gray-light); }
         .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
-        .product-brand { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); }
-        .product-model { font-family: 'Marcellus', serif; font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 300; line-height: 1.2; }
+        .product-brand { font-size: clamp(1.5rem, 2.2vw, 2rem); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 500; line-height: 1.2; }
+        .product-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; line-height: 1.4; color: var(--black); }
         .product-ref { font-size: 0.72rem; color: var(--gray-mid); }
         .product-price-row { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
         .product-price { font-family: 'Jost', sans-serif; font-size: 1.8rem; font-weight: 600; }
