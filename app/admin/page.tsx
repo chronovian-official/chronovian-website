@@ -391,19 +391,9 @@ export default function AdminPage() {
     showMsg("Banner order updated.");
   };
 
-  const handleProductDrop = async (targetId: string) => {
-    if (!draggedProductId || draggedProductId === targetId) { setDraggedProductId(null); return; }
-    const draggedIdx = products.findIndex(p => p.id === draggedProductId);
-    const targetIdx = products.findIndex(p => p.id === targetId);
-    if (draggedIdx === -1 || targetIdx === -1) { setDraggedProductId(null); return; }
-
-    const reordered = [...products];
-    const [moved] = reordered.splice(draggedIdx, 1);
-    reordered.splice(targetIdx, 0, moved);
-
+  const persistProductOrder = async (reordered: Product[], successMsg: string) => {
     const updates = reordered.map((p, i) => ({ ...p, sort_order: i }));
     setProducts(updates);
-    setDraggedProductId(null);
     setSavingOrder(true);
 
     const sb = getClient();
@@ -413,7 +403,30 @@ export default function AdminPage() {
     setSavingOrder(false);
     const failed = results.find(r => r.error);
     if (failed?.error) showMsg("Could not save order: " + failed.error.message, "error");
-    else showMsg("Display order updated — this is the order customers will see.");
+    else showMsg(successMsg);
+  };
+
+  const handleProductDrop = async (targetId: string) => {
+    if (!draggedProductId || draggedProductId === targetId) { setDraggedProductId(null); return; }
+    const draggedIdx = products.findIndex(p => p.id === draggedProductId);
+    const targetIdx = products.findIndex(p => p.id === targetId);
+    if (draggedIdx === -1 || targetIdx === -1) { setDraggedProductId(null); return; }
+
+    const reordered = [...products];
+    const [moved] = reordered.splice(draggedIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    setDraggedProductId(null);
+
+    await persistProductOrder(reordered, "Display order updated — this is the order customers will see.");
+  };
+
+  const handleMoveToTop = async (id: string) => {
+    const idx = products.findIndex(p => p.id === id);
+    if (idx <= 0) return; // already first, or not found
+    const reordered = [...products];
+    const [moved] = reordered.splice(idx, 1);
+    reordered.unshift(moved);
+    await persistProductOrder(reordered, `${moved.brand} ${moved.model} moved to the top.`);
   };
 
   const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
@@ -916,7 +929,7 @@ export default function AdminPage() {
                   {savingOrder
                     ? "Saving order…"
                     : adminSort === "custom"
-                      ? "Drag rows to set the order customers see on the website."
+                      ? "Drag rows — or use ↑ Move to Top — to set the order customers see."
                       : "Switch to Custom Order to drag and set the customer-facing order."}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -967,6 +980,9 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {adminSort === "custom" && products.findIndex(x => x.id === p.id) > 0 && (
+                        <button className="ab ab-out" onClick={() => handleMoveToTop(p.id!)} disabled={savingOrder}>↑ Move to Top</button>
+                      )}
                       <button className="ab ab-out" onClick={() => handleStatusToggle(p.id!, p.status)}>
                         {p.status === "available" ? "Mark Sold" : "Mark Available"}
                       </button>
