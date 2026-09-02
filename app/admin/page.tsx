@@ -182,6 +182,7 @@ export default function AdminPage() {
   const [exporting, setExporting] = useState(false);
   const [importPreview, setImportPreview] = useState<{ rows: any[]; newCount: number; updateCount: number; skipped: number } | null>(null);
   const [adminSort, setAdminSort] = useState<"custom" | "newest" | "price-desc" | "price-asc" | "brand" | "status">("custom");
+  const [savingSiteSort, setSavingSiteSort] = useState(false);
   const bulkUploadFileRef = useRef<HTMLInputElement>(null);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -190,12 +191,45 @@ export default function AdminPage() {
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
-    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); fetchCustomers(); }
+    if (authed) { fetchProducts(); fetchBookings(); fetchOrders(); fetchBanners(); fetchCategoryImages(); fetchCustomers(); fetchSiteSort(); }
   }, [authed]);
 
   const showMsg = (text: string, type: "success" | "error" = "success") => {
     setMsg({ text, type });
     setTimeout(() => setMsg(null), 4000);
+  };
+
+  // Which admin sort options are also valid customer-facing sorts.
+  // "brand" and "status" are admin-only views and don't map to a website sort.
+  const ADMIN_TO_SITE_SORT: Record<string, string> = {
+    custom: "curated",
+    "price-desc": "price-desc",
+    "price-asc": "price-asc",
+    newest: "new",
+  };
+
+  const fetchSiteSort = async () => {
+    const sb = getClient();
+    const { data } = await sb.from("site_settings").select("value").eq("key", "default_sort").maybeSingle();
+    const siteVal = (data as any)?.value;
+    if (!siteVal) return;
+    const adminVal = Object.keys(ADMIN_TO_SITE_SORT).find(k => ADMIN_TO_SITE_SORT[k] === siteVal);
+    if (adminVal) setAdminSort(adminVal as any);
+  };
+
+  const handleAdminSortChange = async (value: string) => {
+    setAdminSort(value as any);
+    const siteValue = ADMIN_TO_SITE_SORT[value];
+    if (!siteValue) {
+      showMsg("This is an admin-only view — the website order is unchanged.");
+      return;
+    }
+    setSavingSiteSort(true);
+    const sb = getClient();
+    const { error } = await sb.from("site_settings").upsert({ key: "default_sort", value: siteValue }, { onConflict: "key" });
+    setSavingSiteSort(false);
+    if (error) showMsg("Couldn't update the website order: " + error.message, "error");
+    else showMsg("Website product order updated for customers.");
   };
 
   const fetchProducts = async () => {
@@ -926,15 +960,17 @@ export default function AdminPage() {
             {products.length > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "0.7rem", color: adminSort === "custom" ? "#6E1F2E" : "#ADADAD" }}>
-                  {savingOrder
-                    ? "Saving order…"
+                  {savingOrder || savingSiteSort
+                    ? "Saving…"
                     : adminSort === "custom"
                       ? "Drag rows — or use ↑ Move to Top — to set the order customers see."
-                      : "Switch to Custom Order to drag and set the customer-facing order."}
+                      : adminSort === "brand" || adminSort === "status"
+                        ? "Admin view only — the website order is unchanged."
+                        : "This is also the order customers see on the website."}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <label style={{ fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#6B6B6B" }}>Sort by</label>
-                <select className="as" style={{ width: "auto", minWidth: "220px" }} value={adminSort} onChange={e => setAdminSort(e.target.value as any)}>
+                <select className="as" style={{ width: "auto", minWidth: "220px" }} value={adminSort} onChange={e => handleAdminSortChange(e.target.value)} disabled={savingSiteSort}>
                   <option value="custom">Custom Order (drag to arrange)</option>
                   <option value="price-desc">Price — High to Low</option>
                   <option value="price-asc">Price — Low to High</option>

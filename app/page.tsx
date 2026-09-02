@@ -204,6 +204,7 @@ export default function Home() {
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [sortBy, setSortBy] = useState<"curated" | "price-desc" | "price-asc" | "new">("curated");
+  const defaultSortRef = useRef<"curated" | "price-desc" | "price-asc" | "new">("curated");
   const [sortOpen, setSortOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -625,6 +626,23 @@ export default function Home() {
     fetchProducts();
   }, []);
 
+  // Load the default product sort configured by the admin panel
+  useEffect(() => {
+    (async () => {
+      try {
+        const sb = getSupabase();
+        const { data } = await sb.from("site_settings").select("value").eq("key", "default_sort").maybeSingle();
+        const val = (data as any)?.value;
+        if (val === "curated" || val === "price-desc" || val === "price-asc" || val === "new") {
+          defaultSortRef.current = val;
+          setSortBy(val);
+        }
+      } catch {
+        // Setting not configured yet — keep the built-in default
+      }
+    })();
+  }, []);
+
   // If the URL has ?product=<id>, open that product directly (used when a product is opened in a new tab)
   useEffect(() => {
     if (allWatches.length === 0) return;
@@ -740,7 +758,7 @@ export default function Home() {
         setActiveFacets({});
         setPriceMin("");
         setPriceMax("");
-        setSortBy("curated");
+        setSortBy(defaultSortRef.current);
         setExpandedFacet(null);
       }
       skipNextFacetResetRef.current = false;
