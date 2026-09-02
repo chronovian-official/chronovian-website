@@ -62,6 +62,7 @@ type Watch = {
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
   watches: [
+    { key: "brand", label: "Brand" },
     { key: "dial_color", label: "Dial Colour" },
     { key: "case_size", label: "Case Size" },
     { key: "case_material", label: "Case Material" },
@@ -194,7 +195,6 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [slide, setSlide] = useState(0);
   const [page, setPage] = useState<PageType>("home");
-  const [filterBrand, setFilterBrand] = useState("All");
   const [filtersOpenMap, setFiltersOpenMap] = useState<Record<string, boolean>>({ watches: true, jewellery: true, bags: true, accessories: true });
   const [currentPage, setCurrentPage] = useState(1);
   const PRODUCTS_PER_PAGE = 9;
@@ -202,7 +202,7 @@ export default function Home() {
   const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [sortBy, setSortBy] = useState<"featured" | "price-desc" | "price-asc" | "new">("featured");
+  const [sortBy, setSortBy] = useState<"featured" | "price-desc" | "price-asc" | "new">("price-desc");
   const [sortOpen, setSortOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -731,16 +731,18 @@ export default function Home() {
   const closeFilters = (category: string) => setFiltersOpenMap(prev => ({ ...prev, [category]: false }));
 
   const prevCategoryRef = useRef<string | null>(null);
+  const skipNextFacetResetRef = useRef(false);
   useEffect(() => {
     const isListingPage = ["watches", "jewellery", "bags", "accessories"].includes(page);
     if (isListingPage) {
-      if (prevCategoryRef.current !== null && prevCategoryRef.current !== page) {
+      if (prevCategoryRef.current !== null && prevCategoryRef.current !== page && !skipNextFacetResetRef.current) {
         setActiveFacets({});
         setPriceMin("");
         setPriceMax("");
-        setSortBy("featured");
+        setSortBy("price-desc");
         setExpandedFacet(null);
       }
+      skipNextFacetResetRef.current = false;
       prevCategoryRef.current = page;
     }
     setCurrentPage(1);
@@ -801,9 +803,8 @@ export default function Home() {
     return arr;
   };
 
-  const getCategoryList = (category: string, applyBrandPill: boolean) => {
+  const getCategoryList = (category: string) => {
     let list = allWatches.filter(w => w.category === category);
-    if (applyBrandPill && filterBrand !== "All") list = list.filter(w => w.brand === filterBrand);
     list = list.filter(w => matchesFacets(w) && inPriceRange(w));
     return sortWatchList(list);
   };
@@ -965,8 +966,7 @@ export default function Home() {
   const cartTotal = cart.reduce((s, i) => s + i.watch.price * i.qty, 0);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
-  const brands = ["All", ...Array.from(new Set(allWatches.map(w => w.brand))).sort()];
-  const filteredWatches = getCategoryList("watches", true);
+  const filteredWatches = getCategoryList("watches");
   const searchResults = searchQuery.trim().length > 1
     ? allWatches.filter(w =>
         `${w.brand} ${w.model} ${w.ref} ${w.condition}`.toLowerCase().includes(searchQuery.toLowerCase())
@@ -1222,7 +1222,7 @@ export default function Home() {
         .watch-card:hover .watch-img-wrap img { transform: scale(1.04); }
         .watch-status { position: absolute; top: 1rem; left: 1rem; font-size: 0.52rem; letter-spacing: 0.18em; text-transform: uppercase; padding: 0.3rem 0.7rem; background: var(--burgundy); color: white; }
         .watch-status.sold { background: var(--black); color: white; }
-        .watch-brand { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
+        .watch-brand { font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
         .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
@@ -1244,7 +1244,6 @@ export default function Home() {
         /* WATCHES PAGE */
         .watches-page { padding: 4rem 2.5rem; max-width: 1300px; margin: 0 auto; }
         .watches-page-header { margin-bottom: 3rem; }
-        .filter-bar { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
 
         /* LISTING LAYOUT WITH FILTER SIDEBAR */
         .listing-layout { display: grid; grid-template-columns: 260px 1fr; gap: 3rem; margin-top: 2rem; align-items: start; transition: grid-template-columns 0.2s; }
@@ -1301,8 +1300,6 @@ export default function Home() {
           .filters-sidebar-header { display: flex; }
         }
         @media (max-width: 600px) { .listing-toolbar { flex-direction: row; justify-content: space-between; } .sort-menu { left: 0; right: auto; width: 100%; } }
-        .filter-btn { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.6rem 1.5rem; border: 1px solid var(--border); background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; color: var(--black); }
-        .filter-btn.active, .filter-btn:hover { background: var(--burgundy); color: white; border-color: var(--burgundy); }
         .watches-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; align-items: start; }
         .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 3rem; }
         .pagination-arrow { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); color: var(--black); font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }
@@ -1753,11 +1750,12 @@ export default function Home() {
                 {["Rolex", "Audemars Piguet", "Patek Philippe"].map(b => (
                   <button key={b} className="search-brand-pill" onClick={() => {
                     setSearchOpen(false); setSearchQuery("");
-                    setFilterBrand(b); goTo("watches");
+                    skipNextFacetResetRef.current = true;
+                    setActiveFacets({ brand: [b] }); goTo("watches");
                   }}>{b}</button>
                 ))}
                 <button className="search-brand-pill" onClick={() => {
-                  setSearchOpen(false); setSearchQuery(""); goTo("watches");
+                  setSearchOpen(false); setSearchQuery(""); setActiveFacets({}); goTo("watches");
                 }}>All Watches</button>
               </div>
             </div>
@@ -2176,11 +2174,6 @@ export default function Home() {
               <span className="section-eyebrow">Our Collection</span>
               <h1 className="section-title">Watches</h1>
               <div className="gold-rule" style={{margin:"1.25rem 0 0"}} />
-              <div className="filter-bar">
-                {brands.map(b => (
-                  <button key={b} className={`filter-btn${filterBrand === b ? " active" : ""}`} onClick={() => setFilterBrand(b)}>{b}</button>
-                ))}
-              </div>
             </div>
             <div className={`listing-layout${isFiltersOpen("watches") ? "" : " filters-collapsed"}`}>
               {isFiltersOpen("watches") && renderFilterSidebar("watches")}
@@ -2609,7 +2602,7 @@ export default function Home() {
                   {renderSortControl()}
                 </div>
                 {(() => {
-                  const jewelleryList = getCategoryList("jewellery", false);
+                  const jewelleryList = getCategoryList("jewellery");
                   return (
                     <>
                       <div className="watches-grid">
@@ -2657,7 +2650,7 @@ export default function Home() {
                   {renderSortControl()}
                 </div>
                 {(() => {
-                  const bagsList = getCategoryList("bags", false);
+                  const bagsList = getCategoryList("bags");
                   return (
                     <>
                       <div className="watches-grid">
@@ -2705,7 +2698,7 @@ export default function Home() {
                   {renderSortControl()}
                 </div>
                 {(() => {
-                  const accessoriesList = getCategoryList("accessories", false);
+                  const accessoriesList = getCategoryList("accessories");
                   return (
                     <>
                       <div className="watches-grid">

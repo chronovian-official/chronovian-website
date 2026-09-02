@@ -177,6 +177,7 @@ export default function AdminPage() {
   const importFileRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
   const [importPreview, setImportPreview] = useState<{ rows: any[]; newCount: number; updateCount: number; skipped: number } | null>(null);
+  const [adminSort, setAdminSort] = useState<"newest" | "price-desc" | "price-asc" | "brand" | "status">("price-desc");
   const bulkUploadFileRef = useRef<HTMLInputElement>(null);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -254,6 +255,16 @@ export default function AdminPage() {
     if (!q) return true;
     return (c.full_name || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q) || (c.phone || "").toLowerCase().includes(q);
   });
+
+  const sortedProducts = (() => {
+    const arr = [...products];
+    if (adminSort === "price-desc") arr.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (adminSort === "price-asc") arr.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (adminSort === "brand") arr.sort((a, b) => `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`));
+    else if (adminSort === "status") arr.sort((a, b) => (a.status || "").localeCompare(b.status || ""));
+    // "newest" keeps the order returned by the query (created_at descending)
+    return arr;
+  })();
 
   const fetchBanners = async () => {
     const sb = getClient();
@@ -740,7 +751,7 @@ export default function AdminPage() {
                   <div>
                     <label className="al">Condition</label>
                     <select className="as" value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                      <option>New</option><option>Mint</option><option>Mint-Unworn</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
+                      <option>New</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
                     </select>
                   </div>
                   <div><label className="al">Year</label><input className="ai" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="e.g. 2022" /></div>
@@ -867,10 +878,22 @@ export default function AdminPage() {
             )}
 
             {/* PRODUCTS LIST */}
+            {products.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem" }}>
+                <label style={{ fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#6B6B6B" }}>Sort by</label>
+                <select className="as" style={{ width: "auto", minWidth: "180px" }} value={adminSort} onChange={e => setAdminSort(e.target.value as any)}>
+                  <option value="price-desc">Price — High to Low</option>
+                  <option value="price-asc">Price — Low to High</option>
+                  <option value="newest">Newest Added</option>
+                  <option value="brand">Brand / Model (A–Z)</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
+            )}
             <div style={{ background: "white", border: "1px solid #E5E3E0" }}>
-              {products.length === 0
+              {sortedProducts.length === 0
                 ? <div style={{ padding: "3rem", textAlign: "center", color: "#6B6B6B", fontSize: "0.82rem" }}>No products yet. Add your first product above.</div>
-                : products.map(p => (
+                : sortedProducts.map(p => (
                   <div className="pr" key={p.id}>
                     <div style={{ width: 80, height: 96, background: "#F5F3F0", overflow: "hidden", flexShrink: 0, border: "1px solid #E5E3E0" }}>
                       {p.images?.[0]
