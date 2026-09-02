@@ -39,6 +39,8 @@ type Product = {
   size: string;
   serial_number: string;
   featured: boolean;
+  sort_order?: number | null;
+  created_at?: string;
   collection: string;
   series: string;
   calibre: string;
@@ -162,6 +164,8 @@ export default function AdminPage() {
   const [bannerUploading, setBannerUploading] = useState(false);
   const [bannerSaving, setBannerSaving] = useState(false);
   const [draggedBannerId, setDraggedBannerId] = useState<string | null>(null);
+  const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
   const bannerFileRef = useRef<HTMLInputElement>(null);
   const [catImages, setCatImages] = useState<Record<string, string>>({ watches: "", jewellery: "", bags: "" });
   const [catUploading, setCatUploading] = useState<string | null>(null);
@@ -177,7 +181,7 @@ export default function AdminPage() {
   const importFileRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
   const [importPreview, setImportPreview] = useState<{ rows: any[]; newCount: number; updateCount: number; skipped: number } | null>(null);
-  const [adminSort, setAdminSort] = useState<"newest" | "price-desc" | "price-asc" | "brand" | "status">("price-desc");
+  const [adminSort, setAdminSort] = useState<"custom" | "newest" | "price-desc" | "price-asc" | "brand" | "status">("custom");
   const bulkUploadFileRef = useRef<HTMLInputElement>(null);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -196,7 +200,9 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
     const sb = getClient();
-    const { data, error } = await sb.from("products").select("*").order("created_at", { ascending: false });
+    const { data, error } = await sb.from("products").select("*")
+      .order("sort_order", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
     if (error) showMsg("Failed to fetch products: " + error.message, "error");
     else setProducts(data || []);
   };
@@ -258,11 +264,12 @@ export default function AdminPage() {
 
   const sortedProducts = (() => {
     const arr = [...products];
+    if (adminSort === "custom") return arr; // already in curated sort_order from the query
     if (adminSort === "price-desc") arr.sort((a, b) => (b.price || 0) - (a.price || 0));
     else if (adminSort === "price-asc") arr.sort((a, b) => (a.price || 0) - (b.price || 0));
     else if (adminSort === "brand") arr.sort((a, b) => `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`));
     else if (adminSort === "status") arr.sort((a, b) => (a.status || "").localeCompare(b.status || ""));
-    // "newest" keeps the order returned by the query (created_at descending)
+    else if (adminSort === "newest") arr.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
     return arr;
   })();
 
@@ -382,6 +389,31 @@ export default function AdminPage() {
     const sb = getClient();
     await Promise.all(updates.map(b => sb.from("hero_banners").update({ sort_order: b.sort_order }).eq("id", b.id!)));
     showMsg("Banner order updated.");
+  };
+
+  const handleProductDrop = async (targetId: string) => {
+    if (!draggedProductId || draggedProductId === targetId) { setDraggedProductId(null); return; }
+    const draggedIdx = products.findIndex(p => p.id === draggedProductId);
+    const targetIdx = products.findIndex(p => p.id === targetId);
+    if (draggedIdx === -1 || targetIdx === -1) { setDraggedProductId(null); return; }
+
+    const reordered = [...products];
+    const [moved] = reordered.splice(draggedIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    const updates = reordered.map((p, i) => ({ ...p, sort_order: i }));
+    setProducts(updates);
+    setDraggedProductId(null);
+    setSavingOrder(true);
+
+    const sb = getClient();
+    const results = await Promise.all(
+      updates.map(p => sb.from("products").update({ sort_order: p.sort_order }).eq("id", p.id!))
+    );
+    setSavingOrder(false);
+    const failed = results.find(r => r.error);
+    if (failed?.error) showMsg("Could not save order: " + failed.error.message, "error");
+    else showMsg("Display order updated — this is the order customers will see.");
   };
 
   const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
@@ -879,22 +911,43 @@ export default function AdminPage() {
 
             {/* PRODUCTS LIST */}
             {products.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.7rem", color: adminSort === "custom" ? "#6E1F2E" : "#ADADAD" }}>
+                  {savingOrder
+                    ? "Saving order…"
+                    : adminSort === "custom"
+                      ? "Drag rows to set the order customers see on the website."
+                      : "Switch to Custom Order to drag and set the customer-facing order."}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <label style={{ fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#6B6B6B" }}>Sort by</label>
-                <select className="as" style={{ width: "auto", minWidth: "180px" }} value={adminSort} onChange={e => setAdminSort(e.target.value as any)}>
+                <select className="as" style={{ width: "auto", minWidth: "220px" }} value={adminSort} onChange={e => setAdminSort(e.target.value as any)}>
+                  <option value="custom">Custom Order (drag to arrange)</option>
                   <option value="price-desc">Price — High to Low</option>
                   <option value="price-asc">Price — Low to High</option>
                   <option value="newest">Newest Added</option>
                   <option value="brand">Brand / Model (A–Z)</option>
                   <option value="status">Status</option>
                 </select>
+                </div>
               </div>
             )}
             <div style={{ background: "white", border: "1px solid #E5E3E0" }}>
               {sortedProducts.length === 0
                 ? <div style={{ padding: "3rem", textAlign: "center", color: "#6B6B6B", fontSize: "0.82rem" }}>No products yet. Add your first product above.</div>
                 : sortedProducts.map(p => (
-                  <div className="pr" key={p.id}>
+                  <div
+                    className="pr"
+                    key={p.id}
+                    draggable={adminSort === "custom"}
+                    onDragStart={() => adminSort === "custom" && setDraggedProductId(p.id!)}
+                    onDragOver={e => { if (adminSort === "custom") e.preventDefault(); }}
+                    onDrop={() => adminSort === "custom" && handleProductDrop(p.id!)}
+                    style={{
+                      cursor: adminSort === "custom" ? "grab" : "default",
+                      opacity: draggedProductId === p.id ? 0.4 : 1,
+                    }}
+                  >
                     <div style={{ width: 80, height: 96, background: "#F5F3F0", overflow: "hidden", flexShrink: 0, border: "1px solid #E5E3E0" }}>
                       {p.images?.[0]
                         ? <img src={p.images[0]} alt={p.model} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />

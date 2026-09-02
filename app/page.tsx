@@ -58,6 +58,7 @@ type Watch = {
   warranty_register_url?: string;
   country_of_origin?: string;
   created_at?: string;
+  sort_order?: number | null;
 };
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
@@ -89,7 +90,7 @@ const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
 };
 
 const SORT_LABELS: Record<string, string> = {
-  featured: "Bestseller",
+  curated: "Featured",
   "price-desc": "Price – High to Low",
   "price-asc": "Price – Low to High",
   new: "New Arrivals",
@@ -202,7 +203,7 @@ export default function Home() {
   const [activeFacets, setActiveFacets] = useState<Record<string, string[]>>({});
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [sortBy, setSortBy] = useState<"featured" | "price-desc" | "price-asc" | "new">("price-desc");
+  const [sortBy, setSortBy] = useState<"curated" | "price-desc" | "price-asc" | "new">("curated");
   const [sortOpen, setSortOpen] = useState(false);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -612,7 +613,7 @@ export default function Home() {
           .from("products")
           .select("*")
           .eq("status", "available")
-          .order("featured", { ascending: false })
+          .order("sort_order", { ascending: true, nullsFirst: false })
           .order("created_at", { ascending: false });
         if (!error && data) setAllWatches(data as unknown as Watch[]);
       } catch (e) {
@@ -739,7 +740,7 @@ export default function Home() {
         setActiveFacets({});
         setPriceMin("");
         setPriceMax("");
-        setSortBy("price-desc");
+        setSortBy("curated");
         setExpandedFacet(null);
       }
       skipNextFacetResetRef.current = false;
@@ -799,7 +800,19 @@ export default function Home() {
     if (sortBy === "price-desc") arr.sort((a, b) => b.price - a.price);
     else if (sortBy === "price-asc") arr.sort((a, b) => a.price - b.price);
     else if (sortBy === "new") arr.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-    else arr.sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+    else {
+      // "curated" — the manual order set by dragging in the admin panel.
+      // Products never manually ordered (null sort_order) fall to the end, newest first.
+      arr.sort((a, b) => {
+        const ao = a.sort_order, bo = b.sort_order;
+        const aHas = ao !== null && ao !== undefined;
+        const bHas = bo !== null && bo !== undefined;
+        if (aHas && bHas) return (ao as number) - (bo as number);
+        if (aHas) return -1;
+        if (bHas) return 1;
+        return (b.created_at || "").localeCompare(a.created_at || "");
+      });
+    }
     return arr;
   };
 
@@ -845,7 +858,7 @@ export default function Home() {
       </button>
       {sortOpen && (
         <div className="sort-menu">
-          {(["featured", "price-desc", "price-asc", "new"] as const).map(opt => (
+          {(["curated", "price-desc", "price-asc", "new"] as const).map(opt => (
             <button key={opt} className={`sort-option${sortBy === opt ? " active" : ""}`} onClick={() => { setSortBy(opt); setSortOpen(false); }}>{SORT_LABELS[opt]}</button>
           ))}
         </div>
