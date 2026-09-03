@@ -285,6 +285,7 @@ export default function Home() {
   const [addressError, setAddressError] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);
+  const categoryBarRef = useRef<HTMLDivElement>(null);
 
   // Auth: load current session + subscribe to changes
   useEffect(() => {
@@ -707,7 +708,10 @@ export default function Home() {
   useEffect(() => { document.body.style.overflow = (menuOpen || cartOpen || searchOpen) ? "hidden" : ""; }, [menuOpen, cartOpen, searchOpen]);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) setActiveDropdown(null);
+      const target = e.target as Node;
+      const insideTopbar = navRef.current?.contains(target);
+      const insideCategoryBar = categoryBarRef.current?.contains(target);
+      if (!insideTopbar && !insideCategoryBar) setActiveDropdown(null);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -1925,7 +1929,7 @@ export default function Home() {
       </nav>
 
       {/* CATEGORY BAR (scrolls away) */}
-      <div className="categorybar">
+      <div className="categorybar" ref={categoryBarRef}>
         <button className={`nav-link${page === "watches" ? " active" : ""}`} onClick={() => goTo("watches")}>Watches</button>
         <button className={`nav-link${page === "jewellery" ? " active" : ""}`} onClick={() => goTo("jewellery")}>Jewellery</button>
         <button className={`nav-link${page === "bags" ? " active" : ""}`} onClick={() => goTo("bags")}>Bags</button>
