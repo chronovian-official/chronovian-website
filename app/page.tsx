@@ -613,7 +613,6 @@ export default function Home() {
         const { data, error } = await sb
           .from("products")
           .select("*")
-          .eq("status", "available")
           .order("sort_order", { ascending: true, nullsFirst: false })
           .order("created_at", { ascending: false });
         if (!error && data) setAllWatches(data as unknown as Watch[]);
@@ -813,6 +812,8 @@ export default function Home() {
     return w.price >= min && w.price <= max;
   };
 
+  const isSold = (w: Watch) => (w.status || "").toLowerCase() === "sold";
+
   const sortWatchList = (list: Watch[]) => {
     const arr = [...list];
     if (sortBy === "price-desc") arr.sort((a, b) => b.price - a.price);
@@ -831,6 +832,9 @@ export default function Home() {
         return (b.created_at || "").localeCompare(a.created_at || "");
       });
     }
+    // Sold pieces stay browsable but always sink below available stock,
+    // so they end up on the last page(s) whichever sort is active.
+    arr.sort((a, b) => Number(isSold(a)) - Number(isSold(b)));
     return arr;
   };
 
@@ -1004,9 +1008,10 @@ export default function Home() {
       )
     : [];
 
-  const featuredWatches = allWatches.filter(w => w.featured).length > 0
-    ? allWatches.filter(w => w.featured)
-    : allWatches.slice(0, 8);
+  const availableWatches = allWatches.filter(w => (w.status || "").toLowerCase() !== "sold");
+  const featuredWatches = availableWatches.filter(w => w.featured).length > 0
+    ? availableWatches.filter(w => w.featured)
+    : availableWatches.slice(0, 8);
 
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
@@ -1039,7 +1044,9 @@ export default function Home() {
       <span className="watch-ref">{w.ref}</span>
       <span className="watch-price">{fmtPrice(w.price)}</span>
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
-        <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>
+        {(w.status || "").toLowerCase() === "sold"
+          ? <button className="btn-cart btn-cart-sold" disabled>Sold</button>
+          : <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>}
         {showEnquire && <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>}
       </div>
     </div>
@@ -1266,6 +1273,8 @@ export default function Home() {
         .watch-card:hover .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; }
         @media (hover: none) { .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; } }
         .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
+        .btn-cart-sold { background: var(--gray-pale); color: var(--gray-mid); border-color: var(--border); cursor: not-allowed; }
+        .btn-cart-sold:hover { background: var(--gray-pale); border-color: var(--border); }
         .btn-cart:hover { background: var(--burgundy-light); border-color: var(--burgundy-light); }
         .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--burgundy); color: var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
         .enquire-btn:hover { background: var(--burgundy); color: white; }
@@ -1595,8 +1604,9 @@ export default function Home() {
         @media (max-width: 768px) { .booking-grid { grid-template-columns: 1fr; gap: 2.5rem; } .time-slots-grid { grid-template-columns: repeat(4, 1fr); } }
         .btn-outline { display: inline-block; border: 1px solid var(--black); color: var(--black); text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.3s; background: none; cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 300; }
         .btn-outline:hover { background: var(--burgundy); color: white; }
-        .btn-gold { display: inline-block; background: var(--gold); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
-        .btn-gold:hover { background: var(--gold-light); }
+        /* Primary CTA. Class name kept as .btn-gold to avoid touching 14 call sites; palette is burgundy. */
+        .btn-gold { display: inline-block; background: var(--burgundy); color: white; text-decoration: none; padding: 0.8rem 2.5rem; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s; border: none; cursor: pointer; font-family: 'Jost', sans-serif; }
+        .btn-gold:hover { background: var(--burgundy-light); }
 
         /* FOOTER */
         footer { background: var(--gray-pale); border-top: 1px solid var(--border); padding: 5rem 2.5rem 2.5rem; }
@@ -1927,7 +1937,10 @@ export default function Home() {
           ] as DropdownItem[] },
         ]).map(dd => (
           <div className="nav-dropdown-wrap" key={dd.key} onMouseEnter={() => setActiveDropdown(dd.key)} onMouseLeave={() => setActiveDropdown(null)}>
-            <button className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}>
+            <button
+              className={`nav-dropdown-trigger${activeDropdown === dd.key ? " open" : ""}`}
+              onClick={() => setActiveDropdown(activeDropdown === dd.key ? null : dd.key)}
+            >
               {dd.label}
               <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
@@ -2888,14 +2901,13 @@ export default function Home() {
       {page === "booking" && (() => {
         const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-        const timeSlots = ["10:00 AM","11:00 AM","12:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM"];
+        const timeSlots = ["11:30 AM","1:30 PM","3:30 PM","5:30 PM","7:30 PM"];
         const today = new Date();
         const firstDay = new Date(calYear, calMonth, 1).getDay();
         const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
         const prevMonth = () => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); setSelectedDate(null); setSelectedTime(null); };
         const nextMonth = () => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); setSelectedDate(null); setSelectedTime(null); };
         const isPast = (d: number) => new Date(calYear, calMonth, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const isWeekend = (d: number) => { const day = new Date(calYear, calMonth, d).getDay(); return day === 0; }; // closed Sundays
         const dateStr = (d: number) => `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
         const displayDate = selectedDate ? new Date(selectedDate + "T12:00:00").toLocaleDateString("en-IN", { weekday:"long", day:"numeric", month:"long", year:"numeric" }) : null;
 
@@ -2933,20 +2945,19 @@ export default function Home() {
                         const d = i + 1;
                         const ds = dateStr(d);
                         const past = isPast(d);
-                        const weekend = isWeekend(d);
                         const isSelected = selectedDate === ds;
                         const isToday = today.getDate() === d && today.getMonth() === calMonth && today.getFullYear() === calYear;
                         return (
                           <button
                             key={d}
-                            className={`calendar-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${past || weekend ? " past" : ""}`}
-                            onClick={() => { if (!past && !weekend) { setSelectedDate(ds); setSelectedTime(null); }}}
+                            className={`calendar-day${isSelected ? " selected" : ""}${isToday ? " today" : ""}${past ? " past" : ""}`}
+                            onClick={() => { if (!past) { setSelectedDate(ds); setSelectedTime(null); }}}
                           >{d}</button>
                         );
                       })}
                     </div>
                     <p style={{fontSize:"0.6rem",color:"var(--gray-light)",marginTop:"1rem",letterSpacing:"0.1em"}}>
-                      Open Monday–Saturday · Sundays closed · By appointment only
+                      Open daily 11:30 AM – 9:00 PM · By appointment only
                     </p>
 
                     {/* TIME SLOTS */}
@@ -3214,9 +3225,7 @@ export default function Home() {
           <div className="footer-bottom">
             <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
             <div className="footer-social">
-              <a href="https://instagram.com/chronovian" target="_blank">Instagram</a>
               <a href="https://wa.me/910000000000" target="_blank">WhatsApp</a>
-              <a href="#">Facebook</a>
             </div>
           </div>
         </div>
