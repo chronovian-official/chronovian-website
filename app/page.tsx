@@ -93,10 +93,10 @@ const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
 const STORE_ADDRESS =
   "2nd Floor, Anukar One Commercial Complex, #11-8/DSR/202, Narsingi, Telangana 500075";
 
-// Used for the map embed and the directions link. Kept simpler on purpose —
-// Google's geocoder often fails on door-number fragments like "#11-8/DSR/202",
-// but resolves the named building reliably.
-const STORE_MAP_QUERY = "Anukar One Commercial Complex, Narsingi, Hyderabad, Telangana 500075";
+// Used for the map embed and the directions link.
+// Searching the street address resolved to a neighbouring building, so we search the
+// store's own Google Maps business listing instead — that pins the exact place.
+const STORE_MAP_QUERY = "Chronovian By Ankris Luxurio, Narsingi, Telangana";
 
 const SORT_LABELS: Record<string, string> = {
   curated: "Featured",
