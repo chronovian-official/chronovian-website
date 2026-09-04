@@ -89,6 +89,9 @@ const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
   ],
 };
 
+const STORE_ADDRESS =
+  "2nd Floor, Anukar One Commercial Complex, #11-8/DSR/202, Narsingi, Telangana, India - 500075";
+
 const SORT_LABELS: Record<string, string> = {
   curated: "Featured",
   "price-desc": "Price – High to Low",
@@ -120,8 +123,18 @@ const parseSizeMM = (val?: string): number | null => {
   return match ? parseFloat(match[1]) : null;
 };
 
-// Fallback placeholder image
-const placeholder = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=85";
+// Neutral inline placeholder shown only when a product has no image yet.
+// Deliberately not a stock photo — an inline SVG so nothing external is ever loaded.
+const placeholder =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+       <rect width="600" height="800" fill="#F5F3F0"/>
+       <text x="300" y="400" text-anchor="middle" fill="#C9C4BD"
+             font-family="Jost, Helvetica, Arial, sans-serif" font-size="22"
+             letter-spacing="6">CHRONOVIAN</text>
+     </svg>`
+  );
 
 const getImg = (w: Watch) => w.images?.[0] || placeholder;
 const isVideo = (url: string) => /\.(mp4|mov|webm|avi|mkv)(\?.*)?$/i.test(url);
@@ -234,10 +247,12 @@ export default function Home() {
   const [allWatches, setAllWatches] = useState<Watch[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [heroSlides, setHeroSlides] = useState<HeroBanner[]>([]);
+  // No stock-image defaults — category tiles stay blank until real images are
+  // uploaded via Admin → Categories, matching the no-placeholder-imagery rule.
   const [catImages, setCatImagesState] = useState<Record<string, string>>({
-    watches: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800&q=90",
-    jewellery: "https://images.unsplash.com/photo-1573408301185-9519f94816b5?w=800&q=90",
-    bags: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=90",
+    watches: "",
+    jewellery: "",
+    bags: "",
   });
   const [currency, setCurrency] = useState("INR");
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({ INR: 1 });
@@ -1013,6 +1028,12 @@ export default function Home() {
     : [];
 
   const availableWatches = allWatches.filter(w => (w.status || "").toLowerCase() !== "sold");
+  // Boutique photos live in the same category_images table under store_1..store_4,
+  // so they're managed from Admin → Categories with no extra table needed.
+  const storePhotos = ["store_1", "store_2", "store_3", "store_4"]
+    .map(key => catImages[key])
+    .filter((url): url is string => !!url);
+
   const featuredWatches = availableWatches.filter(w => w.featured).length > 0
     ? availableWatches.filter(w => w.featured)
     : availableWatches.slice(0, 8);
@@ -1555,6 +1576,23 @@ export default function Home() {
 
         /* PILLARS */
         .pillars { background: #2A1216; padding: 5rem 2.5rem; }
+
+        /* VISIT US — map + boutique photos */
+        .visit-section { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; background: white; }
+        .visit-map { min-height: 480px; }
+        .visit-map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(30%); }
+        .visit-content { padding: 4rem 3rem; display: flex; flex-direction: column; justify-content: center; }
+        .visit-address { font-size: 0.85rem; line-height: 1.9; color: var(--gray-mid); max-width: 420px; }
+        .visit-photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-top: 2.5rem; max-width: 460px; }
+        .visit-photo { aspect-ratio: 4/3; overflow: hidden; background: var(--gray-pale); }
+        .visit-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .visit-photo:hover img { transform: scale(1.05); }
+        @media (max-width: 900px) {
+          .visit-section { grid-template-columns: 1fr; }
+          .visit-map { min-height: 320px; order: 2; }
+          .visit-content { order: 1; padding: 3rem 1.5rem; }
+          .visit-photo-grid { max-width: none; }
+        }
         .pillars-inner { max-width: 1100px; margin: 0 auto; }
         .pillars-inner .section-title { color: white; }
         .pillars-inner .section-eyebrow { color: #D4AA78; }
@@ -3186,6 +3224,42 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          {/* VISIT US — map + store photos */}
+          <section className="visit-section">
+            <div className="visit-map">
+              <iframe
+                title="Chronovian boutique location"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(STORE_ADDRESS)}&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+            <div className="visit-content">
+              <span className="section-eyebrow">Visit Us</span>
+              <h2 className="section-title" style={{ marginBottom: "1rem" }}>The <em>Boutique</em></h2>
+              <p className="visit-address">{STORE_ADDRESS}</p>
+              <a
+                className="btn-gold"
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE_ADDRESS)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ marginTop: "1.25rem" }}
+              >
+                Get Directions
+              </a>
+              {storePhotos.length > 0 && (
+                <div className="visit-photo-grid">
+                  {storePhotos.map((src, i) => (
+                    <div className="visit-photo" key={i}>
+                      <img src={src} alt={`Chronovian boutique ${i + 1}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         </main>

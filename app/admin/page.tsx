@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, RefObject } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
 
@@ -170,6 +170,12 @@ export default function AdminPage() {
   const [catImages, setCatImages] = useState<Record<string, string>>({ watches: "", jewellery: "", bags: "" });
   const [catUploading, setCatUploading] = useState<string | null>(null);
   const catFileRefs = { watches: useRef<HTMLInputElement>(null), jewellery: useRef<HTMLInputElement>(null), bags: useRef<HTMLInputElement>(null) };
+  const storeFileRefs: Record<string, RefObject<HTMLInputElement | null>> = {
+    store_1: useRef<HTMLInputElement>(null),
+    store_2: useRef<HTMLInputElement>(null),
+    store_3: useRef<HTMLInputElement>(null),
+    store_4: useRef<HTMLInputElement>(null),
+  };
   const [form, setForm] = useState<Product>(emptyProduct);
   const [editing, setEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -1195,6 +1201,68 @@ export default function AdminPage() {
             </div>
             <div style={{ marginTop: "2rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #9A7340", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
               💡 Tip: Use portrait-oriented images (taller than wide) for best results. Minimum recommended size: 800 × 1000px. The client's own product photography works best here.
+            </div>
+
+            {/* BOUTIQUE PHOTOS */}
+            <div style={{ marginTop: "3.5rem", paddingTop: "2.5rem", borderTop: "1px solid #E5E3E0" }}>
+              <div style={{ marginBottom: "1.5rem" }}>
+                <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Boutique Photos</h2>
+                <p style={{ fontSize: "0.72rem", color: "#6B6B6B", marginTop: "0.25rem" }}>
+                  Shown beside the map in the "Visit Us" section at the bottom of the homepage. Upload up to 4 — empty slots are simply hidden.
+                </p>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem" }}>
+                {["store_1", "store_2", "store_3", "store_4"].map((key, i) => (
+                  <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div style={{ background: "white", border: "1px solid #E5E3E0", overflow: "hidden", aspectRatio: "4/3", position: "relative" }}>
+                      {catImages[key]
+                        ? <img src={catImages[key]} alt={`Boutique ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.4rem", background: "#F5F3F0" }}>
+                            <span style={{ fontSize: "1.5rem" }}>🏪</span>
+                            <span style={{ fontSize: "0.68rem", color: "#ADADAD" }}>Photo {i + 1}</span>
+                          </div>
+                      }
+                      {catUploading === key && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", color: "#6B6B6B" }}>
+                          ⏳ Uploading...
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={storeFileRefs[key]}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={e => { if (e.target.files && e.target.files.length > 0) handleCatImageUpload(key, e.target.files); }}
+                    />
+                    <button
+                      className="ab ab-gold"
+                      style={{ width: "100%" }}
+                      onClick={() => storeFileRefs[key].current?.click()}
+                      disabled={catUploading === key}
+                    >
+                      {catImages[key] ? "Replace" : "Upload"}
+                    </button>
+                    {catImages[key] && (
+                      <button
+                        className="ab ab-out"
+                        style={{ width: "100%" }}
+                        onClick={async () => {
+                          const sb = getClient();
+                          await sb.from("category_images").upsert({ id: key, image_url: "", updated_at: new Date().toISOString() });
+                          setCatImages(prev => ({ ...prev, [key]: "" }));
+                          showMsg(`Boutique photo ${i + 1} removed.`);
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: "1.5rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #6E1F2E", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
+                💡 Landscape photos work best here (4:3). Interior shots, the display cases, and the storefront all work well.
+              </div>
             </div>
           </div>
         )}
