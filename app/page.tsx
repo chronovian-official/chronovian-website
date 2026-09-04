@@ -89,8 +89,14 @@ const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
   ],
 };
 
+// Shown to customers, exactly as the client provided it.
 const STORE_ADDRESS =
-  "2nd Floor, Anukar One Commercial Complex, #11-8/DSR/202, Narsingi, Telangana, India - 500075";
+  "2nd Floor, Anukar One Commercial Complex, #11-8/DSR/202, Narsingi, Telangana 500075";
+
+// Used for the map embed and the directions link. Kept simpler on purpose —
+// Google's geocoder often fails on door-number fragments like "#11-8/DSR/202",
+// but resolves the named building reliably.
+const STORE_MAP_QUERY = "Anukar One Commercial Complex, Narsingi, Hyderabad, Telangana 500075";
 
 const SORT_LABELS: Record<string, string> = {
   curated: "Featured",
@@ -1028,7 +1034,7 @@ export default function Home() {
     : [];
 
   const availableWatches = allWatches.filter(w => (w.status || "").toLowerCase() !== "sold");
-  // Boutique photos live in the same category_images table under store_1..store_4,
+  // Chronovian store photos live in the same category_images table under store_1..store_4,
   // so they're managed from Admin → Categories with no extra table needed.
   const storePhotos = ["store_1", "store_2", "store_3", "store_4"]
     .map(key => catImages[key])
@@ -1577,7 +1583,7 @@ export default function Home() {
         /* PILLARS */
         .pillars { background: #2A1216; padding: 5rem 2.5rem; }
 
-        /* VISIT US — map + boutique photos */
+        /* VISIT US — map + Chronovian store photos */
         .visit-section { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; background: white; }
         .visit-map { min-height: 480px; }
         .visit-map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(30%); }
@@ -2384,7 +2390,7 @@ export default function Home() {
                       <div className="checkout-section-title">Delivery Method</div>
                       {[
                         { id: "home", name: "Home Delivery", sub: "Insured courier — 3 to 5 business days", price: "₹500" },
-                        { id: "store", name: "In-Store Collection", sub: "Hyderabad boutique — by appointment only", price: "Free" },
+                        { id: "store", name: "In-Store Collection", sub: "Hyderabad store — by appointment only", price: "Free" },
                       ].map(opt => (
                         <div className={`delivery-option${checkoutForm.delivery === opt.id ? " selected" : ""}`} key={opt.id} style={{marginBottom:"0.5rem",cursor:"pointer"}} onClick={() => setCheckoutForm(f => ({ ...f, delivery: opt.id }))}>
                           <input type="radio" name="delivery" checked={checkoutForm.delivery === opt.id} onChange={() => setCheckoutForm(f => ({ ...f, delivery: opt.id }))} />
@@ -2892,8 +2898,8 @@ export default function Home() {
               {[
                 { icon: "✉️", label: "Email", content: <a href="mailto:info@chronovian.com">info@chronovian.com</a> },
                 { icon: "💬", label: "WhatsApp", content: <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a> },
-                { icon: "📍", label: "Location", content: "Hyderabad, Telangana — Address on appointment confirmation" },
-                { icon: "🕐", label: "Hours", content: "By appointment only · Monday–Saturday: 10am–7pm" },
+                { icon: "📍", label: "Location", content: STORE_ADDRESS },
+                { icon: "🕐", label: "Hours", content: "Open daily 11:30 AM – 9:00 PM · By appointment only" },
               ].map(item => (
                 <div className="contact-item" key={item.label}>
                   <span className="contact-item-icon">{item.icon}</span>
@@ -3231,8 +3237,8 @@ export default function Home() {
           <section className="visit-section">
             <div className="visit-map">
               <iframe
-                title="Chronovian boutique location"
-                src={`https://www.google.com/maps?q=${encodeURIComponent(STORE_ADDRESS)}&output=embed`}
+                title="Chronovian store location"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(STORE_MAP_QUERY)}&output=embed`}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 allowFullScreen
@@ -3240,11 +3246,11 @@ export default function Home() {
             </div>
             <div className="visit-content">
               <span className="section-eyebrow">Visit Us</span>
-              <h2 className="section-title" style={{ marginBottom: "1rem" }}>The <em>Boutique</em></h2>
+              <h2 className="section-title" style={{ marginBottom: "1rem" }}><em>Chronovian</em></h2>
               <p className="visit-address">{STORE_ADDRESS}</p>
               <a
                 className="btn-gold"
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE_ADDRESS)}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE_MAP_QUERY)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ marginTop: "1.25rem" }}
@@ -3255,7 +3261,7 @@ export default function Home() {
                 <div className="visit-photo-grid">
                   {storePhotos.map((src, i) => (
                     <div className="visit-photo" key={i}>
-                      <img src={src} alt={`Chronovian boutique ${i + 1}`} loading="lazy" />
+                      <img src={src} alt={`Chronovian ${i + 1}`} loading="lazy" />
                     </div>
                   ))}
                 </div>

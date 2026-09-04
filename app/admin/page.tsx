@@ -1203,10 +1203,10 @@ export default function AdminPage() {
               💡 Tip: Use portrait-oriented images (taller than wide) for best results. Minimum recommended size: 800 × 1000px. The client's own product photography works best here.
             </div>
 
-            {/* BOUTIQUE PHOTOS */}
+            {/* CHRONOVIAN STORE PHOTOS */}
             <div style={{ marginTop: "3.5rem", paddingTop: "2.5rem", borderTop: "1px solid #E5E3E0" }}>
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Boutique Photos</h2>
+                <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Chronovian Photos</h2>
                 <p style={{ fontSize: "0.72rem", color: "#6B6B6B", marginTop: "0.25rem" }}>
                   Shown beside the map in the "Visit Us" section at the bottom of the homepage. Upload up to 4 — empty slots are simply hidden.
                 </p>
@@ -1216,7 +1216,7 @@ export default function AdminPage() {
                   <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                     <div style={{ background: "white", border: "1px solid #E5E3E0", overflow: "hidden", aspectRatio: "4/3", position: "relative" }}>
                       {catImages[key]
-                        ? <img src={catImages[key]} alt={`Boutique ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        ? <img src={catImages[key]} alt={`Chronovian ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.4rem", background: "#F5F3F0" }}>
                             <span style={{ fontSize: "1.5rem" }}>🏪</span>
                             <span style={{ fontSize: "0.68rem", color: "#ADADAD" }}>Photo {i + 1}</span>
@@ -1251,7 +1251,7 @@ export default function AdminPage() {
                           const sb = getClient();
                           await sb.from("category_images").upsert({ id: key, image_url: "", updated_at: new Date().toISOString() });
                           setCatImages(prev => ({ ...prev, [key]: "" }));
-                          showMsg(`Boutique photo ${i + 1} removed.`);
+                          showMsg(`Chronovian photo ${i + 1} removed.`);
                         }}
                       >
                         Remove
