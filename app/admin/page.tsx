@@ -39,6 +39,7 @@ type Product = {
   size: string;
   serial_number: string;
   featured: boolean;
+  hidden?: boolean;
   sort_order?: number | null;
   created_at?: string;
   collection: string;
@@ -65,7 +66,7 @@ const emptyProduct: Product = {
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
   color: "", hardware: "", size: "",
-  serial_number: "", featured: false,
+  serial_number: "", featured: false, hidden: false,
   collection: "", series: "", calibre: "", case_thickness: "", case_shape: "",
   case_back: "", glass_material: "", strap_colour: "", clasp_type: "",
   buckle_clasp_material: "", gender: "", water_resistance: "",
@@ -90,6 +91,7 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "papers", label: "Papers Included (Yes/No)", kind: "bool" },
   { key: "status", label: "Status (available/sold/reserved)" },
   { key: "featured", label: "Featured on Homepage (Yes/No)", kind: "bool" },
+  { key: "hidden", label: "Hidden from Website (Yes/No)", kind: "bool" },
   { key: "images", label: "Image URLs (separate multiple with |)", kind: "images" },
   { key: "description", label: "Description" },
   { key: "collection", label: "Collection" },
@@ -685,6 +687,14 @@ export default function AdminPage() {
     fetchProducts();
   };
 
+  const handleHiddenToggle = async (id: string, current?: boolean) => {
+    const sb = getClient();
+    const { error } = await sb.from("products").update({ hidden: !current }).eq("id", id);
+    if (error) showMsg("Could not update visibility: " + error.message, "error");
+    else showMsg(!current ? "Product hidden from the website." : "Product is now visible on the website.");
+    fetchProducts();
+  };
+
   const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
 
   if (!authed) {
@@ -836,7 +846,7 @@ export default function AdminPage() {
                   <div>
                     <label className="al">Condition</label>
                     <select className="as" value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                      <option>New</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
+                      <option>New</option><option>Mint - Unworn</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
                     </select>
                   </div>
                   <div><label className="al">Year</label><input className="ai" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="e.g. 2022" /></div>
@@ -849,6 +859,7 @@ export default function AdminPage() {
                   <label className="cb"><input type="checkbox" checked={form.box} onChange={e => setForm(f => ({ ...f, box: e.target.checked }))} /> Box included</label>
                   <label className="cb"><input type="checkbox" checked={form.papers} onChange={e => setForm(f => ({ ...f, papers: e.target.checked }))} /> Papers included</label>
                   <label className="cb"><input type="checkbox" checked={form.featured} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured on homepage</label>
+                  <label className="cb"><input type="checkbox" checked={!!form.hidden} onChange={e => setForm(f => ({ ...f, hidden: e.target.checked }))} /> Hide from website</label>
                 </div>
 
                 {form.category === "watches" && (
@@ -1018,6 +1029,7 @@ export default function AdminPage() {
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
                         {p.featured && <span style={{ fontSize: "0.6rem", color: "#9A7340", textTransform: "uppercase", letterSpacing: "0.1em" }}>★ Featured</span>}
+                        {p.hidden && <span style={{ fontSize: "0.6rem", color: "white", background: "#6B6B6B", padding: "2px 7px", textTransform: "uppercase", letterSpacing: "0.1em" }}>Hidden</span>}
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>{p.images?.length || 0} photo{(p.images?.length || 0) !== 1 ? "s" : ""}</span>
                       </div>
                     </div>
@@ -1027,6 +1039,9 @@ export default function AdminPage() {
                       )}
                       <button className="ab ab-out" onClick={() => handleStatusToggle(p.id!, p.status)}>
                         {p.status === "available" ? "Mark Sold" : "Mark Available"}
+                      </button>
+                      <button className="ab ab-out" onClick={() => handleHiddenToggle(p.id!, p.hidden)}>
+                        {p.hidden ? "Show on Site" : "Hide"}
                       </button>
                       <button className="ab ab-blue" onClick={() => handleDuplicate(p)}>Duplicate</button>
                       <button className="ab ab-black" onClick={() => handleEdit(p)}>Edit</button>

@@ -59,6 +59,7 @@ type Watch = {
   country_of_origin?: string;
   created_at?: string;
   sort_order?: number | null;
+  hidden?: boolean;
 };
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
@@ -97,6 +98,11 @@ const STORE_ADDRESS =
 // Searching the street address resolved to a neighbouring building, so we search the
 // store's own Google Maps business listing instead — that pins the exact place.
 const STORE_MAP_QUERY = "Chronovian By Ankris Luxurio, Narsingi, Telangana";
+
+// Enquiry contact details — single source of truth.
+// TODO: replace WHATSAPP_NUMBER with the real number before this reaches customers.
+const WHATSAPP_NUMBER = "918374469393";
+const ENQUIRY_EMAIL = "enquiries@chronovian.com";
 
 const SORT_LABELS: Record<string, string> = {
   curated: "Featured",
@@ -231,6 +237,7 @@ export default function Home() {
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [selectedWatch, setSelectedWatch] = useState<Watch | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [enquiryWatch, setEnquiryWatch] = useState<Watch | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
@@ -637,7 +644,11 @@ export default function Home() {
           .select("*")
           .order("sort_order", { ascending: true, nullsFirst: false })
           .order("created_at", { ascending: false });
-        if (!error && data) setAllWatches(data as unknown as Watch[]);
+        if (!error && data) {
+          // Products marked hidden in the admin panel never reach the site.
+          const visible = (data as unknown as Watch[]).filter(w => !w.hidden);
+          setAllWatches(visible);
+        }
       } catch (e) {
         console.error("Failed to fetch products:", e);
       } finally {
@@ -1077,8 +1088,7 @@ export default function Home() {
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
         {(w.status || "").toLowerCase() === "sold"
           ? <button className="btn-cart btn-cart-sold" disabled>Sold</button>
-          : <button className="btn-cart" onClick={() => addToCart(w)}>Add to Cart</button>}
-        {showEnquire && <a href={`mailto:info@chronovian.com?subject=Enquiry: ${w.brand} ${w.model}`} className="enquire-btn">Enquire</a>}
+          : <button className="btn-cart" onClick={() => setEnquiryWatch(w)}>Enquire</button>}
       </div>
     </div>
   );
@@ -1169,6 +1179,21 @@ export default function Home() {
         .currency-modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.5); z-index: 600; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; overflow-y: auto; }
 
         /* IMAGE ZOOM MODAL */
+        /* ENQUIRY MODAL */
+        .enquiry-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.6); z-index: 750; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .enquiry-modal { position: relative; background: white; width: 100%; max-width: 420px; padding: 2.75rem 2.5rem; text-align: center; box-shadow: 0 24px 70px rgba(0,0,0,0.28); }
+        .enquiry-close { position: absolute; top: 0.9rem; right: 1.1rem; background: none; border: none; font-size: 1.7rem; line-height: 1; color: var(--gray-mid); cursor: pointer; }
+        .enquiry-title { font-family: 'Jost', sans-serif; font-size: 1rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-top: 0.6rem; }
+        .enquiry-model { font-family: 'Marcellus', serif; font-size: 1.35rem; color: var(--black); margin-top: 0.35rem; }
+        .enquiry-note { font-size: 0.76rem; color: var(--gray-mid); line-height: 1.8; margin: 1rem 0 1.75rem; }
+        .enquiry-btn { display: block; width: 100%; padding: 0.95rem; font-family: 'Jost', sans-serif; font-size: 0.66rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; text-decoration: none; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .enquiry-btn-wa { background: #25D366; color: white; border: 1px solid #25D366; }
+        .enquiry-btn-wa:hover { background: #1FB855; border-color: #1FB855; }
+        .enquiry-btn-mail { background: var(--burgundy); color: white; border: 1px solid var(--burgundy); margin-top: 0.75rem; }
+        .enquiry-btn-mail:hover { background: var(--burgundy-light); border-color: var(--burgundy-light); }
+        .enquiry-email-hint { display: block; font-size: 0.68rem; color: var(--gray-light); margin-top: 1rem; }
+        @media (max-width: 480px) { .enquiry-modal { padding: 2.25rem 1.5rem; } }
+
         .zoom-overlay { position: fixed; inset: 0; background: #0A0A0A; z-index: 700; display: flex; align-items: center; justify-content: center; padding: 4vh 2rem; opacity: 0; pointer-events: none; transition: opacity 0.25s; cursor: zoom-out; }
         .zoom-overlay.open { opacity: 1; pointer-events: auto; }
         .zoom-img { max-width: 100%; max-height: 92vh; object-fit: contain; cursor: default; display: block; }
@@ -1701,6 +1726,44 @@ export default function Home() {
         }
       `}</style>
 
+      {/* ENQUIRY MODAL — WhatsApp or Email */}
+      {enquiryWatch && (() => {
+        const label = `${enquiryWatch.brand} ${enquiryWatch.model}${enquiryWatch.ref ? ` (${enquiryWatch.ref})` : ""}`;
+        const waText = encodeURIComponent(`Hello Chronovian, I'd like to enquire about the ${label}.`);
+        const mailSubject = encodeURIComponent(`Enquiry: ${enquiryWatch.brand} ${enquiryWatch.model}`);
+        const mailBody = encodeURIComponent(`Hello Chronovian,\n\nI'd like to enquire about the ${label}.\n\nThank you.`);
+        return (
+          <div className="enquiry-overlay" onClick={() => setEnquiryWatch(null)}>
+            <div className="enquiry-modal" onClick={e => e.stopPropagation()}>
+              <button className="enquiry-close" onClick={() => setEnquiryWatch(null)}>×</button>
+              <span className="section-eyebrow">Enquire</span>
+              <h3 className="enquiry-title">{enquiryWatch.brand}</h3>
+              <p className="enquiry-model">{enquiryWatch.model}</p>
+              <p className="enquiry-note">
+                Our advisors will confirm availability, pricing and viewing options.
+              </p>
+              <a
+                className="enquiry-btn enquiry-btn-wa"
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setEnquiryWatch(null)}
+              >
+                WhatsApp
+              </a>
+              <a
+                className="enquiry-btn enquiry-btn-mail"
+                href={`mailto:${ENQUIRY_EMAIL}?subject=${mailSubject}&body=${mailBody}`}
+                onClick={() => setEnquiryWatch(null)}
+              >
+                Email
+              </a>
+              <span className="enquiry-email-hint">{ENQUIRY_EMAIL}</span>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* IMAGE ZOOM MODAL */}
       {selectedWatch && (() => {
         const zoomMedia = selectedWatch.images?.[activeImgIdx] || getImg(selectedWatch);
@@ -1867,7 +1930,7 @@ export default function Home() {
                     <span className="watch-ref">{w.ref}</span>
                     <span className="watch-price">{fmtPrice(w.price)}</span>
                     <div className="card-actions">
-                      <button className="btn-cart" onClick={() => { addToCart(w); setSearchOpen(false); setSearchQuery(""); }}>Add to Cart</button>
+                      <button className="btn-cart" onClick={() => { setSearchOpen(false); setSearchQuery(""); setEnquiryWatch(w); }}>Enquire</button>
                     </div>
                   </div>
                 ))}
@@ -1965,10 +2028,6 @@ export default function Home() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist.length > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
           </button>
-          <button className="nav-icon-btn always-show" onClick={() => setCartOpen(true)} title="Cart">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
-          </button>
         </div>
       </nav>
 
@@ -2047,7 +2106,6 @@ export default function Home() {
           <button className="mobile-plain" onClick={() => { setMenuOpen(false); setAuthMode("login"); resetAuthForm(); setAuthModalOpen(true); }}>Sign In / Sign Up</button>
         )}
         <button className="mobile-plain" onClick={() => { setMenuOpen(false); goTo("wishlist"); }}>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</button>
-        <button className="mobile-plain" onClick={() => { setMenuOpen(false); setCartOpen(true); }}>Cart {cartCount > 0 && `(${cartCount})`}</button>
         <div style={{padding:"1rem 0"}}>
           <span style={{fontSize:"0.55rem",letterSpacing:"0.2em",textTransform:"uppercase",color:"var(--gray-mid)",display:"block",marginBottom:"0.75rem"}}>Currency</span>
           <select className="form-select" value={currency} onChange={e => changeCurrency(e.target.value)} style={{width:"100%"}}>
@@ -2110,12 +2168,23 @@ export default function Home() {
                 </div>
 
                 <div className="product-cta-row">
-                  <a className="btn-contact-us" href={`mailto:enquiries@chronovian.com?subject=Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`}>Contact Us</a>
-                  <button className="btn-buy-online" onClick={() => { addToCart(selectedWatch); setCartOpen(false); goTo("checkout"); }}>Buy Online</button>
+                  <a
+                    className="btn-contact-us"
+                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello Chronovian, I'd like to enquire about the ${selectedWatch.brand} ${selectedWatch.model}${selectedWatch.ref ? ` (${selectedWatch.ref})` : ""}.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Enquire on WhatsApp
+                  </a>
+                  <a
+                    className="btn-buy-online"
+                    href={`mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(`Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`)}&body=${encodeURIComponent(`Hello Chronovian,\n\nI'd like to enquire about the ${selectedWatch.brand} ${selectedWatch.model}${selectedWatch.ref ? ` (${selectedWatch.ref})` : ""}.\n\nThank you.`)}`}
+                  >
+                    Enquire by Email
+                  </a>
                 </div>
 
                 <div className="product-secondary-row">
-                  <button className="btn-addcart-sm" onClick={() => addToCart(selectedWatch)}>Add to Cart</button>
                   <button className="product-wishlist" onClick={() => toggleWishlist(selectedWatch.id)}>
                     {wishlist.includes(selectedWatch.id) ? "♥ Saved" : "♡ Save to Wishlist"}
                   </button>
@@ -2837,8 +2906,8 @@ export default function Home() {
             ))}
           </div>
           <div style={{textAlign:"center",marginTop:"2rem"}}>
-            <a href="mailto:info@chronovian.com?subject=Sell My Watch" className="btn-gold" style={{marginRight:"1rem"}}>Start Selling</a>
-            <a href="https://wa.me/910000000000" target="_blank" className="btn-outline">WhatsApp Us</a>
+            <a href="mailto:enquiries@chronovian.com?subject=Sell My Watch" className="btn-gold" style={{marginRight:"1rem"}}>Start Selling</a>
+            <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" className="btn-outline">WhatsApp Us</a>
           </div>
         </div></main>
       )}
@@ -2859,8 +2928,8 @@ export default function Home() {
             ))}
           </div>
           <div style={{textAlign:"center",marginTop:"2rem"}}>
-            <a href="mailto:info@chronovian.com?subject=Trade Enquiry" className="btn-gold" style={{marginRight:"1rem"}}>Start a Trade</a>
-            <a href="https://wa.me/910000000000" target="_blank" className="btn-outline">WhatsApp Us</a>
+            <a href="mailto:enquiries@chronovian.com?subject=Trade Enquiry" className="btn-gold" style={{marginRight:"1rem"}}>Start a Trade</a>
+            <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" className="btn-outline">WhatsApp Us</a>
           </div>
         </div></main>
       )}
@@ -2896,8 +2965,8 @@ export default function Home() {
             <div>
               <h3 style={{fontFamily:"'Marcellus',serif",fontWeight:400,fontSize:"1.1rem",marginBottom:"1.5rem"}}>We'd love to hear from you</h3>
               {[
-                { icon: "✉️", label: "Email", content: <a href="mailto:info@chronovian.com">info@chronovian.com</a> },
-                { icon: "💬", label: "WhatsApp", content: <a href="https://wa.me/910000000000" target="_blank">+91 00000 00000</a> },
+                { icon: "✉️", label: "Email", content: <a href="mailto:enquiries@chronovian.com">enquiries@chronovian.com</a> },
+                { icon: "💬", label: "WhatsApp", content: <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank">+91 83744 69393</a> },
                 { icon: "📍", label: "Location", content: STORE_ADDRESS },
                 { icon: "🕐", label: "Hours", content: "Open daily 11:30 AM – 9:00 PM · By appointment only" },
               ].map(item => (
@@ -3293,7 +3362,7 @@ export default function Home() {
               <ul className="footer-links">
                 <li><button onClick={() => goTo("booking")}>Book Appointment</button></li>
                 <li><button onClick={() => goTo("contact")}>Contact Us</button></li>
-                <li><a href="https://wa.me/910000000000" target="_blank">WhatsApp</a></li>
+                <li><a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank">WhatsApp</a></li>
               </ul>
             </div>
             <div>
@@ -3309,13 +3378,13 @@ export default function Home() {
           <div className="footer-bottom">
             <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
             <div className="footer-social">
-              <a href="https://wa.me/910000000000" target="_blank">WhatsApp</a>
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank">WhatsApp</a>
             </div>
           </div>
         </div>
       </footer>
 
-      <a href="https://wa.me/910000000000" target="_blank" className="whatsapp-fab">
+      <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" className="whatsapp-fab">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.531 5.855L.057 23.169a.75.75 0 0 0 .92.92l5.355-1.484A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.731 9.731 0 0 1-4.964-1.355l-.355-.212-3.686 1.021 1.03-3.596-.232-.371A9.722 9.722 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
         <span style={{fontSize:"0.58rem",letterSpacing:"0.12em",textTransform:"uppercase",fontFamily:"'Jost',sans-serif",fontWeight:400}}>WhatsApp Us</span>
       </a>
