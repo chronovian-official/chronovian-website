@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, RefObject } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
 
@@ -18,7 +18,7 @@ type Product = {
   ref: string;
   category: string;
   subcategory: string;
-  price: number;
+  price: number | null;
   condition: string;
   year: string;
   box: boolean;
@@ -39,6 +39,9 @@ type Product = {
   size: string;
   serial_number: string;
   featured: boolean;
+  hidden?: boolean;
+  tax_inclusive?: boolean;
+  price_mode?: "amount" | "on_request" | "hidden";
   sort_order?: number | null;
   created_at?: string;
   collection: string;
@@ -60,12 +63,12 @@ type Product = {
 
 const emptyProduct: Product = {
   brand: "", model: "", ref: "", category: "watches", subcategory: "",
-  price: 0, condition: "Excellent", year: "", box: false, papers: false,
+  price: null, condition: "Excellent", year: "", box: false, papers: false,
   description: "", status: "available", images: [],
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
   color: "", hardware: "", size: "",
-  serial_number: "", featured: false,
+  serial_number: "", featured: false, hidden: false, tax_inclusive: false, price_mode: "amount",
   collection: "", series: "", calibre: "", case_thickness: "", case_shape: "",
   case_back: "", glass_material: "", strap_colour: "", clasp_type: "",
   buckle_clasp_material: "", gender: "", water_resistance: "",
@@ -90,6 +93,9 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "papers", label: "Papers Included (Yes/No)", kind: "bool" },
   { key: "status", label: "Status (available/sold/reserved)" },
   { key: "featured", label: "Featured on Homepage (Yes/No)", kind: "bool" },
+  { key: "hidden", label: "Hidden from Website (Yes/No)", kind: "bool" },
+  { key: "tax_inclusive", label: "Show 'Inclusive of all taxes' (Yes/No)", kind: "bool" },
+  { key: "price_mode", label: "Price Display (amount / on_request / hidden)" },
   { key: "images", label: "Image URLs (separate multiple with |)", kind: "images" },
   { key: "description", label: "Description" },
   { key: "collection", label: "Collection" },
@@ -170,6 +176,12 @@ export default function AdminPage() {
   const [catImages, setCatImages] = useState<Record<string, string>>({ watches: "", jewellery: "", bags: "" });
   const [catUploading, setCatUploading] = useState<string | null>(null);
   const catFileRefs = { watches: useRef<HTMLInputElement>(null), jewellery: useRef<HTMLInputElement>(null), bags: useRef<HTMLInputElement>(null) };
+  const storeFileRefs: Record<string, RefObject<HTMLInputElement | null>> = {
+    store_1: useRef<HTMLInputElement>(null),
+    store_2: useRef<HTMLInputElement>(null),
+    store_3: useRef<HTMLInputElement>(null),
+    store_4: useRef<HTMLInputElement>(null),
+  };
   const [form, setForm] = useState<Product>(emptyProduct);
   const [editing, setEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -523,8 +535,8 @@ export default function AdminPage() {
   };
 
   const handleSave = async () => {
-    if (!form.brand || !form.model || !form.price) {
-      showMsg("Brand, model and price are required.", "error");
+    if (!form.brand || !form.model) {
+      showMsg("Brand and model are required.", "error");
       return;
     }
     setSaving(true);
@@ -616,7 +628,11 @@ export default function AdminPage() {
           const cell = raw[col.label];
           if (col.kind === "bool") row[col.key] = parseBoolCell(cell);
           else if (col.kind === "images") row[col.key] = parseImagesCell(cell);
-          else if (col.kind === "number") row[col.key] = Number(cell) || 0;
+          else if (col.kind === "number") {
+            // Blank price means "Price on Request" — keep it null rather than 0.
+            const raw = String(cell ?? "").trim();
+            row[col.key] = raw === "" ? null : (Number(raw) || 0);
+          }
           else row[col.key] = String(cell ?? "").trim();
         });
 
@@ -679,7 +695,16 @@ export default function AdminPage() {
     fetchProducts();
   };
 
-  const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
+  const handleHiddenToggle = async (id: string, current?: boolean) => {
+    const sb = getClient();
+    const { error } = await sb.from("products").update({ hidden: !current }).eq("id", id);
+    if (error) showMsg("Could not update visibility: " + error.message, "error");
+    else showMsg(!current ? "Product hidden from the website." : "Product is now visible on the website.");
+    fetchProducts();
+  };
+
+  const fmt = (n: number | null | undefined) =>
+    n === null || n === undefined || n <= 0 ? "Price on Request" : "₹" + n.toLocaleString("en-IN");
 
   if (!authed) {
     return (
@@ -815,7 +840,17 @@ export default function AdminPage() {
                 </div>
                 <div><label className="al">Model No</label><input className="ai" value={form.ref} onChange={e => setForm(f => ({ ...f, ref: e.target.value }))} placeholder="e.g. 126610LN" /></div>
                 <div className="fg">
-                  <div><label className="al">Price (₹) *</label><input className="ai" type="number" value={form.price || ""} onChange={e => setForm(f => ({ ...f, price: parseInt(e.target.value) || 0 }))} placeholder="e.g. 1250000" /></div>
+                  <div>
+                    <label className="al">Price Display</label>
+                    <select className="as" value={form.price_mode || "amount"} onChange={e => setForm(f => ({ ...f, price_mode: e.target.value as any }))}>
+                      <option value="amount">Show price</option>
+                      <option value="on_request">Price on Request</option>
+                      <option value="hidden">Show nothing</option>
+                    </select>
+                    {(form.price_mode || "amount") === "amount" && (
+                      <input className="ai" style={{ marginTop: "0.6rem" }} type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="e.g. 1250000" />
+                    )}
+                  </div>
                   <div>
                     <label className="al">Status</label>
                     <select className="as" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
@@ -830,7 +865,7 @@ export default function AdminPage() {
                   <div>
                     <label className="al">Condition</label>
                     <select className="as" value={form.condition} onChange={e => setForm(f => ({ ...f, condition: e.target.value }))}>
-                      <option>New</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
+                      <option>New</option><option>Mint - Unworn</option><option>Mint</option><option>Excellent</option><option>Very Good</option><option>Good</option><option>Fair</option>
                     </select>
                   </div>
                   <div><label className="al">Year</label><input className="ai" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="e.g. 2022" /></div>
@@ -843,6 +878,8 @@ export default function AdminPage() {
                   <label className="cb"><input type="checkbox" checked={form.box} onChange={e => setForm(f => ({ ...f, box: e.target.checked }))} /> Box included</label>
                   <label className="cb"><input type="checkbox" checked={form.papers} onChange={e => setForm(f => ({ ...f, papers: e.target.checked }))} /> Papers included</label>
                   <label className="cb"><input type="checkbox" checked={form.featured} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured on homepage</label>
+                  <label className="cb"><input type="checkbox" checked={!!form.hidden} onChange={e => setForm(f => ({ ...f, hidden: e.target.checked }))} /> Hide from website</label>
+                  <label className="cb"><input type="checkbox" checked={!!form.tax_inclusive} onChange={e => setForm(f => ({ ...f, tax_inclusive: e.target.checked }))} /> Show &quot;Inclusive of all taxes&quot;</label>
                 </div>
 
                 {form.category === "watches" && (
@@ -1008,10 +1045,11 @@ export default function AdminPage() {
                       <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", margin: "0.2rem 0" }}>{p.model}</div>
                       <div style={{ fontSize: "0.65rem", color: "#6B6B6B", marginBottom: "0.4rem" }}>{p.ref} · {p.condition} · {p.year}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{fmt(p.price)}</span>
+                        <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{(p.price_mode || "amount") === "hidden" ? "— no price shown —" : (p.price_mode === "on_request" ? "Price on Request" : fmt(p.price))}</span>
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
                         {p.featured && <span style={{ fontSize: "0.6rem", color: "#9A7340", textTransform: "uppercase", letterSpacing: "0.1em" }}>★ Featured</span>}
+                        {p.hidden && <span style={{ fontSize: "0.6rem", color: "white", background: "#6B6B6B", padding: "2px 7px", textTransform: "uppercase", letterSpacing: "0.1em" }}>Hidden</span>}
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>{p.images?.length || 0} photo{(p.images?.length || 0) !== 1 ? "s" : ""}</span>
                       </div>
                     </div>
@@ -1021,6 +1059,9 @@ export default function AdminPage() {
                       )}
                       <button className="ab ab-out" onClick={() => handleStatusToggle(p.id!, p.status)}>
                         {p.status === "available" ? "Mark Sold" : "Mark Available"}
+                      </button>
+                      <button className="ab ab-out" onClick={() => handleHiddenToggle(p.id!, p.hidden)}>
+                        {p.hidden ? "Show on Site" : "Hide"}
                       </button>
                       <button className="ab ab-blue" onClick={() => handleDuplicate(p)}>Duplicate</button>
                       <button className="ab ab-black" onClick={() => handleEdit(p)}>Edit</button>
@@ -1195,6 +1236,68 @@ export default function AdminPage() {
             </div>
             <div style={{ marginTop: "2rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #9A7340", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
               💡 Tip: Use portrait-oriented images (taller than wide) for best results. Minimum recommended size: 800 × 1000px. The client's own product photography works best here.
+            </div>
+
+            {/* CHRONOVIAN STORE PHOTOS */}
+            <div style={{ marginTop: "3.5rem", paddingTop: "2.5rem", borderTop: "1px solid #E5E3E0" }}>
+              <div style={{ marginBottom: "1.5rem" }}>
+                <h2 style={{ fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: 400 }}>Chronovian Photos</h2>
+                <p style={{ fontSize: "0.72rem", color: "#6B6B6B", marginTop: "0.25rem" }}>
+                  Shown beside the map in the "Visit Us" section at the bottom of the homepage. Upload up to 4 — empty slots are simply hidden.
+                </p>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem" }}>
+                {["store_1", "store_2", "store_3", "store_4"].map((key, i) => (
+                  <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div style={{ background: "white", border: "1px solid #E5E3E0", overflow: "hidden", aspectRatio: "4/3", position: "relative" }}>
+                      {catImages[key]
+                        ? <img src={catImages[key]} alt={`Chronovian ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.4rem", background: "#F5F3F0" }}>
+                            <span style={{ fontSize: "1.5rem" }}>🏪</span>
+                            <span style={{ fontSize: "0.68rem", color: "#ADADAD" }}>Photo {i + 1}</span>
+                          </div>
+                      }
+                      {catUploading === key && (
+                        <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.78rem", color: "#6B6B6B" }}>
+                          ⏳ Uploading...
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={storeFileRefs[key]}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={e => { if (e.target.files && e.target.files.length > 0) handleCatImageUpload(key, e.target.files); }}
+                    />
+                    <button
+                      className="ab ab-gold"
+                      style={{ width: "100%" }}
+                      onClick={() => storeFileRefs[key].current?.click()}
+                      disabled={catUploading === key}
+                    >
+                      {catImages[key] ? "Replace" : "Upload"}
+                    </button>
+                    {catImages[key] && (
+                      <button
+                        className="ab ab-out"
+                        style={{ width: "100%" }}
+                        onClick={async () => {
+                          const sb = getClient();
+                          await sb.from("category_images").upsert({ id: key, image_url: "", updated_at: new Date().toISOString() });
+                          setCatImages(prev => ({ ...prev, [key]: "" }));
+                          showMsg(`Chronovian photo ${i + 1} removed.`);
+                        }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: "1.5rem", padding: "1rem 1.5rem", background: "#F5F3F0", borderLeft: "3px solid #6E1F2E", fontSize: "0.78rem", color: "#6B6B6B", lineHeight: 1.7 }}>
+                💡 Landscape photos work best here (4:3). Interior shots, the display cases, and the storefront all work well.
+              </div>
             </div>
           </div>
         )}
