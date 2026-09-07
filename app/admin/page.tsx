@@ -41,6 +41,7 @@ type Product = {
   featured: boolean;
   hidden?: boolean;
   tax_inclusive?: boolean;
+  price_mode?: "amount" | "on_request" | "hidden";
   sort_order?: number | null;
   created_at?: string;
   collection: string;
@@ -67,7 +68,7 @@ const emptyProduct: Product = {
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
   color: "", hardware: "", size: "",
-  serial_number: "", featured: false, hidden: false, tax_inclusive: true,
+  serial_number: "", featured: false, hidden: false, tax_inclusive: false, price_mode: "amount",
   collection: "", series: "", calibre: "", case_thickness: "", case_shape: "",
   case_back: "", glass_material: "", strap_colour: "", clasp_type: "",
   buckle_clasp_material: "", gender: "", water_resistance: "",
@@ -94,6 +95,7 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "featured", label: "Featured on Homepage (Yes/No)", kind: "bool" },
   { key: "hidden", label: "Hidden from Website (Yes/No)", kind: "bool" },
   { key: "tax_inclusive", label: "Show 'Inclusive of all taxes' (Yes/No)", kind: "bool" },
+  { key: "price_mode", label: "Price Display (amount / on_request / hidden)" },
   { key: "images", label: "Image URLs (separate multiple with |)", kind: "images" },
   { key: "description", label: "Description" },
   { key: "collection", label: "Collection" },
@@ -702,7 +704,7 @@ export default function AdminPage() {
   };
 
   const fmt = (n: number | null | undefined) =>
-    n === null || n === undefined ? "Price on Request" : "₹" + n.toLocaleString("en-IN");
+    n === null || n === undefined || n <= 0 ? "Price on Request" : "₹" + n.toLocaleString("en-IN");
 
   if (!authed) {
     return (
@@ -838,7 +840,17 @@ export default function AdminPage() {
                 </div>
                 <div><label className="al">Model No</label><input className="ai" value={form.ref} onChange={e => setForm(f => ({ ...f, ref: e.target.value }))} placeholder="e.g. 126610LN" /></div>
                 <div className="fg">
-                  <div><label className="al">Price (₹)</label><input className="ai" type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="Leave blank for Price on Request" /></div>
+                  <div>
+                    <label className="al">Price Display</label>
+                    <select className="as" value={form.price_mode || "amount"} onChange={e => setForm(f => ({ ...f, price_mode: e.target.value as any }))}>
+                      <option value="amount">Show price</option>
+                      <option value="on_request">Price on Request</option>
+                      <option value="hidden">Show nothing</option>
+                    </select>
+                    {(form.price_mode || "amount") === "amount" && (
+                      <input className="ai" style={{ marginTop: "0.6rem" }} type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="e.g. 1250000" />
+                    )}
+                  </div>
                   <div>
                     <label className="al">Status</label>
                     <select className="as" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
@@ -1033,7 +1045,7 @@ export default function AdminPage() {
                       <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", margin: "0.2rem 0" }}>{p.model}</div>
                       <div style={{ fontSize: "0.65rem", color: "#6B6B6B", marginBottom: "0.4rem" }}>{p.ref} · {p.condition} · {p.year}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{fmt(p.price)}</span>
+                        <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{(p.price_mode || "amount") === "hidden" ? "— no price shown —" : (p.price_mode === "on_request" ? "Price on Request" : fmt(p.price))}</span>
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
                         {p.featured && <span style={{ fontSize: "0.6rem", color: "#9A7340", textTransform: "uppercase", letterSpacing: "0.1em" }}>★ Featured</span>}

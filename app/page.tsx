@@ -61,6 +61,7 @@ type Watch = {
   sort_order?: number | null;
   hidden?: boolean;
   tax_inclusive?: boolean;
+  price_mode?: "amount" | "on_request" | "hidden";
 };
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
@@ -622,8 +623,21 @@ export default function Home() {
   };
 
   // Convert a price (stored in INR) to the selected currency and format it
+  // Three display modes, controlled per product from the admin panel:
+  //   "amount"     -> show the formatted price
+  //   "on_request" -> show "Price on Request"
+  //   "hidden"     -> show nothing at all
+  // Falls back sensibly for products saved before price_mode existed.
+  const priceDisplay = (w: Watch): string | null => {
+    const mode = w.price_mode
+      || (w.price === null || w.price === undefined || w.price <= 0 ? "on_request" : "amount");
+    if (mode === "hidden") return null;
+    if (mode === "on_request") return "Price on Request";
+    return fmtPrice(w.price);
+  };
+
   const fmtPrice = (priceInr: number | null | undefined) => {
-    if (priceInr === null || priceInr === undefined || isNaN(priceInr)) return "Price on Request";
+    if (priceInr === null || priceInr === undefined || isNaN(priceInr) || priceInr <= 0) return "Price on Request";
     const rate = exchangeRates[currency] || (currency === "INR" ? 1 : null);
     const meta = CURRENCY_META[currency] || CURRENCY_META.INR;
     if (rate === null || rate === undefined) {
@@ -847,8 +861,9 @@ export default function Home() {
   const inPriceRange = (w: Watch) => {
     const min = priceMin ? parseInt(priceMin) : -Infinity;
     const max = priceMax ? parseInt(priceMax) : Infinity;
-    if (w.price === null || w.price === undefined) {
-      // Priced-on-request pieces only drop out once an explicit range is chosen.
+    const mode = w.price_mode || (w.price === null || w.price === undefined || w.price <= 0 ? "on_request" : "amount");
+    if (mode !== "amount" || w.price === null || w.price === undefined || w.price <= 0) {
+      // Pieces without a shown price only drop out once an explicit range is chosen.
       return !priceMin && !priceMax;
     }
     return w.price >= min && w.price <= max;
@@ -858,7 +873,11 @@ export default function Home() {
 
   const sortWatchList = (list: Watch[]) => {
     const arr = [...list];
-    const priceOf = (w: Watch) => (w.price === null || w.price === undefined ? null : w.price);
+    const priceOf = (w: Watch) => {
+      const mode = w.price_mode || (w.price === null || w.price === undefined || w.price <= 0 ? "on_request" : "amount");
+      if (mode !== "amount") return null;
+      return w.price === null || w.price === undefined || w.price <= 0 ? null : w.price;
+    };
     if (sortBy === "price-desc") arr.sort((a, b) => {
       const ap = priceOf(a), bp = priceOf(b);
       if (ap === null && bp === null) return 0;
@@ -946,7 +965,7 @@ export default function Home() {
   const renderFilterSidebar = (category: string) => {
     const facets = CATEGORY_FACETS[category] || [];
     const baseList = allWatches.filter(w => w.category === category);
-    const categoryPrices = baseList.map(w => w.price).filter((p): p is number => typeof p === "number" && !isNaN(p));
+    const categoryPrices = baseList.map(w => w.price).filter((p): p is number => typeof p === "number" && !isNaN(p) && p > 0);
     const priceBoundMin = categoryPrices.length ? Math.min(...categoryPrices) : 0;
     const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
     return (
@@ -1103,7 +1122,7 @@ export default function Home() {
       <span className="watch-brand">{w.brand}</span>
       <span className="watch-model" onClick={() => openProductInNewTab(w)} style={{cursor:"pointer"}}>{w.model}</span>
       <span className="watch-ref">{w.ref}</span>
-      <span className="watch-price">{fmtPrice(w.price)}</span>
+      {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
         {(w.status || "").toLowerCase() === "sold"
           ? <button className="btn-cart btn-cart-sold" disabled>Sold</button>
@@ -1947,7 +1966,7 @@ export default function Home() {
                     <span className="watch-brand">{w.brand}</span>
                     <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }} style={{cursor:"pointer"}}>{w.model}</span>
                     <span className="watch-ref">{w.ref}</span>
-                    <span className="watch-price">{fmtPrice(w.price)}</span>
+                    {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
                     <div className="card-actions">
                       <button className="btn-cart" onClick={() => { setSearchOpen(false); setSearchQuery(""); setEnquiryWatch(w); }}>Enquire</button>
                     </div>
@@ -2181,10 +2200,12 @@ export default function Home() {
                 <h1 className="product-model">{selectedWatch.model}</h1>
                 <span className="product-ref">Model No: {selectedWatch.ref}</span>
 
-                <div className="product-price-row">
-                  <span className="product-price">{fmtPrice(selectedWatch.price)}</span>
-                  {selectedWatch.tax_inclusive && <span className="product-price-tax-note">*Inclusive of all taxes</span>}
-                </div>
+                {priceDisplay(selectedWatch) && (
+                  <div className="product-price-row">
+                    <span className="product-price">{priceDisplay(selectedWatch)}</span>
+                    {selectedWatch.tax_inclusive && <span className="product-price-tax-note">*Inclusive of all taxes</span>}
+                  </div>
+                )}
 
                 <div className="product-cta-row">
                   <a
