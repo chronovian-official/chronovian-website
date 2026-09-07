@@ -18,7 +18,7 @@ type Product = {
   ref: string;
   category: string;
   subcategory: string;
-  price: number;
+  price: number | null;
   condition: string;
   year: string;
   box: boolean;
@@ -40,6 +40,7 @@ type Product = {
   serial_number: string;
   featured: boolean;
   hidden?: boolean;
+  tax_inclusive?: boolean;
   sort_order?: number | null;
   created_at?: string;
   collection: string;
@@ -61,12 +62,12 @@ type Product = {
 
 const emptyProduct: Product = {
   brand: "", model: "", ref: "", category: "watches", subcategory: "",
-  price: 0, condition: "Excellent", year: "", box: false, papers: false,
+  price: null, condition: "Excellent", year: "", box: false, papers: false,
   description: "", status: "available", images: [],
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
   color: "", hardware: "", size: "",
-  serial_number: "", featured: false, hidden: false,
+  serial_number: "", featured: false, hidden: false, tax_inclusive: true,
   collection: "", series: "", calibre: "", case_thickness: "", case_shape: "",
   case_back: "", glass_material: "", strap_colour: "", clasp_type: "",
   buckle_clasp_material: "", gender: "", water_resistance: "",
@@ -92,6 +93,7 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "status", label: "Status (available/sold/reserved)" },
   { key: "featured", label: "Featured on Homepage (Yes/No)", kind: "bool" },
   { key: "hidden", label: "Hidden from Website (Yes/No)", kind: "bool" },
+  { key: "tax_inclusive", label: "Show 'Inclusive of all taxes' (Yes/No)", kind: "bool" },
   { key: "images", label: "Image URLs (separate multiple with |)", kind: "images" },
   { key: "description", label: "Description" },
   { key: "collection", label: "Collection" },
@@ -531,8 +533,8 @@ export default function AdminPage() {
   };
 
   const handleSave = async () => {
-    if (!form.brand || !form.model || !form.price) {
-      showMsg("Brand, model and price are required.", "error");
+    if (!form.brand || !form.model) {
+      showMsg("Brand and model are required.", "error");
       return;
     }
     setSaving(true);
@@ -624,7 +626,11 @@ export default function AdminPage() {
           const cell = raw[col.label];
           if (col.kind === "bool") row[col.key] = parseBoolCell(cell);
           else if (col.kind === "images") row[col.key] = parseImagesCell(cell);
-          else if (col.kind === "number") row[col.key] = Number(cell) || 0;
+          else if (col.kind === "number") {
+            // Blank price means "Price on Request" — keep it null rather than 0.
+            const raw = String(cell ?? "").trim();
+            row[col.key] = raw === "" ? null : (Number(raw) || 0);
+          }
           else row[col.key] = String(cell ?? "").trim();
         });
 
@@ -695,7 +701,8 @@ export default function AdminPage() {
     fetchProducts();
   };
 
-  const fmt = (n: number) => "₹" + n.toLocaleString("en-IN");
+  const fmt = (n: number | null | undefined) =>
+    n === null || n === undefined ? "Price on Request" : "₹" + n.toLocaleString("en-IN");
 
   if (!authed) {
     return (
@@ -831,7 +838,7 @@ export default function AdminPage() {
                 </div>
                 <div><label className="al">Model No</label><input className="ai" value={form.ref} onChange={e => setForm(f => ({ ...f, ref: e.target.value }))} placeholder="e.g. 126610LN" /></div>
                 <div className="fg">
-                  <div><label className="al">Price (₹) *</label><input className="ai" type="number" value={form.price || ""} onChange={e => setForm(f => ({ ...f, price: parseInt(e.target.value) || 0 }))} placeholder="e.g. 1250000" /></div>
+                  <div><label className="al">Price (₹)</label><input className="ai" type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="Leave blank for Price on Request" /></div>
                   <div>
                     <label className="al">Status</label>
                     <select className="as" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
@@ -860,6 +867,7 @@ export default function AdminPage() {
                   <label className="cb"><input type="checkbox" checked={form.papers} onChange={e => setForm(f => ({ ...f, papers: e.target.checked }))} /> Papers included</label>
                   <label className="cb"><input type="checkbox" checked={form.featured} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} /> Featured on homepage</label>
                   <label className="cb"><input type="checkbox" checked={!!form.hidden} onChange={e => setForm(f => ({ ...f, hidden: e.target.checked }))} /> Hide from website</label>
+                  <label className="cb"><input type="checkbox" checked={!!form.tax_inclusive} onChange={e => setForm(f => ({ ...f, tax_inclusive: e.target.checked }))} /> Show &quot;Inclusive of all taxes&quot;</label>
                 </div>
 
                 {form.category === "watches" && (

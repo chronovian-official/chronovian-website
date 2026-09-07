@@ -21,7 +21,7 @@ type Watch = {
   model: string;
   ref: string;
   category: string;
-  price: number;
+  price: number | null;
   condition: string;
   year: string;
   box: boolean;
@@ -60,6 +60,7 @@ type Watch = {
   created_at?: string;
   sort_order?: number | null;
   hidden?: boolean;
+  tax_inclusive?: boolean;
 };
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
@@ -553,7 +554,7 @@ export default function Home() {
       const sb = getSupabase();
       const items: OrderItem[] = cart.map(item => ({
         id: item.watch.id, brand: item.watch.brand, model: item.watch.model,
-        ref: item.watch.ref, price: item.watch.price, qty: item.qty, image: getImg(item.watch),
+        ref: item.watch.ref, price: item.watch.price ?? 0, qty: item.qty, image: getImg(item.watch),
       }));
       const address = `${f.addressLine1}${f.addressLine2 ? ", " + f.addressLine2 : ""}, ${f.city}, ${f.state} ${f.pin}`;
       const { error } = await sb.from("orders").insert([{
@@ -621,7 +622,8 @@ export default function Home() {
   };
 
   // Convert a price (stored in INR) to the selected currency and format it
-  const fmtPrice = (priceInr: number) => {
+  const fmtPrice = (priceInr: number | null | undefined) => {
+    if (priceInr === null || priceInr === undefined || isNaN(priceInr)) return "Price on Request";
     const rate = exchangeRates[currency] || (currency === "INR" ? 1 : null);
     const meta = CURRENCY_META[currency] || CURRENCY_META.INR;
     if (rate === null || rate === undefined) {
@@ -845,6 +847,10 @@ export default function Home() {
   const inPriceRange = (w: Watch) => {
     const min = priceMin ? parseInt(priceMin) : -Infinity;
     const max = priceMax ? parseInt(priceMax) : Infinity;
+    if (w.price === null || w.price === undefined) {
+      // Priced-on-request pieces only drop out once an explicit range is chosen.
+      return !priceMin && !priceMax;
+    }
     return w.price >= min && w.price <= max;
   };
 
@@ -852,8 +858,21 @@ export default function Home() {
 
   const sortWatchList = (list: Watch[]) => {
     const arr = [...list];
-    if (sortBy === "price-desc") arr.sort((a, b) => b.price - a.price);
-    else if (sortBy === "price-asc") arr.sort((a, b) => a.price - b.price);
+    const priceOf = (w: Watch) => (w.price === null || w.price === undefined ? null : w.price);
+    if (sortBy === "price-desc") arr.sort((a, b) => {
+      const ap = priceOf(a), bp = priceOf(b);
+      if (ap === null && bp === null) return 0;
+      if (ap === null) return 1;
+      if (bp === null) return -1;
+      return bp - ap;
+    });
+    else if (sortBy === "price-asc") arr.sort((a, b) => {
+      const ap = priceOf(a), bp = priceOf(b);
+      if (ap === null && bp === null) return 0;
+      if (ap === null) return 1;
+      if (bp === null) return -1;
+      return ap - bp;
+    });
     else if (sortBy === "new") arr.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     else {
       // "curated" — the manual order set by dragging in the admin panel.
@@ -927,7 +946,7 @@ export default function Home() {
   const renderFilterSidebar = (category: string) => {
     const facets = CATEGORY_FACETS[category] || [];
     const baseList = allWatches.filter(w => w.category === category);
-    const categoryPrices = baseList.map(w => w.price).filter(p => typeof p === "number" && !isNaN(p));
+    const categoryPrices = baseList.map(w => w.price).filter((p): p is number => typeof p === "number" && !isNaN(p));
     const priceBoundMin = categoryPrices.length ? Math.min(...categoryPrices) : 0;
     const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
     return (
@@ -1034,7 +1053,7 @@ export default function Home() {
   };
 
   const removeFromCart = (id: string) => setCart(prev => prev.filter(i => i.watch.id !== id));
-  const cartTotal = cart.reduce((s, i) => s + i.watch.price * i.qty, 0);
+  const cartTotal = cart.reduce((s, i) => s + (i.watch.price ?? 0) * i.qty, 0);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const filteredWatches = getCategoryList("watches");
@@ -2164,7 +2183,7 @@ export default function Home() {
 
                 <div className="product-price-row">
                   <span className="product-price">{fmtPrice(selectedWatch.price)}</span>
-                  <span className="product-price-tax-note">*Inclusive of all taxes</span>
+                  {selectedWatch.tax_inclusive && <span className="product-price-tax-note">*Inclusive of all taxes</span>}
                 </div>
 
                 <div className="product-cta-row">
