@@ -1125,7 +1125,7 @@ export default function Home() {
       {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
         {(w.status || "").toLowerCase() === "sold"
-          ? <button className="btn-cart btn-cart-sold" disabled>Sold</button>
+          ? <button className="btn-cart btn-cart-notify" onClick={() => setEnquiryWatch(w)}>Notify Me</button>
           : <button className="btn-cart" onClick={() => setEnquiryWatch(w)}>Enquire</button>}
       </div>
     </div>
@@ -1367,8 +1367,8 @@ export default function Home() {
         .watch-card:hover .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; }
         @media (hover: none) { .card-actions-hover { opacity: 1; max-height: 100px; margin-top: auto; } }
         .btn-cart { width: 100%; padding: 0.65rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--burgundy); color: white; border: 1px solid var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; }
-        .btn-cart-sold { background: var(--gray-pale); color: var(--gray-mid); border-color: var(--border); cursor: not-allowed; }
-        .btn-cart-sold:hover { background: var(--gray-pale); border-color: var(--border); }
+        .btn-cart-notify { background: none; color: var(--burgundy); border-color: var(--burgundy); cursor: pointer; }
+        .btn-cart-notify:hover { background: var(--burgundy); color: white; }
         .btn-cart:hover { background: var(--burgundy-light); border-color: var(--burgundy-light); }
         .enquire-btn { display: block; width: 100%; padding: 0.6rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: none; border: 1px solid var(--burgundy); color: var(--burgundy); cursor: pointer; font-family: 'Jost', sans-serif; font-weight: 500; transition: all 0.2s; text-align: center; text-decoration: none; }
         .enquire-btn:hover { background: var(--burgundy); color: white; }
@@ -1767,18 +1767,31 @@ export default function Home() {
       {/* ENQUIRY MODAL — WhatsApp or Email */}
       {enquiryWatch && (() => {
         const label = `${enquiryWatch.brand} ${enquiryWatch.model}${enquiryWatch.ref ? ` (${enquiryWatch.ref})` : ""}`;
-        const waText = encodeURIComponent(`Hello Chronovian, I'd like to enquire about the ${label}.`);
-        const mailSubject = encodeURIComponent(`Enquiry: ${enquiryWatch.brand} ${enquiryWatch.model}`);
-        const mailBody = encodeURIComponent(`Hello Chronovian,\n\nI'd like to enquire about the ${label}.\n\nThank you.`);
+        const sold = (enquiryWatch.status || "").toLowerCase() === "sold";
+        const waText = encodeURIComponent(
+          sold
+            ? `Hello Chronovian, the ${label} is shown as sold. Please notify me if a similar piece becomes available.`
+            : `Hello Chronovian, I'd like to enquire about the ${label}.`
+        );
+        const mailSubject = encodeURIComponent(
+          `${sold ? "Notify me" : "Enquiry"}: ${enquiryWatch.brand} ${enquiryWatch.model}`
+        );
+        const mailBody = encodeURIComponent(
+          sold
+            ? `Hello Chronovian,\n\nThe ${label} is shown as sold. Please notify me if a similar piece becomes available.\n\nThank you.`
+            : `Hello Chronovian,\n\nI'd like to enquire about the ${label}.\n\nThank you.`
+        );
         return (
           <div className="enquiry-overlay" onClick={() => setEnquiryWatch(null)}>
             <div className="enquiry-modal" onClick={e => e.stopPropagation()}>
               <button className="enquiry-close" onClick={() => setEnquiryWatch(null)}>×</button>
-              <span className="section-eyebrow">Enquire</span>
+              <span className="section-eyebrow">{sold ? "Notify Me" : "Enquire"}</span>
               <h3 className="enquiry-title">{enquiryWatch.brand}</h3>
               <p className="enquiry-model">{enquiryWatch.model}</p>
               <p className="enquiry-note">
-                Our advisors will confirm availability, pricing and viewing options.
+                {sold
+                  ? "This piece has sold. Let us know and we'll contact you when a similar one arrives."
+                  : "Our advisors will confirm availability, pricing and viewing options."}
               </p>
               <a
                 className="enquiry-btn enquiry-btn-wa"
@@ -2207,22 +2220,39 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="product-cta-row">
-                  <a
-                    className="btn-contact-us"
-                    href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hello Chronovian, I'd like to enquire about the ${selectedWatch.brand} ${selectedWatch.model}${selectedWatch.ref ? ` (${selectedWatch.ref})` : ""}.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Enquire on WhatsApp
-                  </a>
-                  <a
-                    className="btn-buy-online"
-                    href={`mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(`Enquiry: ${selectedWatch.brand} ${selectedWatch.model}`)}&body=${encodeURIComponent(`Hello Chronovian,\n\nI'd like to enquire about the ${selectedWatch.brand} ${selectedWatch.model}${selectedWatch.ref ? ` (${selectedWatch.ref})` : ""}.\n\nThank you.`)}`}
-                  >
-                    Enquire by Email
-                  </a>
-                </div>
+                {(() => {
+                  const pSold = (selectedWatch.status || "").toLowerCase() === "sold";
+                  const pLabel = `${selectedWatch.brand} ${selectedWatch.model}${selectedWatch.ref ? ` (${selectedWatch.ref})` : ""}`;
+                  const pWa = encodeURIComponent(
+                    pSold
+                      ? `Hello Chronovian, the ${pLabel} is shown as sold. Please notify me if a similar piece becomes available.`
+                      : `Hello Chronovian, I'd like to enquire about the ${pLabel}.`
+                  );
+                  const pSubject = encodeURIComponent(`${pSold ? "Notify me" : "Enquiry"}: ${selectedWatch.brand} ${selectedWatch.model}`);
+                  const pBody = encodeURIComponent(
+                    pSold
+                      ? `Hello Chronovian,\n\nThe ${pLabel} is shown as sold. Please notify me if a similar piece becomes available.\n\nThank you.`
+                      : `Hello Chronovian,\n\nI'd like to enquire about the ${pLabel}.\n\nThank you.`
+                  );
+                  return (
+                    <div className="product-cta-row">
+                      <a
+                        className="btn-contact-us"
+                        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${pWa}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {pSold ? "Notify Me on WhatsApp" : "Enquire on WhatsApp"}
+                      </a>
+                      <a
+                        className="btn-buy-online"
+                        href={`mailto:${ENQUIRY_EMAIL}?subject=${pSubject}&body=${pBody}`}
+                      >
+                        {pSold ? "Notify Me by Email" : "Enquire by Email"}
+                      </a>
+                    </div>
+                  );
+                })()}
 
                 <div className="product-secondary-row">
                   <button className="product-wishlist" onClick={() => toggleWishlist(selectedWatch.id)}>
@@ -3027,6 +3057,7 @@ export default function Home() {
                 const data = {
                   name: (form.elements.namedItem('name') as HTMLInputElement).value,
                   email: (form.elements.namedItem('email') as HTMLInputElement).value,
+                  phone: (form.elements.namedItem('phone') as HTMLInputElement).value,
                   type: (form.elements.namedItem('type') as HTMLSelectElement).value,
                   message: (form.elements.namedItem('message') as HTMLTextAreaElement).value,
                 };
@@ -3040,6 +3071,7 @@ export default function Home() {
               }}>
                 <div className="form-group"><label className="form-label">Full Name</label><input name="name" className="form-input" type="text" placeholder="Your name" required /></div>
                 <div className="form-group"><label className="form-label">Email</label><input name="email" className="form-input" type="email" placeholder="your@email.com" required /></div>
+                <div className="form-group"><label className="form-label">Phone</label><input name="phone" className="form-input" type="tel" placeholder="+91 00000 00000" required /></div>
                 <div className="form-group">
                   <label className="form-label">Enquiry Type</label>
                   <select name="type" className="form-select">
