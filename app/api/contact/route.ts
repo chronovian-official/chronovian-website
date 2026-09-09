@@ -1,10 +1,12 @@
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
+const WHATSAPP_NUMBER = '918374469393';
+
 export async function POST(req: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const { name, email, type, message } = await req.json();
+    const { name, email, phone, type, message } = await req.json();
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -29,6 +31,15 @@ export async function POST(req: NextRequest) {
             <tr><td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #ADADAD;">Email</td>
             <td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 15px;"><a href="mailto:${email}" style="color: #B8935A; text-decoration: none;">${email}</a></td></tr>
 
+            <tr><td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #ADADAD;">Phone</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 15px;">${
+              phone
+                ? `<a href="tel:${String(phone).replace(/[^\d+]/g, '')}" style="color: #B8935A; text-decoration: none;">${phone}</a>
+                   &nbsp;·&nbsp;
+                   <a href="https://wa.me/${String(phone).replace(/[^\d]/g, '')}" style="color: #B8935A; text-decoration: none;">WhatsApp</a>`
+                : '<span style="color: #ADADAD;">Not provided</span>'
+            }</td></tr>
+
             <tr><td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #ADADAD;">Type</td>
             <td style="padding: 12px 0; border-bottom: 1px solid #F0EDE9; font-size: 15px;">${type || 'General Enquiry'}</td></tr>
 
@@ -38,7 +49,7 @@ export async function POST(req: NextRequest) {
 
           <div style="margin-top: 40px; padding: 20px; background: #F5F3F0; border-left: 3px solid #B8935A;">
             <p style="margin: 0; font-size: 13px; color: #6B6B6B; line-height: 1.7;">
-              Reply directly to this email to respond to ${name} at <a href="mailto:${email}" style="color: #B8935A;">${email}</a>.
+              Reply directly to this email to respond to ${name} at <a href="mailto:${email}" style="color: #B8935A;">${email}</a>${phone ? ` or call them on <a href="tel:${String(phone).replace(/[^\d+]/g, '')}" style="color: #B8935A;">${phone}</a>` : ''}.
             </p>
           </div>
 
@@ -73,7 +84,7 @@ export async function POST(req: NextRequest) {
           </div>
 
           <p style="font-size: 13px; color: #6B6B6B; margin: 0 0 4px;">✉️ <a href="mailto:enquiries@chronovian.com" style="color: #B8935A; text-decoration: none;">enquiries@chronovian.com</a></p>
-          <p style="font-size: 13px; color: #6B6B6B; margin: 0 0 40px;">💬 <a href="https://wa.me/910000000000" style="color: #B8935A; text-decoration: none;">WhatsApp Us</a></p>
+          <p style="font-size: 13px; color: #6B6B6B; margin: 0 0 40px;">💬 <a href="https://wa.me/${WHATSAPP_NUMBER}" style="color: #B8935A; text-decoration: none;">WhatsApp Us</a></p>
 
           <p style="font-size: 14px; color: #6B6B6B; margin: 0 0 4px;">Warm regards,</p>
           <p style="font-size: 14px; font-weight: 500; margin: 0 0 40px;">The Chronovian Team</p>
