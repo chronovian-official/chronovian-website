@@ -3340,16 +3340,17 @@ export default function Home() {
                   ‹
                 </button>
               )}
-              <div style={{overflow:"hidden"}}>
+              <div style={{overflow:"hidden", width:"100%"}}>
                 <div
                   style={{
                     display:"flex",
+                    width: `${Math.max(totalWatchPages, 1) * 100}%`,
                     transition: productsLoading ? "none" : "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-                    transform: `translateX(-${watchIdx * 100}%)`,
+                    transform: `translateX(-${watchIdx * (100 / Math.max(totalWatchPages, 1))}%)`,
                   }}
                 >
                   {productsLoading ? (
-                    <div className="featured-grid" style={{minWidth:"100%", flexShrink:0}}>
+                    <div className="featured-grid" style={{width: `${100 / Math.max(totalWatchPages, 1)}%`, flexShrink:0}}>
                       {Array.from({ length: 4 }).map((_, i) => (
                         <div className="skeleton-card" key={i}>
                           <div className="skeleton skeleton-img" />
@@ -3361,7 +3362,7 @@ export default function Home() {
                     </div>
                   ) : (
                     watchPages.map((page, i) => (
-                      <div className="featured-grid" style={{minWidth:"100%", flexShrink:0}} key={i}>
+                      <div className="featured-grid" style={{width: `${100 / Math.max(totalWatchPages, 1)}%`, flexShrink:0}} key={i}>
                         {page.map(w => <WatchCard key={w.id} w={w} hoverCart />)}
                       </div>
                     ))
