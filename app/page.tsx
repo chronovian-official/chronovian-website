@@ -1113,7 +1113,9 @@ export default function Home() {
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
   const totalWatchPages = Math.ceil(featuredWatches.length / watchesPerPage);
-  const visibleWatches = featuredWatches.slice(watchIdx * watchesPerPage, (watchIdx + 1) * watchesPerPage);
+  const watchPages = Array.from({ length: totalWatchPages }, (_, i) =>
+    featuredWatches.slice(i * watchesPerPage, (i + 1) * watchesPerPage)
+  );
   const goToWatchPage = (updater: number | ((p: number) => number)) => {
     setWatchIdx(p => {
       const next = typeof updater === "function" ? (updater as (p: number) => number)(p) : updater;
@@ -3338,18 +3340,33 @@ export default function Home() {
                   ‹
                 </button>
               )}
-              <div className="featured-grid">
-                {productsLoading
-                  ? Array.from({ length: 4 }).map((_, i) => (
-                      <div className="skeleton-card" key={i}>
-                        <div className="skeleton skeleton-img" />
-                        <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                        <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                        <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+              <div style={{overflow:"hidden"}}>
+                <div
+                  style={{
+                    display:"flex",
+                    transition: productsLoading ? "none" : "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transform: `translateX(-${watchIdx * 100}%)`,
+                  }}
+                >
+                  {productsLoading ? (
+                    <div className="featured-grid" style={{minWidth:"100%", flexShrink:0}}>
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    watchPages.map((page, i) => (
+                      <div className="featured-grid" style={{minWidth:"100%", flexShrink:0}} key={i}>
+                        {page.map(w => <WatchCard key={w.id} w={w} hoverCart />)}
                       </div>
                     ))
-                  : visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} hoverCart />)
-                }
+                  )}
+                </div>
               </div>
               {!productsLoading && totalWatchPages > 1 && (
                 <button

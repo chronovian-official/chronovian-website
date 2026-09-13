@@ -303,11 +303,14 @@ export default function AdminPage() {
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    if (!confirm("Delete this customer profile? This removes their name, notes, VIP flag, addresses and order/booking history from view here — it does not delete their login account. This cannot be undone.")) return;
+    const confirmPassword = prompt("Enter admin password to delete this customer profile.\n\nThis removes their name, notes, VIP flag, addresses and order/booking history from view here — it does not delete their login account. This cannot be undone.");
+    if (confirmPassword === null) return; // cancelled
+    if (confirmPassword !== ADMIN_PASSWORD) { showMsg("Incorrect password — delete cancelled.", "error"); return; }
     const sb = getClient();
-    const { error } = await sb.from("profiles").delete().eq("id", id);
+    const { data, error } = await sb.from("profiles").delete().eq("id", id).select();
     if (error) showMsg("Delete failed: " + error.message, "error");
-    else { showMsg("Customer profile deleted."); fetchCustomers(); }
+    else if (!data || data.length === 0) showMsg("Delete was blocked — no DELETE policy/grant exists for 'profiles' in Supabase. See the Chronovian notes for the SQL to run.", "error");
+    else { setCustomers(prev => prev.filter(c => c.id !== id)); showMsg("Customer profile deleted."); }
   };
 
   const filteredCustomers = customers.filter(c => {
