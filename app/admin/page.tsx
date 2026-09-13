@@ -302,6 +302,14 @@ export default function AdminPage() {
     if (error) showMsg("Failed to save customer notes: " + error.message, "error");
   };
 
+  const handleDeleteCustomer = async (id: string) => {
+    if (!confirm("Delete this customer profile? This removes their name, notes, VIP flag, addresses and order/booking history from view here — it does not delete their login account. This cannot be undone.")) return;
+    const sb = getClient();
+    const { error } = await sb.from("profiles").delete().eq("id", id);
+    if (error) showMsg("Delete failed: " + error.message, "error");
+    else { showMsg("Customer profile deleted."); fetchCustomers(); }
+  };
+
   const filteredCustomers = customers.filter(c => {
     const q = customerSearch.trim().toLowerCase();
     if (!q) return true;
@@ -1388,6 +1396,7 @@ export default function AdminPage() {
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
                         <button className={`ab ${c.vip ? "ab-gold" : "ab-out"}`} onClick={() => handleToggleVip(c.id, c.vip)}>{c.vip ? "★ VIP" : "Mark VIP"}</button>
+                        <button className="ab ab-red" onClick={() => handleDeleteCustomer(c.id)}>Delete</button>
                         {c.created_at && <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>Since {new Date(c.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
                       </div>
                     </div>
