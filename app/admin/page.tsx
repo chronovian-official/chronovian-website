@@ -145,10 +145,13 @@ type Banner = {
   tagline: string;
   sort_order: number;
   active: boolean;
+  text_font: string;
+  text_size: string;
 };
 
 const emptyBanner: Banner = {
   image_url: "", headline: "", subheadline: "", tagline: "", sort_order: 0, active: true,
+  text_font: "marcellus", text_size: "medium",
 };
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "chronovian2026";
@@ -406,7 +409,7 @@ export default function AdminPage() {
   };
 
   const handleEditBanner = (b: Banner) => {
-    setBannerForm({ ...b });
+    setBannerForm({ ...emptyBanner, ...b, text_font: b.text_font || "marcellus", text_size: b.text_size || "medium" });
     setEditingBanner(b.id!);
     setShowBannerForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1130,6 +1133,22 @@ export default function AdminPage() {
                 <div className="form-group"><label className="al">Headline *</label><input className="ai" value={bannerForm.headline} onChange={e => setBannerForm(f => ({ ...f, headline: e.target.value }))} placeholder="e.g. Where Time" /></div>
                 <div className="form-group"><label className="al">Subheadline</label><input className="ai" value={bannerForm.subheadline} onChange={e => setBannerForm(f => ({ ...f, subheadline: e.target.value }))} placeholder="e.g. Becomes Art (shown in italics)" /></div>
                 <div className="form-group"><label className="al">Tagline</label><input className="ai" value={bannerForm.tagline} onChange={e => setBannerForm(f => ({ ...f, tagline: e.target.value }))} placeholder="e.g. Premium Watches & Fine Jewellery" /></div>
+                <div className="form-group">
+                  <label className="al">Headline Font</label>
+                  <select className="ai" value={bannerForm.text_font} onChange={e => setBannerForm(f => ({ ...f, text_font: e.target.value }))}>
+                    <option value="marcellus">Marcellus (Serif — matches Chronovian logo)</option>
+                    <option value="jost">Jost (Sans-serif)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="al">Headline Size</label>
+                  <select className="ai" value={bannerForm.text_size} onChange={e => setBannerForm(f => ({ ...f, text_size: e.target.value }))}>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium (Default)</option>
+                    <option value="large">Large</option>
+                    <option value="xlarge">Extra Large</option>
+                  </select>
+                </div>
 
                 <label className="cb" style={{ marginTop: "0.5rem" }}>
                   <input type="checkbox" checked={bannerForm.active} onChange={e => setBannerForm(f => ({ ...f, active: e.target.checked }))} /> Active (visible on homepage)
