@@ -161,10 +161,23 @@ type HeroBanner = {
   tagline: string;
   sort_order: number;
   active: boolean;
+  text_font?: string;
+  text_size?: string;
 };
 
 type CartItem = { watch: Watch; qty: number };
 type OrderItem = { id: string; brand: string; model: string; ref: string; price: number; qty: number; image: string };
+
+const HERO_FONT_MAP: Record<string, string> = {
+  marcellus: "'Marcellus', serif",
+  jost: "'Jost', sans-serif",
+};
+const HERO_SIZE_MAP: Record<string, string> = {
+  small: "clamp(2rem, 4vw, 3.2rem)",
+  medium: "clamp(2.8rem, 6vw, 5.5rem)",
+  large: "clamp(3.4rem, 7vw, 6.5rem)",
+  xlarge: "clamp(4rem, 8vw, 7.5rem)",
+};
 type Order = {
   id: string;
   created_at: string;
@@ -1100,6 +1113,7 @@ export default function Home() {
     : [];
 
   const availableWatches = allWatches.filter(w => (w.status || "").toLowerCase() !== "sold");
+  const allBrands = Array.from(new Set(availableWatches.filter(w => w.category === "watches").map(w => w.brand).filter((b): b is string => !!b && b.trim().length > 0))).sort((a, b) => a.localeCompare(b));
   // Chronovian store photos live in the same category_images table under store_1..store_4,
   // so they're managed from Admin → Categories with no extra table needed.
   const storePhotos = ["store_1", "store_2", "store_3", "store_4"]
@@ -1975,7 +1989,7 @@ export default function Home() {
             <div>
               <span className="search-quick-label">Browse by brand</span>
               <div className="search-quick-brands">
-                {["Rolex", "Audemars Piguet", "Patek Philippe"].map(b => (
+                {allBrands.map(b => (
                   <button key={b} className="search-brand-pill" onClick={() => {
                     setSearchOpen(false); setSearchQuery("");
                     skipNextFacetResetRef.current = true;
@@ -3309,7 +3323,13 @@ export default function Home() {
             <div className="hero-gradient" />
             <div className="hero-content">
               <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
-              <h1 className="hero-title">{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
+              <h1
+                className="hero-title"
+                style={{
+                  fontFamily: HERO_FONT_MAP[heroSlides[slide]?.text_font || "marcellus"],
+                  fontSize: HERO_SIZE_MAP[heroSlides[slide]?.text_size || "medium"],
+                }}
+              >{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
               <p className="hero-sub">{heroSlides[slide]?.tagline}</p>
             </div>
             <div className="hero-dots">
