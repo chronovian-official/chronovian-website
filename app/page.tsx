@@ -1123,7 +1123,7 @@ export default function Home() {
     });
   };
   useEffect(() => {
-    const id = setInterval(() => goToWatchPage(p => p + 1), 7000);
+    const id = setInterval(() => goToWatchPage(p => p + 1), 5000);
     return () => clearInterval(id);
   }, [totalWatchPages, watchIdx]);
 
