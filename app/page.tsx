@@ -3541,7 +3541,7 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
+            <p className="footer-copy">© 2026 Chronovian. We are an independent dealer specializing in pre-owned and unworn luxury watches. We are not an authorized retailer or affiliated with any of the brands featured on this website. All trademarks belong to their respective owners.</p>
             <div className="footer-social">
               <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank">WhatsApp</a>
             </div>
