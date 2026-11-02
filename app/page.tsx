@@ -3548,10 +3548,12 @@ export default function Home() {
           </section>
 
           <section className="about-strip">
-            <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Philosophy</span>
-            <h2 className="section-title" style={{fontSize:"clamp(1.4rem, 2.5vw, 2rem)"}}>A Sanctuary for the <em>Extraordinary</em></h2>
+            <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Story</span>
+            <h2 className="section-title" style={{fontSize:"clamp(1.4rem, 2.5vw, 2rem)"}}>The Story Behind <em>Chronovian</em></h2>
             <div className="gold-rule" />
-            <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
+            <p className="about-body" style={{margin:"1.5rem 0 1rem"}}>Chronovian grew from our family&apos;s love for watches, especially the mechanics, technology, and craftsmanship behind every timepiece.</p>
+            <p className="about-body" style={{margin:"0 0 1rem"}}>We wanted to share this passion by creating a space where people can discover, buy, sell, and trade watches as their tastes change. Alongside our watches, we bring together jewellery chosen with care, with a focus on quality, design, and value.</p>
+            <p className="about-body" style={{margin:"0 0 2.5rem"}}>At Chronovian, we believe every piece should have something special about it, whether it&apos;s the way it&apos;s made or the meaning it holds for the person who owns it.</p>
             <button className="btn-outline" onClick={() => goTo("booking")}>Schedule a Private Viewing</button>
           </section>
 
@@ -3621,7 +3623,7 @@ export default function Home() {
           <div className="footer-top">
             <div>
               <span className="footer-brand">Chronovian</span>
-              <p className="footer-tagline">A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Hyderabad, Telangana, India.</p>
+              <p className="footer-tagline">Watches and fine jewellery, chosen with care. By appointment only — Hyderabad, Telangana, India.</p>
             </div>
             <div>
               <span className="footer-col-title">Collections</span>
