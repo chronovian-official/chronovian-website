@@ -19,6 +19,7 @@ type Product = {
   category: string;
   subcategory: string;
   price: number | null;
+  erp: number | null;
   condition: string;
   year: string;
   box: boolean;
@@ -63,7 +64,7 @@ type Product = {
 
 const emptyProduct: Product = {
   brand: "", model: "", ref: "", category: "watches", subcategory: "",
-  price: null, condition: "Excellent", year: "", box: false, papers: false,
+  price: null, erp: null, condition: "Excellent", year: "", box: false, papers: false,
   description: "", status: "available", images: [],
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
@@ -87,6 +88,7 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "category", label: "Category (watches/jewellery/bags/accessories)" },
   { key: "subcategory", label: "Subcategory" },
   { key: "price", label: "Price (INR)", kind: "number" },
+  { key: "erp", label: "ERP (INR) — shown struck through above price", kind: "number" },
   { key: "condition", label: "Condition" },
   { key: "year", label: "Purchase Year" },
   { key: "box", label: "Box Included (Yes/No)", kind: "bool" },
@@ -151,7 +153,7 @@ type Banner = {
 
 const emptyBanner: Banner = {
   image_url: "", headline: "", subheadline: "", tagline: "", sort_order: 0, active: true,
-  text_font: "marcellus", text_size: "medium",
+  text_font: "marcellus", text_size: "5.5",
 };
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "chronovian2026";
@@ -409,7 +411,7 @@ export default function AdminPage() {
   };
 
   const handleEditBanner = (b: Banner) => {
-    setBannerForm({ ...emptyBanner, ...b, text_font: b.text_font || "marcellus", text_size: b.text_size || "medium" });
+    setBannerForm({ ...emptyBanner, ...b, text_font: b.text_font || "marcellus", text_size: b.text_size || "5.5" });
     setEditingBanner(b.id!);
     setShowBannerForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -864,6 +866,15 @@ export default function AdminPage() {
                     {(form.price_mode || "amount") === "amount" && (
                       <input className="ai" style={{ marginTop: "0.6rem" }} type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="e.g. 1250000" />
                     )}
+                    {(form.price_mode || "amount") === "amount" && (
+                      <>
+                        <label className="al" style={{ marginTop: "0.6rem" }}>ERP (optional)</label>
+                        <input className="ai" type="number" value={form.erp ?? ""} onChange={e => setForm(f => ({ ...f, erp: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="Original retail price, e.g. 3162500" />
+                        {form.erp != null && form.erp > 0 && form.price != null && form.price > 0 && form.erp <= form.price && (
+                          <span style={{ display: "block", fontSize: "0.65rem", color: "#B45309", marginTop: "0.3rem" }}>ERP is not higher than the price, so it will look odd on the site.</span>
+                        )}
+                      </>
+                    )}
                   </div>
                   <div>
                     <label className="al">Status</label>
@@ -1059,6 +1070,9 @@ export default function AdminPage() {
                       <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", margin: "0.2rem 0" }}>{p.model}</div>
                       <div style={{ fontSize: "0.65rem", color: "#6B6B6B", marginBottom: "0.4rem" }}>{p.ref} · {p.condition} · {p.year}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                        {(p.price_mode || "amount") === "amount" && p.erp != null && p.erp > 0 && (
+                          <span style={{ fontSize: "0.7rem", color: "#ADADAD", textDecoration: "line-through" }}>ERP {fmt(p.erp)}</span>
+                        )}
                         <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{(p.price_mode || "amount") === "hidden" ? "— no price shown —" : (p.price_mode === "on_request" ? "Price on Request" : fmt(p.price))}</span>
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
@@ -1136,18 +1150,24 @@ export default function AdminPage() {
                 <div className="form-group">
                   <label className="al">Headline Font</label>
                   <select className="ai" value={bannerForm.text_font} onChange={e => setBannerForm(f => ({ ...f, text_font: e.target.value }))}>
-                    <option value="marcellus">Marcellus (Serif — matches Chronovian logo)</option>
-                    <option value="jost">Jost (Sans-serif)</option>
+                    <option value="marcellus">Marcellus (matches Chronovian logo)</option>
+                    <option value="jost">Jost (Sans-serif, site body font)</option>
+                    <option value="playfair">Playfair Display (Elegant Serif)</option>
+                    <option value="cormorant">Cormorant Garamond (Light, Refined Serif)</option>
+                    <option value="cinzel">Cinzel (Classic Engraved Serif)</option>
+                    <option value="garamond">EB Garamond (Traditional Serif)</option>
+                    <option value="montserrat">Montserrat (Clean Geometric Sans)</option>
+                    <option value="bodoni">Bodoni Moda (High-Contrast Editorial Serif)</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="al">Headline Size</label>
-                  <select className="ai" value={bannerForm.text_size} onChange={e => setBannerForm(f => ({ ...f, text_size: e.target.value }))}>
-                    <option value="small">Small</option>
-                    <option value="medium">Medium (Default)</option>
-                    <option value="large">Large</option>
-                    <option value="xlarge">Extra Large</option>
-                  </select>
+                  <label className="al">Headline Size (rem)</label>
+                  <input className="ai" type="number" step="0.1" min="1.5" max="10" value={bannerForm.text_size} onChange={e => setBannerForm(f => ({ ...f, text_size: e.target.value }))} placeholder="e.g. 5.5" />
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                    {[["Small", "3.2"], ["Medium", "5.5"], ["Large", "6.5"], ["Extra Large", "7.5"]].map(([label, val]) => (
+                      <button key={label} type="button" className="ab ab-out" style={{ fontSize: "0.65rem", padding: "0.4rem 0.7rem" }} onClick={() => setBannerForm(f => ({ ...f, text_size: val }))}>{label}</button>
+                    ))}
+                  </div>
                 </div>
 
                 <label className="cb" style={{ marginTop: "0.5rem" }}>

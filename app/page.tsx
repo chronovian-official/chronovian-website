@@ -62,6 +62,7 @@ type Watch = {
   hidden?: boolean;
   tax_inclusive?: boolean;
   price_mode?: "amount" | "on_request" | "hidden";
+  erp?: number | null;
 };
 
 const CATEGORY_FACETS: Record<string, { key: string; label: string }[]> = {
@@ -171,12 +172,29 @@ type OrderItem = { id: string; brand: string; model: string; ref: string; price:
 const HERO_FONT_MAP: Record<string, string> = {
   marcellus: "'Marcellus', serif",
   jost: "'Jost', sans-serif",
+  playfair: "'Playfair Display', serif",
+  cormorant: "'Cormorant Garamond', serif",
+  cinzel: "'Cinzel', serif",
+  garamond: "'EB Garamond', serif",
+  montserrat: "'Montserrat', sans-serif",
+  bodoni: "'Bodoni Moda', serif",
 };
 const HERO_SIZE_MAP: Record<string, string> = {
   small: "clamp(2rem, 4vw, 3.2rem)",
   medium: "clamp(2.8rem, 6vw, 5.5rem)",
   large: "clamp(3.4rem, 7vw, 6.5rem)",
   xlarge: "clamp(4rem, 8vw, 7.5rem)",
+};
+// text_size may be an old preset keyword (small/medium/large/xlarge) or a numeric
+// rem value typed by the admin. Numeric values still get wrapped in a clamp() so
+// the headline stays responsive on mobile instead of a fixed, non-scaling size.
+const heroFontSize = (rawSize?: string): string => {
+  if (!rawSize) return HERO_SIZE_MAP.medium;
+  const n = Number(rawSize);
+  if (rawSize.trim() !== "" && !isNaN(n) && n > 0) {
+    return `clamp(${(n * 0.55).toFixed(2)}rem, ${(n * 1.1).toFixed(2)}vw, ${n}rem)`;
+  }
+  return HERO_SIZE_MAP[rawSize] || HERO_SIZE_MAP.medium;
 };
 type Order = {
   id: string;
@@ -649,7 +667,17 @@ export default function Home() {
     return fmtPrice(w.price);
   };
 
-  const fmtPrice = (priceInr: number | null | undefined) => {
+  // ERP (original retail price) is shown struck through above the price, converted to the
+  // selected currency like the price itself. Only shown when the product displays an amount.
+  const erpDisplay = (w: Watch): string | null => {
+    const mode = w.price_mode
+      || (w.price === null || w.price === undefined || w.price <= 0 ? "on_request" : "amount");
+    if (mode !== "amount") return null;
+    if (w.erp === null || w.erp === undefined || isNaN(w.erp) || w.erp <= 0) return null;
+    return "ERP " + fmtPrice(w.erp);
+  };
+
+  const fmtPrice =(priceInr: number | null | undefined) => {
     if (priceInr === null || priceInr === undefined || isNaN(priceInr) || priceInr <= 0) return "Price on Request";
     const rate = exchangeRates[currency] || (currency === "INR" ? 1 : null);
     const meta = CURRENCY_META[currency] || CURRENCY_META.INR;
@@ -797,11 +825,55 @@ export default function Home() {
     fetchBookedSlots();
   }, [page, calMonth, calYear]);
 
+  // Pages that get their own shareable URL (?page=watches etc). Cart/checkout stay URL-less
+  // because payments are intentionally unreachable; "product" uses ?product=<id> instead.
+  const URL_PAGES: PageType[] = ["watches", "jewellery", "bags", "accessories", "sell", "trade", "contact", "booking", "wishlist", "account"];
+
+  const urlForPage = (p: PageType, watch?: Watch | null) => {
+    const base = window.location.pathname;
+    if (p === "product") {
+      const id = watch?.id;
+      return id ? `${base}?product=${id}` : base;
+    }
+    return URL_PAGES.includes(p) ? `${base}?page=${p}` : base;
+  };
+
   const goTo = (p: PageType, watch?: Watch) => {
     if (p === "product" && watch) { setSelectedWatch(watch); setActiveImgIdx(0); }
     setPage(p); setMenuOpen(false); setActiveDropdown(null);
+    const nextUrl = urlForPage(p, p === "product" ? (watch ?? selectedWatch) : null);
+    if (nextUrl !== window.location.pathname + window.location.search) {
+      window.history.pushState({ page: p }, "", nextUrl);
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Open the right page when the site is loaded from a ?page=<category> link (refresh, shared link, bookmark)
+  useEffect(() => {
+    const pg = new URLSearchParams(window.location.search).get("page") as PageType | null;
+    if (pg && URL_PAGES.includes(pg)) setPage(pg);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Browser Back/Forward: re-read the URL and show the matching page
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("product");
+      const pg = params.get("page") as PageType | null;
+      if (productId) {
+        const found = allWatches.find(w => w.id === productId);
+        if (found) { setSelectedWatch(found); setActiveImgIdx(0); setPage("product"); }
+        return;
+      }
+      setPage(pg && URL_PAGES.includes(pg) ? pg : "home");
+      setMenuOpen(false); setActiveDropdown(null);
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allWatches]);
 
   const openProductInNewTab = (w: Watch) => {
     const url = `${window.location.origin}${window.location.pathname}?product=${w.id}`;
@@ -1161,6 +1233,7 @@ export default function Home() {
       <span className="watch-brand">{w.brand}</span>
       <span className="watch-model" onClick={() => openProductInNewTab(w)} style={{cursor:"pointer"}}>{w.model}</span>
       <span className="watch-ref">{w.ref}</span>
+      {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
       {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
         {(w.status || "").toLowerCase() === "sold"
@@ -1173,7 +1246,7 @@ export default function Home() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@200;300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600&family=Cinzel:wght@400;500;600&family=EB+Garamond:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Bodoni+Moda:wght@400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --gold: #9A7340; --gold-light: #B8935A;
@@ -1397,6 +1470,8 @@ export default function Home() {
         .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
+        .watch-erp { font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; letter-spacing: 0.01em; }
+        .product-erp { font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; }
         .wishlist-btn { position: absolute; top: 1rem; right: 1rem; background: white; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: transform 0.2s; z-index: 2; color: var(--black); }
         .wishlist-btn:hover { transform: scale(1.15); }
         .wishlist-btn.active { color: var(--burgundy); }
@@ -2018,6 +2093,7 @@ export default function Home() {
                     <span className="watch-brand">{w.brand}</span>
                     <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }} style={{cursor:"pointer"}}>{w.model}</span>
                     <span className="watch-ref">{w.ref}</span>
+                    {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
                     {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
                     <div className="card-actions">
                       <button className="btn-cart" onClick={() => { setSearchOpen(false); setSearchQuery(""); setEnquiryWatch(w); }}>Enquire</button>
@@ -2254,7 +2330,10 @@ export default function Home() {
 
                 {priceDisplay(selectedWatch) && (
                   <div className="product-price-row">
-                    <span className="product-price">{priceDisplay(selectedWatch)}</span>
+                    <div>
+                      {erpDisplay(selectedWatch) && <span className="product-erp">{erpDisplay(selectedWatch)}</span>}
+                      <span className="product-price">{priceDisplay(selectedWatch)}</span>
+                    </div>
                     {selectedWatch.tax_inclusive && <span className="product-price-tax-note">*Inclusive of all taxes</span>}
                   </div>
                 )}
@@ -3327,7 +3406,7 @@ export default function Home() {
                 className="hero-title"
                 style={{
                   fontFamily: HERO_FONT_MAP[heroSlides[slide]?.text_font || "marcellus"],
-                  fontSize: HERO_SIZE_MAP[heroSlides[slide]?.text_size || "medium"],
+                  fontSize: heroFontSize(heroSlides[slide]?.text_size),
                 }}
               >{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
               <p className="hero-sub">{heroSlides[slide]?.tagline}</p>
@@ -3541,8 +3620,9 @@ export default function Home() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p className="footer-copy">© 2026 Chronovian. We are an independent dealer specializing in pre-owned and unworn luxury watches. We are not an authorized retailer or affiliated with any of the brands featured on this website. All trademarks belong to their respective owners.</p>
+            <p className="footer-copy">© 2026 Chronovian. All rights reserved.</p>
             <div className="footer-social">
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank">WhatsApp</a>
             </div>
           </div>
         </div>
