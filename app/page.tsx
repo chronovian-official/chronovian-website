@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
+
+// useLayoutEffect warns during server rendering, so fall back to useEffect there.
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
@@ -848,12 +851,25 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Open the right page when the site is loaded from a ?page=<category> link (refresh, shared link, bookmark)
-  useEffect(() => {
-    const pg = new URLSearchParams(window.location.search).get("page") as PageType | null;
-    if (pg && URL_PAGES.includes(pg)) setPage(pg);
+  // Open the right page when the site is loaded from a ?page=<category> or ?product=<id> link
+  // (refresh, shared link, new tab). Runs before the first paint so the homepage never flashes
+  // first. For ?product= the watch itself loads later, so a skeleton shows in the meantime.
+  useIsoLayoutEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pg = params.get("page") as PageType | null;
+    if (params.get("product")) setPage("product");
+    else if (pg && URL_PAGES.includes(pg)) setPage(pg);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If a ?product= link points at a watch that doesn't exist (or products failed to load),
+  // fall back to the homepage instead of leaving a blank page.
+  useEffect(() => {
+    if (productsLoading || page !== "product" || selectedWatch) return;
+    const id = new URLSearchParams(window.location.search).get("product");
+    if (id && allWatches.some(w => w.id === id)) return; // the ?product= effect is about to select it
+    setPage("home");
+  }, [productsLoading, page, selectedWatch, allWatches]);
 
   // Browser Back/Forward: re-read the URL and show the matching page
   useEffect(() => {
@@ -2282,6 +2298,21 @@ export default function Home() {
           </select>
         </div>
       </div>
+
+      {/* PRODUCT PAGE — loading placeholder while a ?product= link waits for the catalogue */}
+      {page === "product" && !selectedWatch && productsLoading && (
+        <main>
+          <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "8rem 2.5rem 4rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem" }}>
+            <div className="skeleton skeleton-img" style={{ minHeight: "420px" }} />
+            <div>
+              <div className="skeleton skeleton-line" style={{ width: "30%", marginBottom: "1rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "70%", height: "2rem", marginBottom: "1rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "40%", marginBottom: "2rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "50%" }} />
+            </div>
+          </div>
+        </main>
+      )}
 
       {/* PRODUCT PAGE */}
       {page === "product" && selectedWatch && (
