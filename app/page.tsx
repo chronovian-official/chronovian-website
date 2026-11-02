@@ -162,10 +162,40 @@ type HeroBanner = {
   tagline: string;
   sort_order: number;
   active: boolean;
+  text_font?: string;
+  text_size?: string;
 };
 
 type CartItem = { watch: Watch; qty: number };
 type OrderItem = { id: string; brand: string; model: string; ref: string; price: number; qty: number; image: string };
+
+const HERO_FONT_MAP: Record<string, string> = {
+  marcellus: "'Marcellus', serif",
+  jost: "'Jost', sans-serif",
+  playfair: "'Playfair Display', serif",
+  cormorant: "'Cormorant Garamond', serif",
+  cinzel: "'Cinzel', serif",
+  garamond: "'EB Garamond', serif",
+  montserrat: "'Montserrat', sans-serif",
+  bodoni: "'Bodoni Moda', serif",
+};
+const HERO_SIZE_MAP: Record<string, string> = {
+  small: "clamp(2rem, 4vw, 3.2rem)",
+  medium: "clamp(2.8rem, 6vw, 5.5rem)",
+  large: "clamp(3.4rem, 7vw, 6.5rem)",
+  xlarge: "clamp(4rem, 8vw, 7.5rem)",
+};
+// text_size may be an old preset keyword (small/medium/large/xlarge) or a numeric
+// rem value typed by the admin. Numeric values still get wrapped in a clamp() so
+// the headline stays responsive on mobile instead of a fixed, non-scaling size.
+const heroFontSize = (rawSize?: string): string => {
+  if (!rawSize) return HERO_SIZE_MAP.medium;
+  const n = Number(rawSize);
+  if (rawSize.trim() !== "" && !isNaN(n) && n > 0) {
+    return `clamp(${(n * 0.55).toFixed(2)}rem, ${(n * 1.1).toFixed(2)}vw, ${n}rem)`;
+  }
+  return HERO_SIZE_MAP[rawSize] || HERO_SIZE_MAP.medium;
+};
 type Order = {
   id: string;
   created_at: string;
@@ -1023,6 +1053,21 @@ export default function Home() {
     const categoryPrices = baseList.map(w => w.price).filter((p): p is number => typeof p === "number" && !isNaN(p) && p > 0);
     const priceBoundMin = categoryPrices.length ? Math.min(...categoryPrices) : 0;
     const priceBoundMax = categoryPrices.length ? Math.max(...categoryPrices) : 10000000;
+    // priceMin/priceMax state always stays in INR (it's compared against w.price, which is
+    // always INR) — only the slider, number inputs, and bucket labels shown to the shopper
+    // are converted to whichever currency is currently selected.
+    const rate = exchangeRates[currency] || (currency === "INR" ? 1 : 1);
+    const currencySymbol = CURRENCY_META[currency]?.symbol || "₹";
+    const currencyLocale = CURRENCY_META[currency]?.locale || "en-IN";
+    const toDisplay = (inr: number) => Math.round(inr * rate);
+    const toINR = (display: number) => Math.round(display / (rate || 1));
+    const fmtDisplayNum = (inr: number) => toDisplay(inr).toLocaleString(currencyLocale);
+    const bucketLabel = (b: { label: string; min: number; max: number }) => {
+      if (currency === "INR") return b.label;
+      if (b.max === Infinity) return `${currencySymbol}${fmtDisplayNum(b.min)} and Above`;
+      if (b.min === 0) return `Under ${currencySymbol}${fmtDisplayNum(b.max)}`;
+      return `${currencySymbol}${fmtDisplayNum(b.min)} – ${currencySymbol}${fmtDisplayNum(b.max)}`;
+    };
     return (
       <>
         <div className="filters-sidebar-overlay" onClick={() => closeFilters(category)} />
@@ -1040,13 +1085,15 @@ export default function Home() {
             {expandedFacet === "price" && (
               <div className="facet-body">
                 <div className="price-slider-wrap">
-                  <input type="range" min={priceBoundMin} max={priceBoundMax} value={priceMin || priceBoundMin} onChange={e => setPriceMin(e.target.value)} className="price-slider" />
-                  <input type="range" min={priceBoundMin} max={priceBoundMax} value={priceMax || priceBoundMax} onChange={e => setPriceMax(e.target.value)} className="price-slider" />
+                  <input type="range" min={toDisplay(priceBoundMin)} max={toDisplay(priceBoundMax)} value={toDisplay(Number(priceMin) || priceBoundMin)} onChange={e => setPriceMin(String(toINR(Number(e.target.value))))} className="price-slider" />
+                  <input type="range" min={toDisplay(priceBoundMin)} max={toDisplay(priceBoundMax)} value={toDisplay(Number(priceMax) || priceBoundMax)} onChange={e => setPriceMax(String(toINR(Number(e.target.value))))} className="price-slider" />
                 </div>
                 <div className="price-range-inputs">
-                  <input type="number" placeholder="Min" value={priceMin} onChange={e => setPriceMin(e.target.value)} />
+                  <span style={{fontSize:"0.75rem", color:"var(--gray-mid)"}}>{currencySymbol}</span>
+                  <input type="number" placeholder="Min" value={priceMin ? toDisplay(Number(priceMin)) : ""} onChange={e => setPriceMin(e.target.value ? String(toINR(Number(e.target.value))) : "")} />
                   <span>–</span>
-                  <input type="number" placeholder="Max" value={priceMax} onChange={e => setPriceMax(e.target.value)} />
+                  <span style={{fontSize:"0.75rem", color:"var(--gray-mid)"}}>{currencySymbol}</span>
+                  <input type="number" placeholder="Max" value={priceMax ? toDisplay(Number(priceMax)) : ""} onChange={e => setPriceMax(e.target.value ? String(toINR(Number(e.target.value))) : "")} />
                 </div>
                 <div className="price-bucket-list">
                   {PRICE_BUCKETS.map(b => (
@@ -1056,7 +1103,7 @@ export default function Home() {
                         checked={priceMin === String(b.min) && priceMax === String(b.max === Infinity ? priceBoundMax : b.max)}
                         onChange={() => { setPriceMin(String(b.min)); setPriceMax(String(b.max === Infinity ? priceBoundMax : b.max)); }}
                       />
-                      <span>{b.label}</span>
+                      <span>{bucketLabel(b)}</span>
                     </label>
                   ))}
                 </div>
@@ -1138,6 +1185,7 @@ export default function Home() {
     : [];
 
   const availableWatches = allWatches.filter(w => (w.status || "").toLowerCase() !== "sold");
+  const allBrands = Array.from(new Set(availableWatches.filter(w => w.category === "watches").map(w => w.brand).filter((b): b is string => !!b && b.trim().length > 0))).sort((a, b) => a.localeCompare(b));
   // Chronovian store photos live in the same category_images table under store_1..store_4,
   // so they're managed from Admin → Categories with no extra table needed.
   const storePhotos = ["store_1", "store_2", "store_3", "store_4"]
@@ -1151,11 +1199,19 @@ export default function Home() {
   const [watchIdx, setWatchIdx] = useState(0);
   const watchesPerPage = 4;
   const totalWatchPages = Math.ceil(featuredWatches.length / watchesPerPage);
-  const visibleWatches = featuredWatches.slice(watchIdx * watchesPerPage, (watchIdx + 1) * watchesPerPage);
+  const watchPages = Array.from({ length: totalWatchPages }, (_, i) =>
+    featuredWatches.slice(i * watchesPerPage, (i + 1) * watchesPerPage)
+  );
+  const goToWatchPage = (updater: number | ((p: number) => number)) => {
+    setWatchIdx(p => {
+      const next = typeof updater === "function" ? (updater as (p: number) => number)(p) : updater;
+      return ((next % totalWatchPages) + totalWatchPages) % totalWatchPages;
+    });
+  };
   useEffect(() => {
-    const id = setInterval(() => setWatchIdx(p => (p + 1) % totalWatchPages), 4000);
+    const id = setInterval(() => goToWatchPage(p => p + 1), 5000);
     return () => clearInterval(id);
-  }, [totalWatchPages]);
+  }, [totalWatchPages, watchIdx]);
 
   const sellItems = [
     { label: "How It Works", page: "sell" as PageType },
@@ -1190,7 +1246,7 @@ export default function Home() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@200;300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@200;300;400;500&family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600&family=Cinzel:wght@400;500;600&family=EB+Garamond:wght@400;500;600&family=Montserrat:wght@300;400;500;600&family=Bodoni+Moda:wght@400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --gold: #9A7340; --gold-light: #B8935A;
@@ -2008,7 +2064,7 @@ export default function Home() {
             <div>
               <span className="search-quick-label">Browse by brand</span>
               <div className="search-quick-brands">
-                {["Rolex", "Audemars Piguet", "Patek Philippe"].map(b => (
+                {allBrands.map(b => (
                   <button key={b} className="search-brand-pill" onClick={() => {
                     setSearchOpen(false); setSearchQuery("");
                     skipNextFacetResetRef.current = true;
@@ -3346,7 +3402,13 @@ export default function Home() {
             <div className="hero-gradient" />
             <div className="hero-content">
               <p className="hero-eyebrow">Est. 2026 — By Appointment Only</p>
-              <h1 className="hero-title">{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
+              <h1
+                className="hero-title"
+                style={{
+                  fontFamily: HERO_FONT_MAP[heroSlides[slide]?.text_font || "marcellus"],
+                  fontSize: heroFontSize(heroSlides[slide]?.text_size),
+                }}
+              >{heroSlides[slide]?.headline}<br /><em>{heroSlides[slide]?.subheadline}</em></h1>
               <p className="hero-sub">{heroSlides[slide]?.tagline}</p>
             </div>
             <div className="hero-dots">
@@ -3361,22 +3423,70 @@ export default function Home() {
               <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Collection</span>
               <div className="gold-rule" />
             </div>
-            <div className="featured-grid">
-              {productsLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div className="skeleton-card" key={i}>
-                      <div className="skeleton skeleton-img" />
-                      <div className="skeleton skeleton-line" style={{ width: "60%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "80%" }} />
-                      <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+            <div style={{position:"relative"}}>
+              {!productsLoading && totalWatchPages > 1 && (
+                <button
+                  aria-label="Previous watches"
+                  onClick={() => goToWatchPage(p => p - 1)}
+                  style={{
+                    position:"absolute", left:"-1.5rem", top:"50%", transform:"translateY(-50%)",
+                    width:"44px", height:"44px", borderRadius:"50%", border:"1px solid var(--burgundy, #6E1F2E)",
+                    background:"#fff", color:"var(--burgundy, #6E1F2E)", fontSize:"1.1rem", cursor:"pointer",
+                    display:"flex", alignItems:"center", justifyContent:"center", zIndex:2,
+                    boxShadow:"0 2px 8px rgba(0,0,0,0.08)"
+                  }}
+                >
+                  ‹
+                </button>
+              )}
+              <div style={{overflow:"hidden", width:"100%"}}>
+                <div
+                  style={{
+                    display:"flex",
+                    width: `${Math.max(totalWatchPages, 1) * 100}%`,
+                    transition: productsLoading ? "none" : "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transform: `translateX(-${watchIdx * (100 / Math.max(totalWatchPages, 1))}%)`,
+                  }}
+                >
+                  {productsLoading ? (
+                    <div className="featured-grid" style={{width: `${100 / Math.max(totalWatchPages, 1)}%`, flexShrink:0}}>
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div className="skeleton-card" key={i}>
+                          <div className="skeleton skeleton-img" />
+                          <div className="skeleton skeleton-line" style={{ width: "60%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "80%" }} />
+                          <div className="skeleton skeleton-line" style={{ width: "40%" }} />
+                        </div>
+                      ))}
                     </div>
-                  ))
-                : visibleWatches.map(w => <WatchCard key={`${watchIdx}-${w.id}`} w={w} hoverCart />)
-              }
+                  ) : (
+                    watchPages.map((page, i) => (
+                      <div className="featured-grid" style={{width: `${100 / Math.max(totalWatchPages, 1)}%`, flexShrink:0}} key={i}>
+                        {page.map(w => <WatchCard key={w.id} w={w} hoverCart />)}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              {!productsLoading && totalWatchPages > 1 && (
+                <button
+                  aria-label="Next watches"
+                  onClick={() => goToWatchPage(p => p + 1)}
+                  style={{
+                    position:"absolute", right:"-1.5rem", top:"50%", transform:"translateY(-50%)",
+                    width:"44px", height:"44px", borderRadius:"50%", border:"1px solid var(--burgundy, #6E1F2E)",
+                    background:"#fff", color:"var(--burgundy, #6E1F2E)", fontSize:"1.1rem", cursor:"pointer",
+                    display:"flex", alignItems:"center", justifyContent:"center", zIndex:2,
+                    boxShadow:"0 2px 8px rgba(0,0,0,0.08)"
+                  }}
+                >
+                  ›
+                </button>
+              )}
             </div>
             <div style={{display:"flex",justifyContent:"center",gap:"0.5rem",margin:"2rem 0 1rem"}}>
               {Array.from({length: totalWatchPages}).map((_, i) => (
-                <button key={i} onClick={() => setWatchIdx(i)} style={{width: watchIdx===i?"28px":"10px", height:"3px", background: watchIdx===i?"var(--gold)":"rgba(0,0,0,0.15)", border:"none", cursor:"pointer", transition:"all 0.3s", padding:0}} />
+                <button key={i} onClick={() => goToWatchPage(i)} style={{width: watchIdx===i?"28px":"10px", height:"3px", background: watchIdx===i?"var(--gold)":"rgba(0,0,0,0.15)", border:"none", cursor:"pointer", transition:"all 0.3s", padding:0}} />
               ))}
             </div>
             <div className="featured-footer">
