@@ -1232,7 +1232,7 @@ export default function Home() {
       </div>
       <span className="watch-brand">{w.brand}</span>
       <span className="watch-model" onClick={() => openProductInNewTab(w)} style={{cursor:"pointer"}}>{w.model}</span>
-      <span className="watch-ref">{w.ref}</span>
+      {w.condition && <span className="watch-condition">Condition: {w.condition}</span>}
       {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
       {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
@@ -1469,6 +1469,7 @@ export default function Home() {
         .watch-brand { font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
         .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
+        .watch-condition { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
         .watch-erp { font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; letter-spacing: 0.01em; }
         .product-erp { font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; }
@@ -2092,7 +2093,7 @@ export default function Home() {
                     </div>
                     <span className="watch-brand">{w.brand}</span>
                     <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }} style={{cursor:"pointer"}}>{w.model}</span>
-                    <span className="watch-ref">{w.ref}</span>
+                    {w.condition && <span className="watch-condition">Condition: {w.condition}</span>}
                     {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
                     {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
                     <div className="card-actions">
@@ -2384,7 +2385,6 @@ export default function Home() {
                   const cat = selectedWatch.category;
                   const specColumns = [
                     { title: "Details", rows: [
-                      { label: "Condition", value: selectedWatch.condition },
                       { label: "Purchase Year", value: selectedWatch.year },
                       { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included" },
                       { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
