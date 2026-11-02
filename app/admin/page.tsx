@@ -19,6 +19,7 @@ type Product = {
   category: string;
   subcategory: string;
   price: number | null;
+  erp: number | null;
   condition: string;
   year: string;
   box: boolean;
@@ -63,7 +64,7 @@ type Product = {
 
 const emptyProduct: Product = {
   brand: "", model: "", ref: "", category: "watches", subcategory: "",
-  price: null, condition: "Excellent", year: "", box: false, papers: false,
+  price: null, erp: null, condition: "Excellent", year: "", box: false, papers: false,
   description: "", status: "available", images: [],
   dial_color: "", case_material: "", bracelet_material: "", case_size: "", movement: "",
   material: "", gemstone: "", weight: "",
@@ -87,6 +88,7 @@ const EXCEL_COLUMNS: ExcelCol[] = [
   { key: "category", label: "Category (watches/jewellery/bags/accessories)" },
   { key: "subcategory", label: "Subcategory" },
   { key: "price", label: "Price (INR)", kind: "number" },
+  { key: "erp", label: "ERP (INR) — shown struck through above price", kind: "number" },
   { key: "condition", label: "Condition" },
   { key: "year", label: "Purchase Year" },
   { key: "box", label: "Box Included (Yes/No)", kind: "bool" },
@@ -145,13 +147,10 @@ type Banner = {
   tagline: string;
   sort_order: number;
   active: boolean;
-  text_font: string;
-  text_size: string;
 };
 
 const emptyBanner: Banner = {
   image_url: "", headline: "", subheadline: "", tagline: "", sort_order: 0, active: true,
-  text_font: "marcellus", text_size: "medium",
 };
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "chronovian2026";
@@ -305,17 +304,6 @@ export default function AdminPage() {
     if (error) showMsg("Failed to save customer notes: " + error.message, "error");
   };
 
-  const handleDeleteCustomer = async (id: string) => {
-    const confirmPassword = prompt("Enter admin password to delete this customer profile.\n\nThis removes their name, notes, VIP flag, addresses and order/booking history from view here — it does not delete their login account. This cannot be undone.");
-    if (confirmPassword === null) return; // cancelled
-    if (confirmPassword !== ADMIN_PASSWORD) { showMsg("Incorrect password — delete cancelled.", "error"); return; }
-    const sb = getClient();
-    const { data, error } = await sb.from("profiles").delete().eq("id", id).select();
-    if (error) showMsg("Delete failed: " + error.message, "error");
-    else if (!data || data.length === 0) showMsg("Delete was blocked — no DELETE policy/grant exists for 'profiles' in Supabase. See the Chronovian notes for the SQL to run.", "error");
-    else { setCustomers(prev => prev.filter(c => c.id !== id)); showMsg("Customer profile deleted."); }
-  };
-
   const filteredCustomers = customers.filter(c => {
     const q = customerSearch.trim().toLowerCase();
     if (!q) return true;
@@ -409,7 +397,7 @@ export default function AdminPage() {
   };
 
   const handleEditBanner = (b: Banner) => {
-    setBannerForm({ ...emptyBanner, ...b, text_font: b.text_font || "marcellus", text_size: b.text_size || "medium" });
+    setBannerForm({ ...b });
     setEditingBanner(b.id!);
     setShowBannerForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -864,6 +852,15 @@ export default function AdminPage() {
                     {(form.price_mode || "amount") === "amount" && (
                       <input className="ai" style={{ marginTop: "0.6rem" }} type="number" value={form.price ?? ""} onChange={e => setForm(f => ({ ...f, price: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="e.g. 1250000" />
                     )}
+                    {(form.price_mode || "amount") === "amount" && (
+                      <>
+                        <label className="al" style={{ marginTop: "0.6rem" }}>ERP (optional)</label>
+                        <input className="ai" type="number" value={form.erp ?? ""} onChange={e => setForm(f => ({ ...f, erp: e.target.value === "" ? null : (parseInt(e.target.value) || 0) }))} placeholder="Original retail price, e.g. 3162500" />
+                        {form.erp != null && form.erp > 0 && form.price != null && form.price > 0 && form.erp <= form.price && (
+                          <span style={{ display: "block", fontSize: "0.65rem", color: "#B45309", marginTop: "0.3rem" }}>ERP is not higher than the price, so it will look odd on the site.</span>
+                        )}
+                      </>
+                    )}
                   </div>
                   <div>
                     <label className="al">Status</label>
@@ -1059,6 +1056,9 @@ export default function AdminPage() {
                       <div style={{ fontFamily: "Georgia,serif", fontSize: "0.95rem", margin: "0.2rem 0" }}>{p.model}</div>
                       <div style={{ fontSize: "0.65rem", color: "#6B6B6B", marginBottom: "0.4rem" }}>{p.ref} · {p.condition} · {p.year}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                        {(p.price_mode || "amount") === "amount" && p.erp != null && p.erp > 0 && (
+                          <span style={{ fontSize: "0.7rem", color: "#ADADAD", textDecoration: "line-through" }}>ERP {fmt(p.erp)}</span>
+                        )}
                         <span style={{ fontSize: "0.88rem", fontWeight: 500 }}>{(p.price_mode || "amount") === "hidden" ? "— no price shown —" : (p.price_mode === "on_request" ? "Price on Request" : fmt(p.price))}</span>
                         <span className={`sb sb-${p.status === "available" ? "av" : p.status === "reserved" ? "res" : "sold"}`}>{p.status}</span>
                         <span style={{ fontSize: "0.6rem", color: "#ADADAD", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.category}</span>
@@ -1133,22 +1133,6 @@ export default function AdminPage() {
                 <div className="form-group"><label className="al">Headline *</label><input className="ai" value={bannerForm.headline} onChange={e => setBannerForm(f => ({ ...f, headline: e.target.value }))} placeholder="e.g. Where Time" /></div>
                 <div className="form-group"><label className="al">Subheadline</label><input className="ai" value={bannerForm.subheadline} onChange={e => setBannerForm(f => ({ ...f, subheadline: e.target.value }))} placeholder="e.g. Becomes Art (shown in italics)" /></div>
                 <div className="form-group"><label className="al">Tagline</label><input className="ai" value={bannerForm.tagline} onChange={e => setBannerForm(f => ({ ...f, tagline: e.target.value }))} placeholder="e.g. Premium Watches & Fine Jewellery" /></div>
-                <div className="form-group">
-                  <label className="al">Headline Font</label>
-                  <select className="ai" value={bannerForm.text_font} onChange={e => setBannerForm(f => ({ ...f, text_font: e.target.value }))}>
-                    <option value="marcellus">Marcellus (Serif — matches Chronovian logo)</option>
-                    <option value="jost">Jost (Sans-serif)</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="al">Headline Size</label>
-                  <select className="ai" value={bannerForm.text_size} onChange={e => setBannerForm(f => ({ ...f, text_size: e.target.value }))}>
-                    <option value="small">Small</option>
-                    <option value="medium">Medium (Default)</option>
-                    <option value="large">Large</option>
-                    <option value="xlarge">Extra Large</option>
-                  </select>
-                </div>
 
                 <label className="cb" style={{ marginTop: "0.5rem" }}>
                   <input type="checkbox" checked={bannerForm.active} onChange={e => setBannerForm(f => ({ ...f, active: e.target.checked }))} /> Active (visible on homepage)
@@ -1418,7 +1402,6 @@ export default function AdminPage() {
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "flex-end" }}>
                         <button className={`ab ${c.vip ? "ab-gold" : "ab-out"}`} onClick={() => handleToggleVip(c.id, c.vip)}>{c.vip ? "★ VIP" : "Mark VIP"}</button>
-                        <button className="ab ab-red" onClick={() => handleDeleteCustomer(c.id)}>Delete</button>
                         {c.created_at && <span style={{ fontSize: "0.6rem", color: "#ADADAD" }}>Since {new Date(c.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
                       </div>
                     </div>
