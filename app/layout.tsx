@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | Chronovian",
   },
   description:
-    "A sanctuary for extraordinary timepieces and fine jewellery. Rolex, Audemars Piguet, Patek Philippe and more — by appointment only in Narsingi, Hyderabad.",
+    "Watches and fine jewellery, chosen with care. Rolex, Audemars Piguet, Patek Philippe and more — by appointment only in Narsingi, Hyderabad.",
   keywords: [
     "luxury watches Hyderabad",
     "pre-owned Rolex India",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Chronovian By Ankris Luxurio",
     description:
-      "A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Narsingi, Hyderabad.",
+      "Watches and fine jewellery, chosen with care. By appointment only — Narsingi, Hyderabad.",
     url: "https://chronovian.com",
     siteName: "Chronovian By Ankris Luxurio",
     locale: "en_IN",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Chronovian By Ankris Luxurio",
     description:
-      "A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Narsingi, Hyderabad.",
+      "Watches and fine jewellery, chosen with care. By appointment only — Narsingi, Hyderabad.",
   },
   robots: {
     index: true,

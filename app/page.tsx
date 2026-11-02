@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
+
+// useLayoutEffect warns during server rendering, so fall back to useEffect there.
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
@@ -848,12 +851,25 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Open the right page when the site is loaded from a ?page=<category> link (refresh, shared link, bookmark)
-  useEffect(() => {
-    const pg = new URLSearchParams(window.location.search).get("page") as PageType | null;
-    if (pg && URL_PAGES.includes(pg)) setPage(pg);
+  // Open the right page when the site is loaded from a ?page=<category> or ?product=<id> link
+  // (refresh, shared link, new tab). Runs before the first paint so the homepage never flashes
+  // first. For ?product= the watch itself loads later, so a skeleton shows in the meantime.
+  useIsoLayoutEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pg = params.get("page") as PageType | null;
+    if (params.get("product")) setPage("product");
+    else if (pg && URL_PAGES.includes(pg)) setPage(pg);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If a ?product= link points at a watch that doesn't exist (or products failed to load),
+  // fall back to the homepage instead of leaving a blank page.
+  useEffect(() => {
+    if (productsLoading || page !== "product" || selectedWatch) return;
+    const id = new URLSearchParams(window.location.search).get("product");
+    if (id && allWatches.some(w => w.id === id)) return; // the ?product= effect is about to select it
+    setPage("home");
+  }, [productsLoading, page, selectedWatch, allWatches]);
 
   // Browser Back/Forward: re-read the URL and show the matching page
   useEffect(() => {
@@ -1232,7 +1248,7 @@ export default function Home() {
       </div>
       <span className="watch-brand">{w.brand}</span>
       <span className="watch-model" onClick={() => openProductInNewTab(w)} style={{cursor:"pointer"}}>{w.model}</span>
-      <span className="watch-ref">{w.ref}</span>
+      {w.condition && <span className="watch-condition">Condition: {w.condition}</span>}
       {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
       {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
       <div className={`card-actions${hoverCart ? " card-actions-hover" : ""}`}>
@@ -1469,6 +1485,7 @@ export default function Home() {
         .watch-brand { font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.25rem; display: block; font-weight: 500; }
         .watch-model { font-family: 'Marcellus', serif; font-size: 1rem; font-weight: 400; color: var(--black); display: block; margin-bottom: 0.2rem; min-height: 2.5em; line-height: 1.25em; }
         .watch-ref { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
+        .watch-condition { font-size: 0.78rem; color: var(--gray-mid); display: block; margin-bottom: 0.4rem; }
         .watch-price { font-size: 1rem; font-weight: 600; color: var(--black); display: block; margin-bottom: 0.75rem; letter-spacing: 0.01em; }
         .watch-erp { font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; letter-spacing: 0.01em; }
         .product-erp { font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--gray-light); text-decoration: line-through; display: block; margin-bottom: 0.2rem; }
@@ -2092,7 +2109,7 @@ export default function Home() {
                     </div>
                     <span className="watch-brand">{w.brand}</span>
                     <span className="watch-model" onClick={() => { setSearchOpen(false); setSearchQuery(""); openProductInNewTab(w); }} style={{cursor:"pointer"}}>{w.model}</span>
-                    <span className="watch-ref">{w.ref}</span>
+                    {w.condition && <span className="watch-condition">Condition: {w.condition}</span>}
                     {erpDisplay(w) && <span className="watch-erp">{erpDisplay(w)}</span>}
                     {priceDisplay(w) && <span className="watch-price">{priceDisplay(w)}</span>}
                     <div className="card-actions">
@@ -2282,6 +2299,21 @@ export default function Home() {
         </div>
       </div>
 
+      {/* PRODUCT PAGE — loading placeholder while a ?product= link waits for the catalogue */}
+      {page === "product" && !selectedWatch && productsLoading && (
+        <main>
+          <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "8rem 2.5rem 4rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem" }}>
+            <div className="skeleton skeleton-img" style={{ minHeight: "420px" }} />
+            <div>
+              <div className="skeleton skeleton-line" style={{ width: "30%", marginBottom: "1rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "70%", height: "2rem", marginBottom: "1rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "40%", marginBottom: "2rem" }} />
+              <div className="skeleton skeleton-line" style={{ width: "50%" }} />
+            </div>
+          </div>
+        </main>
+      )}
+
       {/* PRODUCT PAGE */}
       {page === "product" && selectedWatch && (
         <main>
@@ -2384,7 +2416,6 @@ export default function Home() {
                   const cat = selectedWatch.category;
                   const specColumns = [
                     { title: "Details", rows: [
-                      { label: "Condition", value: selectedWatch.condition },
                       { label: "Purchase Year", value: selectedWatch.year },
                       { label: "Watch Box", value: selectedWatch.box ? "Included" : "Not included" },
                       { label: "Papers", value: selectedWatch.papers ? "Included" : "Not included" },
@@ -3517,10 +3548,12 @@ export default function Home() {
           </section>
 
           <section className="about-strip">
-            <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Philosophy</span>
-            <h2 className="section-title" style={{fontSize:"clamp(1.4rem, 2.5vw, 2rem)"}}>A Sanctuary for the <em>Extraordinary</em></h2>
+            <span className="section-eyebrow" style={{fontSize:"1rem", letterSpacing:"0.25em"}}>Our Story</span>
+            <h2 className="section-title" style={{fontSize:"clamp(1.4rem, 2.5vw, 2rem)"}}>The Story Behind <em>Chronovian</em></h2>
             <div className="gold-rule" />
-            <p className="about-body">Chronovian is not merely a store — it is a curated sanctuary for those who understand that true luxury is measured in provenance, craftsmanship, and the singular joy of owning something exceptional. Every piece is hand-selected for its heritage, artistry, and investment potential.</p>
+            <p className="about-body" style={{margin:"1.5rem 0 1rem"}}>Chronovian grew from our family&apos;s love for watches, especially the mechanics, technology, and craftsmanship behind every timepiece.</p>
+            <p className="about-body" style={{margin:"0 0 1rem"}}>We wanted to share this passion by creating a space where people can discover, buy, sell, and trade watches as their tastes change. Alongside our watches, we bring together jewellery chosen with care, with a focus on quality, design, and value.</p>
+            <p className="about-body" style={{margin:"0 0 2.5rem"}}>At Chronovian, we believe every piece should have something special about it, whether it&apos;s the way it&apos;s made or the meaning it holds for the person who owns it.</p>
             <button className="btn-outline" onClick={() => goTo("booking")}>Schedule a Private Viewing</button>
           </section>
 
@@ -3590,7 +3623,7 @@ export default function Home() {
           <div className="footer-top">
             <div>
               <span className="footer-brand">Chronovian</span>
-              <p className="footer-tagline">A sanctuary for extraordinary timepieces and fine jewellery. By appointment only — Hyderabad, Telangana, India.</p>
+              <p className="footer-tagline">Watches and fine jewellery, chosen with care. By appointment only — Hyderabad, Telangana, India.</p>
             </div>
             <div>
               <span className="footer-col-title">Collections</span>
